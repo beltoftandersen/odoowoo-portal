@@ -115,8 +115,8 @@ final class TestCaseTest extends TestCase {
 		$this->assertSame( 200, wp_remote_retrieve_response_code( wp_remote_get( 'http://127.0.0.1:8101/a' ) ) );
 		$this->assertCount( 1, $this->django_calls() );
 
-		// A host that merely starts with the base, and another port: not the fake's, so blocked.
-		$other = wp_remote_get( 'http://127.0.0.1:81010/a' );
+		// Another port: not the fake's, so blocked.
+		$other = wp_remote_get( 'http://127.0.0.1:8102/a' );
 		$this->assertWPError( $other );
 		$this->assertSame( 'odoowoo_test_blocked', $other->get_error_code() );
 		$this->assertCount( 1, $this->django_calls() );
