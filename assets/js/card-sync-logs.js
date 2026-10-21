@@ -40,6 +40,10 @@
 		/\w+(error|exception)\b/,
 		/host=/,
 		/\b\d{1,3}(\.\d{1,3}){3}\b/,
+		/access denied/,
+		/permission/,
+		/res\.[a-z_]+/,
+		/ir\.[a-z_]+/,
 	];
 
 	/** The text of a log entry that may be shown: the server's own text, or the fixed message after a denylist hit. */

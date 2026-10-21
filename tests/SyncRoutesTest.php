@@ -547,13 +547,77 @@ final class SyncRoutesTest extends RestTestCase {
 		$this->assertSame( '/api/dashboards/7/order-syncs/', $call['path_and_query'] );
 		$this->assertSame( array( 'A-30', 'A-29', 'A-28', 'A-27', 'A-26' ), array_column( $data, 'woocommerce_order_id' ), 'Django order, not re-sorted.' );
 		$this->assertSame( array( 'Synced', 'Failed', 'Warning', 'Failed', 'Unknown' ), array_column( $data, 'status_text' ) );
-		$this->assertSame( array( 'Order synced.', 'No stock.', '', '', 'x' ), array_column( $data, 'log' ) );
+		$this->assertSame( array( 'Order synced.', 'This item was not synced.', '', 'This item was not synced.', 'This item was not synced.' ), array_column( $data, 'log' ), 'A failed, error or unknown row never carries Django\'s text.' );
 		$this->assertSame( 'success', $data[0]['status'] );
 		$this->assertSame( 'S0030', $data[0]['odoo_order_id'] );
 		$this->assertSame( '', $data[1]['odoo_order_id'] );
 
 		$this->fake_django( fn() => array( 200, array() ) );
 		$this->assertSame( array(), $this->rest( 'GET', $this->url( $l, 'order-syncs' ) )->get_data()['data']['items'] );
+	}
+
+	/**
+	 * The log text is decided in PHP: any row that is not success, info or warning gets the fixed
+	 * message, and a readable row keeps its text unless it carries an engine marker. The raw str(e)
+	 * of a failed sync is stored by Django (sync_app/orders/refunds.py:593, read by views.py:2345).
+	 */
+	public function test_order_sync_log_text_is_decided_server_side(): void {
+		$l     = $this->owner();
+		$fixed = 'This item was not synced.';
+		$row   = fn( string $status, string $log ) => array(
+			'woocommerce_order_id' => 'A-1',
+			'odoo_order_id'        => 'S1',
+			'status'               => $status,
+			'synced_at'            => '2026-10-21T10:00:00Z',
+			'log'                  => $log,
+		);
+		$log_of = function ( string $status, string $log ) use ( $l, $row ): string {
+			$this->fake_django( fn() => array( 200, array( $row( $status, $log ) ) ) );
+
+			return $this->rest( 'GET', $this->url( $l, 'order-syncs' ) )->get_data()['data']['items'][0]['log'];
+		};
+
+		// Not a readable status: fixed text, whatever it says.
+		foreach ( array( 'failed', 'error', 'FAILED', 'pending', '', 'mystery' ) as $status ) {
+			$this->assertSame( $fixed, $log_of( $status, 'Odoo said: product 5 is archived' ), 'status ' . $status );
+		}
+
+		// Readable statuses keep a plain log text.
+		foreach ( array( 'success', 'info', 'warning', 'Success' ) as $status ) {
+			$this->assertSame( 'Order synced to S0001.', $log_of( $status, 'Order synced to S0001.' ), 'status ' . $status );
+		}
+
+		// Each marker of the denylist replaces the text, on a readable row.
+		$markers = array(
+			'traceback'      => 'Traceback (most recent call last):',
+			'fault'          => 'xmlrpc Fault 1: boom',
+			'file'           => 'File "/srv/app/sync.py", something',
+			'line'           => 'broke at line 42',
+			'odoo module'    => 'raised in odoo.exceptions',
+			'odoorpc'        => 'odoorpc.error happened',
+			'psycopg2'       => 'psycopg2.OperationalError',
+			'xmlrpc'         => 'xmlrpc.client call',
+			'requests'       => 'requests.exceptions',
+			'urllib3'        => 'urllib3.connection',
+			'error word'     => 'KeyError: 5',
+			'exception word' => 'ValueError exception',
+			'host'           => 'connection to host=db1 failed',
+			'ipv4'           => 'cannot reach 10.10.2.5 today',
+			'access denied'  => 'Access Denied for this record',
+			'permission'     => 'You have no Permission to do that',
+			'res model'      => 'cannot read res.partner 5',
+			'ir model'       => 'cannot read ir.rule 5',
+		);
+
+		foreach ( $markers as $name => $text ) {
+			foreach ( array( 'success', 'warning', 'info' ) as $status ) {
+				$this->assertSame( $fixed, $log_of( $status, $text ), $name . ' on ' . $status );
+			}
+		}
+
+		// The raw text is nowhere in the reply.
+		$this->fake_django( fn() => array( 200, array( $row( 'failed', 'psycopg2.OperationalError secret-token-xyz' ) ) ) );
+		$this->assertStringNotContainsString( 'secret-token-xyz', (string) wp_json_encode( $this->rest( 'GET', $this->url( $l, 'order-syncs' ) )->get_data() ) );
 	}
 
 	public function test_dashboard_delete_forgets_its_tasks(): void {

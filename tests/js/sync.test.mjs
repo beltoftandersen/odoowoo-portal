@@ -271,6 +271,10 @@ const MARKERS = {
 	exception: 'Got an AccessException while reading',
 	host: "HTTPConnectionPool(host='odoo.internal', port=8069): Max retries",
 	ip: 'Could not reach 10.10.10.2 in time',
+	access_denied: 'Access Denied for res_partner',
+	permission: 'You lack the permission to read this',
+	res_model: 'Cannot read res.partner 5',
+	ir_model: 'Cannot read ir.rule 5',
 };
 
 for ( const [ name, text ] of Object.entries( MARKERS ) ) {

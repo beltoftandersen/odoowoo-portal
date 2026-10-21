@@ -18,7 +18,7 @@
                     "status": "error",
                     "status_text": "Failed",
                     "synced_at": "2026-10-21T09:40:00Z",
-                    "log": "Order 1050 was not created in Odoo: its line names MUG-9 through line meta, but no product in Odoo carries that reference."
+                    "log": "This item was not synced."
                 },
                 {
                     "woocommerce_order_id": "WS_1049",
@@ -34,7 +34,7 @@
                     "status": "failed",
                     "status_text": "Failed",
                     "synced_at": "2026-10-20T18:00:00Z",
-                    "log": "<Fault 1: 'Traceback (most recent call last):\\n  File \"odoo/http.py\", line 1\\nValueError'>"
+                    "log": "This item was not synced."
                 },
                 {
                     "woocommerce_order_id": "WS_1047",
@@ -42,7 +42,7 @@
                     "status": "pending",
                     "status_text": "Unknown",
                     "synced_at": "2026-10-20T17:00:00Z",
-                    "log": ""
+                    "log": "This item was not synced."
                 }
             ]
         }

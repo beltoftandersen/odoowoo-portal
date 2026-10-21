@@ -839,11 +839,57 @@ final class Map {
 				'status'               => $text( 'status' ),
 				'status_text'          => $status_text,
 				'synced_at'            => $text( 'synced_at' ),
-				'log'                  => $text( 'log' ),
+				'log'                  => self::safe_log( $status, $text( 'log' ) ),
 			);
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * What in a log text marks an engine error (Python, Odoo or database internals, an address,
+	 * a refusal of rights). Matched on the lowercased text. The browser applies the same list
+	 * again (card-sync-logs.js).
+	 */
+	private const LOG_DENY = array(
+		'/traceback/',
+		'/\bfault\b/',
+		'/file ".*"/',
+		'/line \d+/',
+		'/\b(odoo|odoorpc|psycopg2|xmlrpc|requests|urllib3)\.[a-z_]/',
+		'/\w+(error|exception)\b/',
+		'/host=/',
+		'/\b\d{1,3}(\.\d{1,3}){3}\b/',
+		'/access denied/',
+		'/permission/',
+		'/res\.[a-z_]+/',
+		'/ir\.[a-z_]+/',
+	);
+
+	/**
+	 * The log text of a sync row that may be sent to the browser. Django stores the raw str(e) of
+	 * a failure there (sync_app/orders/refunds.py:593), so only success, info and warning rows
+	 * keep their text, and only when no engine marker is in it.
+	 *
+	 * @param string $status Lowercased Django status.
+	 * @param string $log    Django's log text.
+	 */
+	private static function safe_log( string $status, string $log ): string {
+		$fixed = __( 'This item was not synced.', 'odoowoo-portal' );
+
+		if ( ! in_array( $status, array( 'success', 'info', 'warning' ), true ) ) {
+			return $fixed;
+		}
+
+		$lower = strtolower( $log );
+
+		foreach ( self::LOG_DENY as $pattern ) {
+			if ( 1 === preg_match( $pattern, $lower ) ) {
+				return $fixed;
+			}
+		}
+
+		return $log;
 	}
 
 	/**
