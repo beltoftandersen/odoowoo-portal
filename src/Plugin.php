@@ -42,6 +42,8 @@ final class Plugin {
 
 		Tasks::register();
 
+		Account\OpenLink::register();
+
 		Cards\Shortcode::register();
 		add_action( 'wp_enqueue_scripts', array( Cards\Renderer::class, 'register_assets' ) );
 		add_action( 'wp_footer', array( Cards\Renderer::class, 'attach_boot_data' ), 1 );

@@ -86,4 +86,23 @@ final class SettingsTest extends TestCase {
 		$this->assertStringNotContainsString( self::SECRET, $html );
 		$this->assertStringNotContainsString( $blob, $html );
 	}
+
+	public function test_screen_renders_both_page_dropdowns_with_the_saved_page_selected(): void {
+		$list      = self::factory()->post->create( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Apps' ) );
+		$dashboard = self::factory()->post->create( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'One app' ) );
+		$this->settings( array( 'list_page_id' => $list, 'dashboard_page_id' => $dashboard ) );
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		ob_start();
+		Settings::render();
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'name="odoowoo_portal_settings[list_page_id]"', $html );
+		$this->assertStringContainsString( 'id="odoowoo-list-page"', $html );
+		$this->assertStringContainsString( 'name="odoowoo_portal_settings[dashboard_page_id]"', $html );
+		$this->assertStringContainsString( 'id="odoowoo-dashboard-page"', $html );
+		$this->assertMatchesRegularExpression( '/<option[^>]*value="' . $list . '"[^>]*selected(?:="selected")?[^>]*>Apps</', $html );
+		$this->assertMatchesRegularExpression( '/<option[^>]*value="' . $dashboard . '"[^>]*selected(?:="selected")?[^>]*>One app</', $html );
+		$this->assertStringContainsString( 'value="0"', $html );
+	}
 }

@@ -183,33 +183,13 @@ final class Settings {
 					<tr>
 						<th scope="row"><label for="odoowoo-list-page"><?php esc_html_e( 'Dashboards page', 'odoowoo-portal' ); ?></label></th>
 						<td>
-							<?php
-							wp_dropdown_pages(
-								array(
-									'name'              => $name . '[list_page_id]',
-									'id'                => 'odoowoo-list-page',
-									'selected'          => (int) self::get( 'list_page_id' ),
-									'show_option_none'  => __( '— Select —', 'odoowoo-portal' ),
-									'option_none_value' => '0',
-								)
-							);
-							?>
+							<?php self::pages_dropdown( 'list_page_id', 'odoowoo-list-page' ); ?>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="odoowoo-dashboard-page"><?php esc_html_e( 'Dashboard page', 'odoowoo-portal' ); ?></label></th>
 						<td>
-							<?php
-							wp_dropdown_pages(
-								array(
-									'name'              => $name . '[dashboard_page_id]',
-									'id'                => 'odoowoo-dashboard-page',
-									'selected'          => (int) self::get( 'dashboard_page_id' ),
-									'show_option_none'  => __( '— Select —', 'odoowoo-portal' ),
-									'option_none_value' => '0',
-								)
-							);
-							?>
+							<?php self::pages_dropdown( 'dashboard_page_id', 'odoowoo-dashboard-page' ); ?>
 						</td>
 					</tr>
 					<tr>
@@ -221,5 +201,30 @@ final class Settings {
 			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Prints a page dropdown for a setting.
+	 *
+	 * @param string $key Setting key.
+	 * @param string $id  Element id.
+	 */
+	private static function pages_dropdown( string $key, string $id ): void {
+		$selected = (int) self::get( $key );
+		$pages    = get_pages( array( 'post_status' => 'publish' ) );
+
+		printf( '<select name="%1$s" id="%2$s">', esc_attr( self::OPTION . '[' . $key . ']' ), esc_attr( $id ) );
+		printf( '<option value="0">%s</option>', esc_html__( '— Select —', 'odoowoo-portal' ) );
+
+		foreach ( is_array( $pages ) ? $pages : array() as $page ) {
+			printf(
+				'<option value="%1$d"%2$s>%3$s</option>',
+				(int) $page->ID,
+				selected( $selected, (int) $page->ID, false ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core returns a fixed attribute.
+				esc_html( get_the_title( $page ) )
+			);
+		}
+
+		echo '</select>';
 	}
 }
