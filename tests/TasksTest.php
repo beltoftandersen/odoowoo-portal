@@ -108,15 +108,47 @@ final class TasksTest extends TestCase {
 		$this->assertFalse( Tasks::owns( $u, 11, 7, 'a' ) );
 	}
 
-	public function test_the_write_lock_is_released_and_a_stale_one_is_ignored(): void {
+	/**
+	 * The named lock of a user's task writes.
+	 *
+	 * @param int $user_id User.
+	 */
+	private function lock_name( int $user_id ): string {
+		return \BeltoftServices\Locks::name( 'odoowoo-portal-tasks', $user_id );
+	}
+
+	public function test_the_named_lock_is_released_after_a_write(): void {
+		global $wpdb;
+
 		Tasks::remember( 5, 11, 7, 'products', 'a' );
-		$this->assertFalse( get_option( 'odoowoo_portal_tasks_lock_5' ), 'Released after the write.' );
+		Tasks::forget( 5, 11, 7, 'a' );
 
-		add_option( 'odoowoo_portal_tasks_lock_5', time() - 60, '', 'no' );
+		$this->assertSame( '1', (string) $wpdb->get_var( $wpdb->prepare( 'SELECT IS_FREE_LOCK( %s )', $this->lock_name( 5 ) ) ) );
+	}
+
+	public function test_a_lock_held_by_another_connection_delays_one_second_then_the_write_still_happens(): void {
+		$other = new \mysqli( DB_HOST, DB_USER, DB_PASSWORD, DB_NAME );
+		$name  = $this->lock_name( 5 );
+		$got   = $other->query( "SELECT GET_LOCK('" . $other->real_escape_string( $name ) . "', 0)" )->fetch_row()[0];
+		$this->assertSame( '1', (string) $got, 'The second connection holds the lock.' );
+
+		$start = microtime( true );
+		Tasks::remember( 5, 11, 7, 'products', 'a' );
+		$took = microtime( true ) - $start;
+
+		$this->assertGreaterThanOrEqual( 0.9, $took, 'It waited for the lock.' );
+		$this->assertLessThan( 3.0, $took );
+		$this->assertTrue( Tasks::owns( 5, 11, 7, 'a' ), 'The fallback still saved.' );
+
+		global $wpdb;
+		$this->assertSame( '0', (string) $wpdb->get_var( $wpdb->prepare( 'SELECT IS_FREE_LOCK( %s )', $name ) ), 'Still held by the other connection: this request never took it.' );
+
+		$other->query( "SELECT RELEASE_LOCK('" . $other->real_escape_string( $name ) . "')" );
+		$other->close();
+
+		$start = microtime( true );
 		Tasks::remember( 5, 11, 7, 'stock', 'b' );
-
-		$this->assertTrue( Tasks::owns( 5, 11, 7, 'a' ) );
+		$this->assertLessThan( 0.5, microtime( true ) - $start, 'A free lock costs nothing.' );
 		$this->assertTrue( Tasks::owns( 5, 11, 7, 'b' ) );
-		$this->assertFalse( get_option( 'odoowoo_portal_tasks_lock_5' ) );
 	}
 }

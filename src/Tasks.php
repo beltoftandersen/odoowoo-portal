@@ -7,6 +7,8 @@
 
 namespace OdooWooPortal;
 
+use BeltoftServices\Locks;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -197,48 +199,33 @@ final class Tasks {
 	}
 
 	/**
-	 * Changes a user's entries under a short lock: the entries are read again once the lock is
-	 * held and the change is applied to that fresh copy, so two tabs starting syncs at once keep
-	 * both tasks. The lock is an option row (add_option is atomic); a lock older than 5 seconds
-	 * is stale and taken over; after about a second of waiting the change goes ahead without it
-	 * (the window left is then the few milliseconds between the read and the write).
+	 * Changes a user's entries under a MySQL named lock (the name comes from beltoft-services'
+	 * Locks, like its resource locks). The entries are read again once the lock is held and the
+	 * change is applied to that fresh copy, so two tabs starting syncs at once keep both tasks.
+	 * If the lock is not free within one second the change goes ahead without it: losing a
+	 * remembered task id is better than refusing a sync; the window left is the few
+	 * milliseconds between the read and the write.
 	 *
 	 * @param int      $user_id User.
 	 * @param callable $change  Gets the fresh entries, returns the entries to store.
 	 */
 	private static function mutate( int $user_id, callable $change ): void {
+		global $wpdb;
+
 		if ( $user_id <= 0 ) {
 			return;
 		}
 
-		$lock = self::META . '_lock_' . $user_id;
-		$held = false;
-
-		for ( $i = 0; $i < 20; $i++ ) {
-			if ( add_option( $lock, time(), '', 'no' ) ) {
-				$held = true;
-				break;
-			}
-
-			wp_cache_delete( $lock, 'options' );
-			wp_cache_delete( 'alloptions', 'options' );
-			$since = (int) get_option( $lock, 0 );
-
-			if ( $since < time() - 5 ) {
-				delete_option( $lock );
-				continue;
-			}
-
-			usleep( 50000 );
-		}
+		$name = Locks::name( 'odoowoo-portal-tasks', $user_id );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- named lock, nothing to cache.
+		$held = 1 === (int) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK( %s, %d )', $name, 1 ) );
 
 		try {
-			$fresh = self::load( $user_id, true );
-
-			self::save( $user_id, array_values( $change( $fresh ) ) );
+			self::save( $user_id, array_values( $change( self::load( $user_id, true ) ) ) );
 		} finally {
 			if ( $held ) {
-				delete_option( $lock );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- named lock, nothing to cache.
+				$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK( %s )', $name ) );
 			}
 		}
 	}

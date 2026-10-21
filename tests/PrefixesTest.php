@@ -15,13 +15,45 @@ use OdooWooPortal\Prefixes;
  */
 final class PrefixesTest extends RestTestCase {
 
-	public function set_up(): void {
-		parent::set_up();
+	/**
+	 * Ids of the licenses these tests create, deleted again afterwards (custom tables are not
+	 * covered by the test rollback).
+	 *
+	 * @var int[]
+	 */
+	private array $created = array();
 
-		// Licenses are in custom tables the test rollback does not cover, and user ids are reused:
-		// a license of an earlier test would be this user's third.
+	public function tear_down(): void {
 		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->prefix}beltoft_licenses" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		foreach ( $this->created as $id ) {
+			$wpdb->delete( $wpdb->prefix . 'beltoft_licenses', array( 'id' => $id ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		}
+
+		$this->created = array();
+		parent::tear_down();
+	}
+
+	/**
+	 * A license for the test, remembered for clean-up.
+	 *
+	 * @param array<string, mixed> $data  License data.
+	 * @param string               $state Resource state.
+	 * @return array<string, mixed>
+	 */
+	private function license( array $data = array(), string $state = 'ready' ): array {
+		global $wpdb;
+
+		if ( ! isset( $data['user_id'] ) ) {
+			$data['user_id'] = self::factory()->user->create();
+			// User ids are reused after the rollback; licenses of an earlier test with this id are not ours.
+			$wpdb->delete( $wpdb->prefix . 'beltoft_licenses', array( 'user_id' => $data['user_id'] ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		}
+
+		$l               = $this->odoowoo_license( $data, $state );
+		$this->created[] = (int) $l['id'];
+
+		return $l;
 	}
 
 	/**
@@ -30,8 +62,8 @@ final class PrefixesTest extends RestTestCase {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function two(): array {
-		$a = $this->odoowoo_license();
-		$b = $this->odoowoo_license( array( 'user_id' => (int) $a['user_id'] ) );
+		$a = $this->license();
+		$b = $this->license( array( 'user_id' => (int) $a['user_id'] ) );
 		$this->as_user( (int) $a['user_id'] );
 
 		return array( $a, $b );
@@ -93,7 +125,7 @@ final class PrefixesTest extends RestTestCase {
 	}
 
 	public function test_a_license_that_is_not_ready_makes_no_call(): void {
-		$a = $this->odoowoo_license( array(), 'provisioning' );
+		$a = $this->license( array(), 'provisioning' );
 		$this->as_user( (int) $a['user_id'] );
 		$this->serve( array() );
 
@@ -124,7 +156,7 @@ final class PrefixesTest extends RestTestCase {
 	}
 
 	public function test_reads_are_capped_at_20(): void {
-		$a    = $this->odoowoo_license();
+		$a    = $this->license();
 		$rows = array();
 
 		for ( $i = 1; $i <= 30; $i++ ) {
@@ -154,7 +186,7 @@ final class PrefixesTest extends RestTestCase {
 
 	public function test_other_users_license_is_never_read(): void {
 		list( $a, $b ) = $this->two();
-		$other = $this->odoowoo_license();
+		$other = $this->license();
 		$this->serve(
 			array(
 				$this->tenant( $a )     => array( 1 => 'AA' ),
