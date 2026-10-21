@@ -61,19 +61,19 @@ final class Plugin {
 	 */
 	public static function dependencies(): array {
 		$dependencies = array(
-			'woocommerce'       => array(
+			'woocommerce'      => array(
 				'label'   => 'WooCommerce',
 				'present' => class_exists( 'WooCommerce' ),
 				'version' => '',
 				'minimum' => '',
 			),
-			'beltoft-licenses'  => array(
+			'beltoft-licenses' => array(
 				'label'   => 'beltoft-licenses',
 				'present' => defined( 'BELTOFT_LICENSES_VERSION' ),
 				'version' => defined( 'BELTOFT_LICENSES_VERSION' ) ? (string) BELTOFT_LICENSES_VERSION : '',
 				'minimum' => '0.7.0',
 			),
-			'beltoft-services'  => array(
+			'beltoft-services' => array(
 				'label'   => 'beltoft-services',
 				'present' => defined( 'BELTOFT_SERVICES_VERSION' ),
 				'version' => defined( 'BELTOFT_SERVICES_VERSION' ) ? (string) BELTOFT_SERVICES_VERSION : '',
@@ -120,15 +120,33 @@ final class Plugin {
 			return;
 		}
 
+		$lines = array();
+
+		foreach ( self::dependencies() as $slug => $dependency ) {
+			$label   = (string) ( $dependency['label'] ?? $slug );
+			$minimum = (string) ( $dependency['minimum'] ?? '' );
+			$found   = (string) ( $dependency['version'] ?? '' );
+
+			if ( ! in_array( $label, self::missing(), true ) ) {
+				continue;
+			}
+
+			if ( ! empty( $dependency['present'] ) ) {
+				/* translators: 1: plugin name, 2: minimum version, 3: installed version. */
+				$lines[] = sprintf( __( 'Update %1$s to %2$s or newer (installed: %3$s).', 'odoowoo-portal' ), $label, $minimum, '' === $found ? '?' : $found );
+			} elseif ( '' !== $minimum ) {
+				/* translators: 1: plugin name, 2: minimum version. */
+				$lines[] = sprintf( __( 'Activate %1$s %2$s or newer.', 'odoowoo-portal' ), $label, $minimum );
+			} else {
+				/* translators: %s: plugin name. */
+				$lines[] = sprintf( __( 'Activate %s.', 'odoowoo-portal' ), $label );
+			}
+		}
+
 		printf(
-			'<div class="notice notice-error"><p>%s</p></div>',
-			esc_html(
-				sprintf(
-					/* translators: %s: comma separated plugin names. */
-					__( 'OdooWoo Portal is inactive until these are active: %s.', 'odoowoo-portal' ),
-					implode( ', ', self::missing() )
-				)
-			)
+			'<div class="notice notice-error"><p>%s %s</p></div>',
+			esc_html__( 'OdooWoo Portal is inactive.', 'odoowoo-portal' ),
+			esc_html( implode( ' ', $lines ) )
 		);
 	}
 }

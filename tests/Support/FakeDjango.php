@@ -13,9 +13,9 @@ namespace OdooWooPortal\Tests\Support;
 class FakeDjango {
 
 	/**
-	 * Recorded calls: method, path_and_query, headers, body.
+	 * Recorded calls: method, url, path_and_query, headers, body, timeout, args.
 	 *
-	 * @var array<int, array{method: string, path_and_query: string, headers: array<string, string>, body: string}>
+	 * @var array<int, array<string, mixed>>
 	 */
 	private $calls = array();
 
@@ -51,7 +51,7 @@ class FakeDjango {
 	 * @return mixed
 	 */
 	public function handle( $preempt, $args, $url ) {
-		if ( 0 !== strpos( $url, $this->base ) ) {
+		if ( ! $this->is_ours( $url ) ) {
 			return $preempt;
 		}
 
@@ -63,11 +63,20 @@ class FakeDjango {
 			$headers[ (string) $name ] = (string) $value;
 		}
 
+		$body = $args['body'] ?? '';
+
+		if ( is_array( $body ) || is_object( $body ) ) {
+			$body = http_build_query( (array) $body );
+		}
+
 		$call          = array(
 			'method'         => strtoupper( (string) ( $args['method'] ?? 'GET' ) ),
+			'url'            => $url,
 			'path_and_query' => $path . ( is_string( $qs ) && '' !== $qs ? '?' . $qs : '' ),
 			'headers'        => $headers,
-			'body'           => (string) ( $args['body'] ?? '' ),
+			'body'           => is_scalar( $body ) ? (string) $body : '',
+			'timeout'        => $args['timeout'] ?? null,
+			'args'           => $args,
 		);
 		$this->calls[] = $call;
 
@@ -86,9 +95,31 @@ class FakeDjango {
 	}
 
 	/**
+	 * Whether the URL has the base's scheme, host and port (not merely its prefix).
+	 *
+	 * @param string $url URL.
+	 */
+	private function is_ours( string $url ): bool {
+		$ours   = wp_parse_url( $this->base );
+		$theirs = wp_parse_url( $url );
+
+		if ( ! is_array( $theirs ) || ! isset( $theirs['scheme'], $theirs['host'] ) ) {
+			return false;
+		}
+
+		$port = static function ( array $parts ) {
+			return $parts['port'] ?? ( 'https' === strtolower( $parts['scheme'] ) ? 443 : 80 );
+		};
+
+		return strtolower( $ours['scheme'] ) === strtolower( $theirs['scheme'] )
+			&& strtolower( $ours['host'] ) === strtolower( $theirs['host'] )
+			&& $port( $ours ) === $port( $theirs );
+	}
+
+	/**
 	 * Recorded calls.
 	 *
-	 * @return array<int, array{method: string, path_and_query: string, headers: array<string, string>, body: string}>
+	 * @return array<int, array<string, mixed>>
 	 */
 	public function calls(): array {
 		return $this->calls;

@@ -49,4 +49,41 @@ final class SettingsTest extends TestCase {
 		$this->connection( 'odoowoo' );
 		$this->assertSame( 'odoowoo', Settings::sanitize( array( 'connection_id' => 'odoowoo' ) )['connection_id'] );
 	}
+
+	public function test_rejections_are_reported_to_the_admin(): void {
+		require_once ABSPATH . 'wp-admin/includes/template.php';
+
+		global $wp_settings_errors;
+		$wp_settings_errors = array();
+
+		$draft = self::factory()->post->create( array( 'post_type' => 'page', 'post_status' => 'draft' ) );
+
+		Settings::sanitize( array( 'list_page_id' => (string) $draft, 'connection_id' => 'nope' ) );
+
+		$codes = wp_list_pluck( $wp_settings_errors, 'code' );
+		$this->assertContains( 'odoowoo_portal_list_page_id', $codes );
+		$this->assertContains( 'odoowoo_portal_connection_id', $codes );
+		$this->assertNotContains( 'odoowoo_portal_dashboard_page_id', $codes, 'An empty choice is not a rejection.' );
+
+		$wp_settings_errors = array();
+		Settings::sanitize( array() );
+		$this->assertSame( array(), $wp_settings_errors );
+	}
+
+	public function test_screen_never_shows_the_connection_secret(): void {
+		$this->connection( 'odoowoo' );
+		$blob = (string) \BeltoftServices\Http\Connections::all()['odoowoo']['secret'];
+
+		$this->assertNotSame( '', $blob );
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		ob_start();
+		Settings::render();
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'odoowoo-connection', $html );
+		$this->assertStringContainsString( 'OdooWoo', $html );
+		$this->assertStringNotContainsString( self::SECRET, $html );
+		$this->assertStringNotContainsString( $blob, $html );
+	}
 }

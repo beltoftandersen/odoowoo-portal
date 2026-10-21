@@ -98,19 +98,42 @@ final class Settings {
 
 		$connection = sanitize_key( (string) ( $input['connection_id'] ?? '' ) );
 
-		$clean['connection_id'] = isset( \BeltoftServices\Http\Connections::all()[ $connection ] ) ? $connection : '';
+		if ( '' !== $connection && ! isset( \BeltoftServices\Http\Connections::all()[ $connection ] ) ) {
+			self::reject( 'connection_id', __( 'That connection does not exist, so it was not saved.', 'odoowoo-portal' ) );
+			$connection = '';
+		}
 
-		$slug                  = sanitize_title( (string) ( $input['software_slug'] ?? '' ) );
+		$clean['connection_id'] = $connection;
+
+		$slug                   = sanitize_title( (string) ( $input['software_slug'] ?? '' ) );
 		$clean['software_slug'] = '' === $slug ? $clean['software_slug'] : $slug;
 
 		foreach ( array( 'list_page_id', 'dashboard_page_id' ) as $key ) {
-			$id           = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : 0;
-			$clean[ $key ] = ( $id > 0 && 'page' === get_post_type( $id ) && 'publish' === get_post_status( $id ) ) ? $id : 0;
+			$id = isset( $input[ $key ] ) ? absint( $input[ $key ] ) : 0;
+
+			if ( $id > 0 && ! ( 'page' === get_post_type( $id ) && 'publish' === get_post_status( $id ) ) ) {
+				self::reject( $key, __( 'Choose a published page.', 'odoowoo-portal' ) );
+				$id = 0;
+			}
+
+			$clean[ $key ] = $id;
 		}
 
 		$clean['delete_data'] = ! empty( $input['delete_data'] );
 
 		return $clean;
+	}
+
+	/**
+	 * Tells the admin a value was refused (when the Settings API is loaded).
+	 *
+	 * @param string $key     Setting key.
+	 * @param string $message Message.
+	 */
+	private static function reject( string $key, string $message ): void {
+		if ( function_exists( 'add_settings_error' ) ) {
+			add_settings_error( self::OPTION, 'odoowoo_portal_' . $key, $message );
+		}
 	}
 
 	/**
