@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "That order prefix is already used by another of your dashboards.",
+        "field": "prefix"
+    }
+}

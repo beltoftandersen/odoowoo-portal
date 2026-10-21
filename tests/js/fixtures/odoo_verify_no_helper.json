@@ -1,0 +1,11 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "success": true,
+            "message": "Odoo connection verified, but the OdooWoo Helper module is not installed.",
+            "helper_installed": false
+        }
+    }
+}

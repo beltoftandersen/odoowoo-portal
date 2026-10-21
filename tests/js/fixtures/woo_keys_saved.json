@@ -1,0 +1,19 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "consumer_key": "ck_1",
+            "has_consumer_secret": true,
+            "woocommerce_url": "https://shop.example",
+            "prefix": "WS",
+            "enable_stock_update": true,
+            "change_status_delivery": false,
+            "has_webhook_secret": true,
+            "require_webhook_signature": true,
+            "used_prefixes": [
+                "AB"
+            ]
+        }
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "odoo_url": "",
+            "odoo_db": "",
+            "odoo_user": "",
+            "has_middleware_api_key": false,
+            "enable_auto_payment": false,
+            "enable_auto_payment_cn": false,
+            "enable_set_invoice_status": false,
+            "enable_reset_all_deliveries": false,
+            "enable_set_deliveries_to_waiting": false,
+            "enable_auto_complete_deliveries": false,
+            "odoo_order_pricelist_id": null,
+            "odoo_order_pricelist_name": "",
+            "capture_stage": "processing",
+            "confirm_pending_orders": false,
+            "price_includes_tax": false,
+            "order_incl_tax": true,
+            "quantity_settings": "on_hand",
+            "enable_brand_sync": false,
+            "brand_sync_allowed": false,
+            "enable_category_sync": true,
+            "enable_product_name_sync": true,
+            "enable_tag_sync": true,
+            "enable_image_sync": true,
+            "enable_price_sync": false,
+            "enable_barcode_sync": false,
+            "stock_sku_meta_keys": "",
+            "stock_units_meta_keys": "",
+            "message": "No Odoo settings found. Please save them."
+        }
+    }
+}

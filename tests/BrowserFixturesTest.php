@@ -63,6 +63,113 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->keep( $name, $this->rest( 'GET', $this->url( $l, 'task-status/tk-1' ) ) );
 	}
 
+	/**
+	 * A fresh owner (each verify/loader call is rate limited per user), logged in.
+	 *
+	 * @return array<string, mixed> License.
+	 */
+	private function fresh(): array {
+		$lic = $this->odoowoo_license();
+		$this->as_user( (int) $lic['user_id'] );
+		\OdooWooPortal\Context::reset();
+		\OdooWooPortal\Api\Routes::reset();
+		\OdooWooPortal\Prefixes::forget( (int) $lic['user_id'] );
+
+		return $lic;
+	}
+
+	/**
+	 * Task 10: the connection cards. Every Django body is copied from sync_app/views.py of the
+	 * Django branch at 5ab091e (/root/projects/beltoft/odoowoo-tenants); middleware.py reshapes
+	 * `{success:false, message}` bodies to `{code: invalid_request, success:false, message}`.
+	 */
+	private function connection_fixtures(): void {
+		$u   = static fn( array $l, string $route ): string => '/licenses/' . $l['id'] . '/dashboards/' . self::D . '/' . $route;
+		$rows = array( array( 'id' => self::D, 'name' => 'Shop', 'enabled' => true, 'created_at' => '2026-10-21T12:00:00Z' ), array( 'id' => 8, 'name' => 'Other', 'enabled' => true, 'created_at' => '2026-10-21T12:00:00Z' ) );
+
+		// Woo keys GET, saved keys: views.py:272-283. The other dashboard (8) uses prefix AB; this one WS.
+		$l = $this->fresh();
+		$own = array( 'consumer_key' => 'ck_1', 'consumer_secret' => '', 'has_consumer_secret' => true, 'woocommerce_url' => 'https://shop.example', 'prefix' => 'WS', 'enable_stock_update' => true, 'change_status_delivery' => false, 'has_webhook_secret' => true, 'require_webhook_signature' => true, 'used_prefixes' => array( 'WS', 'AB' ) );
+		$this->django_map(
+			array(
+				'GET dashboards/'              => array( 200, $rows ),
+				'GET dashboards/7/woo-keys/'   => array( 200, $own ),
+				'GET dashboards/8/woo-keys/'   => array( 200, array_merge( $own, array( 'prefix' => 'AB' ) ) ),
+			)
+		);
+		$this->keep( 'woo_keys_saved', $this->rest( 'GET', $u( $l, 'woo-keys' ) ) );
+
+		// Woo keys GET, nothing saved yet: views.py:285-295 (no has_consumer_secret key at all).
+		$l = $this->fresh();
+		$new = array( 'consumer_key' => '', 'consumer_secret' => '', 'woocommerce_url' => '', 'prefix' => '', 'enable_stock_update' => true, 'change_status_delivery' => true, 'has_webhook_secret' => false, 'require_webhook_signature' => false, 'used_prefixes' => array() );
+		$this->django_map(
+			array(
+				'GET dashboards/'            => array( 200, array( $rows[0] ) ),
+				'GET dashboards/7/woo-keys/' => array( 200, $new ),
+			)
+		);
+		$this->keep( 'woo_keys_new', $this->rest( 'GET', $u( $l, 'woo-keys' ) ) );
+
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 201, array( 'message' => 'WooCommerce keys created successfully.' ) ) ); // Views.py:365.
+		$this->keep( 'woo_save_created', $this->rest( 'PUT', $u( $l, 'woo-keys' ), array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'WS', 'enable_stock_update' => true, 'change_status_delivery' => true ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'That order prefix is already used by another of your dashboards.', 'field' => 'prefix' ) ) ); // Views.py:358-361.
+		$this->keep( 'woo_prefix_taken', $this->rest( 'PUT', $u( $l, 'woo-keys' ), array( 'consumer_key' => 'ck_1', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'AB' ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'The WooCommerce consumer secret is required for the first save.', 'field' => 'consumer_secret' ) ) ); // Views.py:336-339.
+		$this->keep( 'woo_secret_required', $this->rest( 'PUT', $u( $l, 'woo-keys' ), array( 'consumer_key' => 'ck_1', 'woocommerce_url' => 'https://shop.example' ) ) );
+
+		// Verify WooCommerce: success views.py:2186-2189; failures 2206-2209 (reshaped by middleware.py:165-166) and 2211-2216.
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 200, array( 'success' => true, 'message' => 'WooCommerce connection verified and credentials updated successfully.' ) ) );
+		$this->keep( 'woo_verify_success', $this->rest( 'POST', $u( $l, 'verify-woocommerce' ), array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example' ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_request', 'success' => false, 'message' => 'Failed to fetch products. Check your credentials.' ) ) );
+		$this->keep( 'woo_verify_failed', $this->rest( 'POST', $u( $l, 'verify-woocommerce' ), array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example' ) ) );
+		$this->fake_django( fn() => array( 502, array( 'code' => 'woocommerce_unavailable', 'success' => false, 'message' => 'Could not verify the WooCommerce connection. Check your store URL and keys and try again.' ) ) );
+		$this->keep( 'woo_verify_unavailable', $this->rest( 'POST', $u( $l, 'verify-woocommerce' ), array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example' ) ) );
+
+		// Transfer webhooks: views.py:533-540, 521-524, 399-400.
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 200, array( 'message' => 'Created WooCommerce webhooks successfully.', 'created' => array( 'order.created', 'order.updated' ), 'skipped' => array(), 'secret_rotated' => true ) ) );
+		$this->keep( 'woo_webhooks_success', $this->rest( 'POST', $u( $l, 'inject-woo-webhooks' ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'webhooks_incomplete', 'message' => 'Some webhooks could not be configured.', 'created' => array(), 'skipped' => array(), 'failed' => array( array( 'topic' => 'order.created', 'error' => 'WooCommerce could not create this webhook.' ) ) ) ) );
+		$this->keep( 'woo_webhooks_incomplete', $this->rest( 'POST', $u( $l, 'inject-woo-webhooks' ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'woocommerce_not_configured', 'message' => 'Save your WooCommerce connection settings first.' ) ) );
+		$this->keep( 'woo_webhooks_not_configured', $this->rest( 'POST', $u( $l, 'inject-woo-webhooks' ) ) );
+
+		// Odoo settings GET: saved views.py:563-598, nothing saved 600-626 (no has_odoo_password, plus a message).
+		$l      = $this->fresh();
+		$saved  = array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com', 'odoo_password' => '', 'has_odoo_password' => true, 'has_middleware_api_key' => true, 'enable_auto_payment' => true, 'enable_auto_payment_cn' => false, 'enable_set_invoice_status' => false, 'enable_reset_all_deliveries' => false, 'enable_set_deliveries_to_waiting' => false, 'enable_auto_complete_deliveries' => true, 'odoo_order_pricelist_id' => 3, 'odoo_order_pricelist_name' => 'Public', 'capture_stage' => 'processing', 'confirm_pending_orders' => false, 'price_includes_tax' => false, 'order_incl_tax' => true, 'quantity_settings' => 'on_hand', 'enable_brand_sync' => false, 'brand_sync_allowed' => false, 'enable_category_sync' => true, 'enable_product_name_sync' => true, 'enable_tag_sync' => true, 'enable_image_sync' => true, 'enable_price_sync' => false, 'enable_barcode_sync' => false, 'stock_sku_meta_keys' => '', 'stock_units_meta_keys' => '' );
+		$this->fake_django( fn() => array( 200, $saved ) );
+		$this->keep( 'odoo_settings_saved', $this->rest( 'GET', $u( $l, 'odoo-settings' ) ) );
+		$blank = array_merge( $saved, array( 'odoo_url' => '', 'odoo_db' => '', 'odoo_user' => '', 'has_middleware_api_key' => false, 'enable_auto_payment' => false, 'enable_auto_complete_deliveries' => false, 'odoo_order_pricelist_id' => null, 'odoo_order_pricelist_name' => '', 'message' => 'No Odoo settings found. Please save them.' ) );
+		unset( $blank['has_odoo_password'] );
+		$this->fake_django( fn() => array( 200, $blank ) );
+		$this->keep( 'odoo_settings_new', $this->rest( 'GET', $u( $l, 'odoo-settings' ) ) );
+
+		$this->fake_django( fn() => array( 200, array( 'message' => 'Odoo settings saved.' ) ) ); // Views.py:774.
+		$this->keep( 'odoo_save_success', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com', 'odoo_password' => 'pw_dummy' ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'Password is required for initial setup.', 'field' => 'odoo_password' ) ) ); // Views.py:711.
+		$this->keep( 'odoo_password_required', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com' ) ) );
+
+		// Verify Odoo: views.py:2287-2291 (both messages), 2256-2259 (reshaped), 2295-2299.
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 200, array( 'success' => true, 'message' => 'Odoo connection verified successfully.', 'helper_installed' => true ) ) );
+		$this->keep( 'odoo_verify_helper', $this->rest( 'POST', $u( $l, 'verify-odoo' ), array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com' ) ) );
+		$this->fake_django( fn() => array( 200, array( 'success' => true, 'message' => 'Odoo connection verified, but the OdooWoo Helper module is not installed.', 'helper_installed' => false ) ) );
+		$this->keep( 'odoo_verify_no_helper', $this->rest( 'POST', $u( $l, 'verify-odoo' ), array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com' ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_request', 'success' => false, 'message' => 'Authentication with Odoo failed. Check your credentials.' ) ) );
+		$this->keep( 'odoo_verify_failed', $this->rest( 'POST', $u( $l, 'verify-odoo' ), array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com' ) ) );
+
+		// Set up Odoo callbacks (generate-api-key): views.py:216, 217-222 (400 since c2ae25d), 225-229.
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 200, array( 'message' => 'API key generated and transferred to Odoo successfully.' ) ) );
+		$this->keep( 'callback_success', $this->rest( 'POST', $u( $l, 'generate-api-key' ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'odoo_not_configured', 'message' => 'Save your Odoo connection settings first.' ) ) );
+		$this->keep( 'callback_not_configured', $this->rest( 'POST', $u( $l, 'generate-api-key' ) ) );
+		$this->fake_django( fn() => array( 500, array( 'code' => 'odoo_unavailable', 'message' => 'Could not send the API key to Odoo. Check the Odoo connection and try again.' ) ) );
+		$this->keep( 'callback_unavailable', $this->rest( 'POST', $u( $l, 'generate-api-key' ) ) );
+	}
+
 	public function test_browser_fixtures_match_the_real_routes(): void {
 		$l = $this->odoowoo_license();
 		$this->as_user( (int) $l['user_id'] );
@@ -130,6 +237,8 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->keep( 'dashboard_name_invalid', $this->rest( 'POST', '/licenses/' . $l['id'] . '/dashboards', array( 'name' => 'x' ) ) );
 		$this->fake_django( fn() => array( 409, array( 'code' => 'tenant_paused', 'message' => 'Your OdooWoo plan is paused. Renew it to make changes or run syncs.' ) ) ); // Middleware.py:57-58, 81.
 		$this->keep( 'tenant_paused', $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/' . self::D, array( 'name' => 'Outlet' ) ) );
+
+		$this->connection_fixtures();
 
 		// GET /licenses: the real summary of a ready, a paused and a getting-ready license (Routes::license_summary).
 		foreach ( array( 'ready' => 'ready', 'paused' => 'paused', 'getting_ready' => 'provisioning' ) as $label => $resource_state ) {

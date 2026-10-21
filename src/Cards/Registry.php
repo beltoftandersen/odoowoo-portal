@@ -58,6 +58,12 @@ final class Registry {
 		$cards['dashboard-list']['strings']   = self::list_strings();
 		$cards['dashboard-header']['keys']    = array( 'dashboard-detail', 'dashboard-rename' );
 		$cards['dashboard-header']['strings'] = self::header_strings();
+		$cards['woo-connection']['keys']      = array( 'woo-keys', 'verify-woocommerce', 'inject-woo-webhooks' );
+		$cards['woo-connection']['strings']   = self::woo_connection_strings();
+		$cards['woo-settings']['keys']        = array( 'woo-keys' );
+		$cards['woo-settings']['strings']     = self::woo_settings_strings();
+		$cards['odoo-connection']['keys']     = array( 'odoo-settings', 'verify-odoo', 'generate-api-key' );
+		$cards['odoo-connection']['strings']  = self::odoo_connection_strings();
 
 		/**
 		 * Filters the cards (name => title, template, script, keys, strings).
@@ -144,6 +150,90 @@ final class Registry {
 			'notFound'     => \OdooWooPortal\Django\Messages::not_found(),
 			'headerError'  => __( 'Dashboard', 'odoowoo-portal' ),
 			'retry'        => __( 'Try again', 'odoowoo-portal' ),
+		);
+	}
+
+	/**
+	 * The WooCommerce connection card's strings (labels from the old app's settings form).
+	 *
+	 * @return array<string, string>
+	 */
+	private static function woo_connection_strings(): array {
+		return array(
+			'storeUrl'       => __( 'Store URL', 'odoowoo-portal' ),
+			'consumerKey'    => __( 'Consumer Key', 'odoowoo-portal' ),
+			'consumerSecret' => __( 'Consumer Secret', 'odoowoo-portal' ),
+			'show'           => __( 'Show', 'odoowoo-portal' ),
+			'hide'           => __( 'Hide', 'odoowoo-portal' ),
+			'verify'         => __( 'Verify connection', 'odoowoo-portal' ),
+			'verifying'      => __( 'Verifying…', 'odoowoo-portal' ),
+			'verifyHelp'     => __( 'Verify also saves the URL and keys.', 'odoowoo-portal' ),
+			'save'           => __( 'Save', 'odoowoo-portal' ),
+			'transfer'       => __( 'Transfer webhooks', 'odoowoo-portal' ),
+			'transferring'   => __( 'Transferring…', 'odoowoo-portal' ),
+			'transferHelp'   => __( 'Creates the order webhooks in your store. Save the keys first.', 'odoowoo-portal' ),
+			'badgeSaved'     => __( 'Saved', 'odoowoo-portal' ),
+			'badgeVerified'  => __( 'Verified', 'odoowoo-portal' ),
+			'badgeWebhooks'  => __( 'Webhooks transferred', 'odoowoo-portal' ),
+			'keyRequired'    => __( 'Enter the consumer key.', 'odoowoo-portal' ),
+			'urlRequired'    => __( 'Enter the store URL.', 'odoowoo-portal' ),
+			'secretRequired' => __( 'Enter the consumer secret.', 'odoowoo-portal' ),
+			'verifiedOk'     => __( 'Connection verified.', 'odoowoo-portal' ),
+		);
+	}
+
+	/**
+	 * The WooCommerce settings card's strings.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function woo_settings_strings(): array {
+		return array(
+			'enableStock'  => __( 'Update stock when orders sync', 'odoowoo-portal' ),
+			'closeOrders'  => __( 'Close Woo orders when Odoo delivery completes', 'odoowoo-portal' ),
+			'orderPrefix'  => __( 'Order prefix', 'odoowoo-portal' ),
+			'prefixHelp'   => __( 'Two letters that start the order numbers of this dashboard. Each dashboard needs its own.', 'odoowoo-portal' ),
+			'selectPrefix' => __( 'Select an order prefix', 'odoowoo-portal' ),
+			/* translators: %s: the two-letter prefix. */
+			'prefixTaken'  => __( '%s (already used by another of your dashboards)', 'odoowoo-portal' ),
+			'save'         => __( 'Save', 'odoowoo-portal' ),
+			'saveWooFirst' => __( 'Save your WooCommerce connection first.', 'odoowoo-portal' ),
+		);
+	}
+
+	/**
+	 * The Odoo connection card's strings.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function odoo_connection_strings(): array {
+		return array(
+			'odooUrl'              => __( 'Odoo URL', 'odoowoo-portal' ),
+			'database'             => __( 'Database', 'odoowoo-portal' ),
+			'user'                 => __( 'User', 'odoowoo-portal' ),
+			'password'             => __( 'Password / API Token', 'odoowoo-portal' ),
+			'show'                 => __( 'Show', 'odoowoo-portal' ),
+			'hide'                 => __( 'Hide', 'odoowoo-portal' ),
+			'verify'               => __( 'Verify connection', 'odoowoo-portal' ),
+			'verifying'            => __( 'Verifying…', 'odoowoo-portal' ),
+			'verifyHelp'           => __( 'Verify checks the login and whether the OdooWoo Helper module is installed. It does not save.', 'odoowoo-portal' ),
+			'save'                 => __( 'Save', 'odoowoo-portal' ),
+			'setup'                => __( 'Set up Odoo callbacks', 'odoowoo-portal' ),
+			'settingUp'            => __( 'Setting up…', 'odoowoo-portal' ),
+			'callbackHelp'         => __( 'Lets Odoo tell OdooWoo about changes. Save the connection first.', 'odoowoo-portal' ),
+			'callbackSet'          => __( 'Callback key is set', 'odoowoo-portal' ),
+			'callbackNone'         => __( 'No callback key yet', 'odoowoo-portal' ),
+			'callbackConfirmTitle' => __( 'Set up Odoo callbacks', 'odoowoo-portal' ),
+			'callbackConfirmBody'  => __( 'This replaces the current callback key.', 'odoowoo-portal' ),
+			'callbackConfirm'      => __( 'Replace key', 'odoowoo-portal' ),
+			'callbackDone'         => __( 'Odoo callbacks are set up.', 'odoowoo-portal' ),
+			'urlRequired'          => __( 'Enter the Odoo URL.', 'odoowoo-portal' ),
+			'dbRequired'           => __( 'Enter the database.', 'odoowoo-portal' ),
+			'userRequired'         => __( 'Enter the user.', 'odoowoo-portal' ),
+			'passwordRequired'     => __( 'Enter the password or API token.', 'odoowoo-portal' ),
+			'verifiedOk'           => __( 'Connection verified.', 'odoowoo-portal' ),
+			'helperInstalled'      => __( 'Odoo connection verified. The OdooWoo Helper module is installed.', 'odoowoo-portal' ),
+			'helperMissing'        => __( 'Odoo connection verified, but the OdooWoo Helper module is not installed.', 'odoowoo-portal' ),
 		);
 	}
 }

@@ -1,0 +1,8 @@
+{
+    "status": 500,
+    "body": {
+        "ok": false,
+        "code": "odoo_unavailable",
+        "message": "Could not send the API key to Odoo. Check the Odoo connection and try again."
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "webhooks_incomplete",
+        "message": "Some webhooks could not be configured."
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_request",
+        "message": "Failed to fetch products. Check your credentials."
+    }
+}

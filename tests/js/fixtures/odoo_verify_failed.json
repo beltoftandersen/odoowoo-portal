@@ -1,0 +1,8 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_request",
+        "message": "Authentication with Odoo failed. Check your credentials."
+    }
+}

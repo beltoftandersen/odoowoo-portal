@@ -1,0 +1,8 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "woocommerce_not_configured",
+        "message": "Save your WooCommerce connection settings first."
+    }
+}

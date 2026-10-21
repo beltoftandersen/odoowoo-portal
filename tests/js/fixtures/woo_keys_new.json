@@ -1,0 +1,16 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "consumer_key": "",
+            "woocommerce_url": "",
+            "prefix": "",
+            "enable_stock_update": true,
+            "change_status_delivery": true,
+            "has_webhook_secret": false,
+            "require_webhook_signature": false,
+            "used_prefixes": []
+        }
+    }
+}

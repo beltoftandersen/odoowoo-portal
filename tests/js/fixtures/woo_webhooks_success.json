@@ -1,0 +1,15 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "message": "Created WooCommerce webhooks successfully.",
+            "created": [
+                "order.created",
+                "order.updated"
+            ],
+            "skipped": [],
+            "secret_rotated": true
+        }
+    }
+}

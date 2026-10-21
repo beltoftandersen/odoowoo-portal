@@ -1,0 +1,36 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "odoo_url": "https://odoo.example",
+            "odoo_db": "prod",
+            "odoo_user": "api@example.com",
+            "has_odoo_password": true,
+            "has_middleware_api_key": true,
+            "enable_auto_payment": true,
+            "enable_auto_payment_cn": false,
+            "enable_set_invoice_status": false,
+            "enable_reset_all_deliveries": false,
+            "enable_set_deliveries_to_waiting": false,
+            "enable_auto_complete_deliveries": true,
+            "odoo_order_pricelist_id": 3,
+            "odoo_order_pricelist_name": "Public",
+            "capture_stage": "processing",
+            "confirm_pending_orders": false,
+            "price_includes_tax": false,
+            "order_incl_tax": true,
+            "quantity_settings": "on_hand",
+            "enable_brand_sync": false,
+            "brand_sync_allowed": false,
+            "enable_category_sync": true,
+            "enable_product_name_sync": true,
+            "enable_tag_sync": true,
+            "enable_image_sync": true,
+            "enable_price_sync": false,
+            "enable_barcode_sync": false,
+            "stock_sku_meta_keys": "",
+            "stock_units_meta_keys": ""
+        }
+    }
+}

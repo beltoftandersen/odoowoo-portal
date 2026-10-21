@@ -300,3 +300,74 @@ a.odoowoo-button,
 	clip: rect(0 0 0 0);
 	white-space: nowrap;
 }
+
+/* Connection and settings cards */
+.odoowoo-card .odoowoo-form {
+	display: grid;
+	gap: 12px;
+	max-width: 560px;
+}
+
+.odoowoo-card .odoowoo-field {
+	display: grid;
+	gap: 4px;
+}
+
+.odoowoo-card .odoowoo-field--check {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.odoowoo-card .odoowoo-field--check label {
+	margin: 0;
+}
+
+.odoowoo-secret {
+	display: flex;
+	gap: 8px;
+}
+
+.odoowoo-secret input {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.odoowoo-help,
+.odoowoo-helper-status,
+.odoowoo-callback-box {
+	margin: 0;
+	font-size: 15px;
+	color: var(--odoowoo-muted);
+}
+
+.odoowoo-badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0;
+}
+
+.odoowoo-badge {
+	padding: 2px 10px;
+	font-size: 14px;
+	font-weight: 600;
+	border: 1px solid var(--odoowoo-accent);
+	border-radius: 999px;
+}
+
+.odoowoo-badge::before {
+	content: '✓ ';
+}
+
+.odoowoo-callbacks {
+	display: grid;
+	gap: 8px;
+	padding-top: 12px;
+	border-top: 1px solid var(--odoowoo-border);
+}
+
+.odoowoo-callback-box[data-key='set']::before {
+	content: '✓ ';
+	color: var(--odoowoo-accent);
+}

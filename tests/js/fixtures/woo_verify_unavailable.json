@@ -1,0 +1,8 @@
+{
+    "status": 502,
+    "body": {
+        "ok": false,
+        "code": "woocommerce_unavailable",
+        "message": "Could not verify the WooCommerce connection. Check your store URL and keys and try again."
+    }
+}

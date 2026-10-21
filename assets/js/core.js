@@ -231,11 +231,12 @@
 	 * Wraps a save: busy button, "Saving…", then "Saved" only for ok:true, otherwise the message.
 	 * The button always comes back. Never rejects. Resolves the reply.
 	 */
-	async function submit( button, statusEl, requestFn ) {
-		var release = busy( button, text( 'saving' ) );
+	async function submit( button, statusEl, requestFn, busyLabel ) {
+		var label = typeof busyLabel === 'string' && busyLabel !== '' ? busyLabel : text( 'saving' );
+		var release = busy( button, label );
 		var reply;
 
-		status( statusEl, 'saving', text( 'saving' ) );
+		status( statusEl, 'saving', label );
 
 		try {
 			reply = await requestFn();
@@ -412,6 +413,244 @@
 		} );
 	}
 
+
+	/** A text lookup for a card: boot-data strings first, then the card's English fallbacks. */
+	function translator( fallback ) {
+		return function ( key ) {
+			var i18n = ( G.odoowooPortal && G.odoowooPortal.i18n ) || {};
+
+			if ( typeof i18n[ key ] === 'string' && i18n[ key ] !== '' ) {
+				return i18n[ key ];
+			}
+
+			return typeof fallback[ key ] === 'string' ? fallback[ key ] : '';
+		};
+	}
+
+	/** The REST path of a route of one dashboard: licenses/<l>/dashboards/<d>/<route>. */
+	function dashboardPath( ctx, route ) {
+		return 'licenses/' + encodeURIComponent( String( ctx.licenseId ) ) + '/dashboards/' + encodeURIComponent( String( ctx.dashboardId ) ) + '/' + route;
+	}
+
+	var VERIFY = {
+		verifiedOk: 'Connection verified.',
+		helperInstalled: 'Odoo connection verified. The OdooWoo Helper module is installed.',
+		helperMissing: 'Odoo connection verified, but the OdooWoo Helper module is not installed.',
+	};
+	var vt = translator( VERIFY );
+
+	/**
+	 * What a verify reply means. The text of a success is the portal's own (from the boolean
+	 * helper_installed, never Django's wording); a refusal shows Django's message. `refresh` is
+	 * true for a verify that also saved on the server (WooCommerce): the card re-reads the keys.
+	 */
+	function verifyView( reply, saves ) {
+		if ( ! reply || reply.ok !== true ) {
+			return { verified: false, refresh: false, helper: 'unknown', message: errorText( reply ) };
+		}
+
+		var flag = isObject( reply.data ) ? reply.data.helper_installed : undefined;
+		var helper = flag === true ? 'installed' : ( flag === false ? 'missing' : 'unknown' );
+		var message = helper === 'installed' ? vt( 'helperInstalled' ) : ( helper === 'missing' ? vt( 'helperMissing' ) : vt( 'verifiedOk' ) );
+
+		return { verified: true, refresh: saves === true, helper: helper, message: message };
+	}
+
+	/**
+	 * What a password-like field shows. Django never sends the secret, only a has_* flag, read as
+	 * true only when it is the boolean true (a new dashboard's reply has no flag at all).
+	 */
+	function secretState( flag ) {
+		var saved = flag === true;
+
+		return { value: '', saved: saved, placeholder: saved ? text( 'secretSaved' ) : '' };
+	}
+
+	/**
+	 * One in-page copy of an object that Django saves whole (it resets every omitted field on a
+	 * save): the last read as `saved`, the typed changes as `edits`, listeners for the cards that
+	 * show it. Secrets are only ever edits: they are left out of the body when blank, kept
+	 * byte-exact otherwise, and forgotten once saved. opts: fields (the body's keys), secrets
+	 * (field names), flags (secret name => has_* name, set locally if a re-read fails).
+	 */
+	function createStore( opts ) {
+		var fields = ( opts && opts.fields ) || [];
+		var secrets = ( opts && opts.secrets ) || [];
+		var flags = ( opts && opts.flags ) || {};
+		var saved = {};
+		var edits = {};
+		var listeners = [];
+		var loaded = false;
+		var pending = null;
+
+		function notify() {
+			listeners.slice().forEach( function ( fn ) {
+				try {
+					fn();
+				} catch ( e ) {
+					// A card's listener must not break the others.
+				}
+			} );
+		}
+
+		function cleanRead( data ) {
+			var out = {};
+
+			if ( isObject( data ) ) {
+				Object.keys( data ).forEach( function ( k ) {
+					if ( secrets.indexOf( k ) === -1 ) {
+						out[ k ] = data[ k ];
+					}
+				} );
+			}
+
+			return out;
+		}
+
+		var store = {
+			get: function () {
+				return Object.assign( {}, saved, edits );
+			},
+			load: function ( data ) {
+				saved = cleanRead( data );
+				loaded = true;
+
+				// An edit that now equals what is saved is no edit any more.
+				Object.keys( edits ).forEach( function ( k ) {
+					if ( secrets.indexOf( k ) === -1 && edits[ k ] === saved[ k ] ) {
+						delete edits[ k ];
+					}
+				} );
+				notify();
+			},
+			patch: function ( changes ) {
+				Object.keys( changes || {} ).forEach( function ( k ) {
+					var v = changes[ k ];
+
+					if ( secrets.indexOf( k ) !== -1 ) {
+						if ( typeof v === 'string' && v !== '' ) {
+							edits[ k ] = v;
+						} else {
+							delete edits[ k ];
+						}
+					} else if ( v === saved[ k ] ) {
+						delete edits[ k ];
+					} else {
+						edits[ k ] = v;
+					}
+				} );
+				notify();
+			},
+			dirty: function () {
+				return Object.keys( edits ).length > 0;
+			},
+			/** The complete body: every field with its value, a blank secret left out. */
+			body: function () {
+				var all = store.get();
+				var out = {};
+
+				fields.forEach( function ( f ) {
+					if ( secrets.indexOf( f ) !== -1 ) {
+						if ( typeof all[ f ] === 'string' && all[ f ] !== '' ) {
+							out[ f ] = all[ f ];
+						}
+					} else if ( all[ f ] !== undefined ) {
+						out[ f ] = all[ f ];
+					}
+				} );
+
+				return out;
+			},
+			/** After a save: the fresh read when there is one, else what was typed becomes the saved copy. */
+			commit: function ( fresh ) {
+				var typed = Object.assign( {}, edits );
+
+				if ( isObject( fresh ) ) {
+					saved = cleanRead( fresh );
+				} else {
+					saved = cleanRead( Object.assign( {}, saved, typed ) );
+					secrets.forEach( function ( k ) {
+						if ( typed[ k ] !== undefined && flags[ k ] ) {
+							saved[ flags[ k ] ] = true;
+						}
+					} );
+				}
+
+				edits = {};
+				loaded = true;
+				notify();
+			},
+			/** Forgets typed secrets (they were saved by another call). */
+			dropSecrets: function () {
+				secrets.forEach( function ( k ) {
+					delete edits[ k ];
+				} );
+				notify();
+			},
+			subscribe: function ( fn ) {
+				listeners.push( fn );
+			},
+			isLoaded: function () {
+				return loaded;
+			},
+			/** Reads once for every card of the page: the loader is called only by the first. */
+			ensure: function ( loader ) {
+				if ( loaded ) {
+					return Promise.resolve( { ok: true, data: store.get(), cached: true } );
+				}
+
+				if ( pending === null ) {
+					pending = Promise.resolve( loader() ).then( function ( reply ) {
+						pending = null;
+
+						if ( reply && reply.ok === true ) {
+							store.load( reply.data );
+						}
+
+						return reply;
+					}, function ( e ) {
+						pending = null;
+						throw e;
+					} );
+				}
+
+				return pending;
+			},
+		};
+
+		return store;
+	}
+
+	/**
+	 * Saves a whole object: PUT its complete body, then re-read it so the flags are Django's.
+	 * Resolves the PUT's reply. A failed save changes nothing in the store.
+	 */
+	async function saveObject( path, store ) {
+		var reply = await api( 'PUT', path, store.body() );
+
+		if ( ! reply.ok ) {
+			return reply;
+		}
+
+		var fresh = await api( 'GET', path );
+
+		store.commit( fresh.ok ? fresh.data : null );
+
+		return reply;
+	}
+
+	var wooKeysStore = createStore( {
+		fields: [ 'consumer_key', 'woocommerce_url', 'consumer_secret', 'prefix', 'enable_stock_update', 'change_status_delivery' ],
+		secrets: [ 'consumer_secret' ],
+		flags: { consumer_secret: 'has_consumer_secret' },
+	} );
+
+	var odooSettingsStore = createStore( {
+		fields: [ 'odoo_url', 'odoo_db', 'odoo_user', 'odoo_password', 'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'odoo_order_pricelist_id', 'odoo_order_pricelist_name', 'capture_stage', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax', 'quantity_settings', 'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync', 'stock_sku_meta_keys', 'stock_units_meta_keys' ],
+		secrets: [ 'odoo_password' ],
+		flags: { odoo_password: 'has_odoo_password' },
+	} );
+
 	var api_ = {
 		api: api,
 		notConfigured: notConfigured,
@@ -426,6 +665,14 @@
 		dialog: dialog,
 		submit: submit,
 		text: text,
+		translator: translator,
+		dashboardPath: dashboardPath,
+		verifyView: verifyView,
+		secretState: secretState,
+		createStore: createStore,
+		saveObject: saveObject,
+		wooKeysStore: wooKeysStore,
+		odooSettingsStore: odooSettingsStore,
 	};
 
 	if ( typeof module !== 'undefined' && module.exports ) {

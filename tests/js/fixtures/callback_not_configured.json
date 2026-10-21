@@ -1,0 +1,8 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "odoo_not_configured",
+        "message": "Save your Odoo connection settings first."
+    }
+}
