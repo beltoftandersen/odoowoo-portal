@@ -15,9 +15,20 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Messages {
 
-	public const GENERIC     = 'Something went wrong on our side. Please try again in a moment.';
-	public const UNREACHABLE = 'OdooWoo could not be reached. Please try again in a moment.';
-	public const NOT_FOUND   = 'This dashboard was not found.';
+	/**
+	 * The fixed messages, translatable.
+	 */
+	public static function generic(): string {
+		return __( 'Something went wrong on our side. Please try again in a moment.', 'odoowoo-portal' );
+	}
+
+	public static function unreachable(): string {
+		return __( 'OdooWoo could not be reached. Please try again in a moment.', 'odoowoo-portal' );
+	}
+
+	public static function not_found(): string {
+		return __( 'This dashboard was not found.', 'odoowoo-portal' );
+	}
 
 	/**
 	 * The error for the browser.
@@ -42,13 +53,13 @@ final class Messages {
 		if ( $r->transport_error() ) {
 			return array(
 				'code'    => 'unreachable',
-				'message' => __( self::UNREACHABLE, 'odoowoo-portal' ), // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+				'message' => self::unreachable(),
 			);
 		}
 
 		return array(
 			'code'    => 'server_error',
-			'message' => __( self::GENERIC, 'odoowoo-portal' ), // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText
+			'message' => self::generic(),
 		);
 	}
 
@@ -67,6 +78,8 @@ final class Messages {
 		 */
 		do_action( 'odoowoo_portal_log', $line );
 
-		error_log( $line ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- the site owner's log.
+		if ( function_exists( 'wc_get_logger' ) ) {
+			wc_get_logger()->error( $line, array( 'source' => 'odoowoo-portal' ) );
+		}
 	}
 }

@@ -17,20 +17,17 @@ final class Reply {
 
 	public const SECRET_KEYS = array( 'webhook_secret', 'consumer_secret', 'odoo_password', 'middleware_api_key' );
 
-	/**
-	 * Characters of a raw body kept for the log.
-	 */
-	private const SNIPPET = 300;
-
-	private $status;
-	private $ok;
-	private $data;
-	private $code      = '';
-	private $message   = '';
-	private $field     = '';
-	private $facing    = false;
-	private $transport = false;
-	private $raw       = '';
+	private int $status       = 0;
+	private bool $ok          = false;
+	/** @var array<mixed> */
+	private array $data       = array();
+	private string $code      = '';
+	private string $message   = '';
+	private string $field     = '';
+	private bool $facing      = false;
+	private bool $transport   = false;
+	private int $length       = 0;
+	private string $why       = '';
 
 	/**
 	 * Use the factories.
@@ -51,33 +48,34 @@ final class Reply {
 			$r->data      = array();
 			$r->transport = true;
 			$r->code      = 'unreachable';
-			$r->raw       = $response->get_error_code() . ': ' . $response->get_error_message();
+			$r->why       = (string) $response->get_error_code();
 
 			return $r;
 		}
 
 		$r->status = (int) wp_remote_retrieve_response_code( $response );
 		$body      = (string) wp_remote_retrieve_body( $response );
-		$r->raw    = substr( $body, 0, self::SNIPPET );
+		$r->length = strlen( $body );
 		$success   = $r->status >= 200 && $r->status < 300;
 		$decoded   = '' === trim( $body ) ? array() : json_decode( $body, true );
 
 		if ( ! is_array( $decoded ) ) {
 			// Invalid JSON, or a bare scalar: nothing usable, even with a 2xx status.
-			$r->ok   = false;
-			$r->data = array();
-
 			return $r;
 		}
 
-		$r->ok   = $success;
-		$r->data = self::strip( $decoded );
+		$r->ok = $success;
 
 		if ( $r->status >= 400 && isset( $decoded['code'], $decoded['message'] ) && is_string( $decoded['code'] ) && is_string( $decoded['message'] ) && '' !== $decoded['code'] && '' !== $decoded['message'] ) {
 			$r->facing  = true;
 			$r->code    = $decoded['code'];
 			$r->message = $decoded['message'];
 			$r->field   = isset( $decoded['field'] ) && is_string( $decoded['field'] ) ? $decoded['field'] : '';
+		}
+
+		// Only a success body or a customer error carries data; any other failure body is not trusted.
+		if ( $r->ok || $r->facing ) {
+			$r->data = self::strip( $decoded );
 		}
 
 		return $r;
@@ -91,10 +89,8 @@ final class Reply {
 	public static function unavailable( string $why ): Reply {
 		$r         = new self();
 		$r->status = 0;
-		$r->ok     = false;
-		$r->data   = array();
 		$r->code   = 'unavailable';
-		$r->raw    = $why;
+		$r->why    = $why;
 
 		return $r;
 	}
@@ -161,9 +157,9 @@ final class Reply {
 	}
 
 	/**
-	 * The start of the raw body (or the transport error), for the log only.
+	 * A line for the log: status, code, body length or the error code. Never body text.
 	 */
-	public function raw(): string {
-		return $this->raw;
+	public function log_summary(): string {
+		return sprintf( 'status=%d code=%s length=%d%s', $this->status, '' === $this->code ? '-' : $this->code, $this->length, '' === $this->why ? '' : ' reason=' . $this->why );
 	}
 }

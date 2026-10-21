@@ -32,19 +32,12 @@ final class ClientTest extends TestCase {
 		$this->logged   = array();
 		$this->captured = array();
 		add_action( 'odoowoo_portal_log', fn( $line ) => $this->logged[] = $line );
-		// Keep error_log() out of the test output.
-		$this->previous_log = ini_set( 'error_log', sys_get_temp_dir() . '/odoowoo-portal-tests.log' );
+		// No WooCommerce log files from tests.
+		add_filter( 'woocommerce_logger_log_message', '__return_null' );
 	}
 
-	/**
-	 * Previous error_log setting.
-	 *
-	 * @var string|false
-	 */
-	private $previous_log = false;
-
 	public function tear_down(): void {
-		ini_set( 'error_log', false === $this->previous_log ? '' : $this->previous_log );
+		remove_all_filters( 'woocommerce_logger_log_message' );
 		remove_all_actions( 'odoowoo_portal_log' );
 		parent::tear_down();
 	}
@@ -147,12 +140,15 @@ final class ClientTest extends TestCase {
 
 		$this->assertFalse( $reply->ok() );
 		$this->assertSame( array(), $this->django_calls() );
-		$this->assertSame( Messages::GENERIC, Messages::from_reply( $reply )['message'] );
+		$this->assertSame( Messages::generic(), Messages::from_reply( $reply )['message'] );
 
 		$this->connection();
-		$_POST = array();
-		update_option( Settings::OPTION, Settings::sanitize( get_option( Settings::OPTION ) + array( 'secret' => 'x' ) ) );
-		$this->assertArrayNotHasKey( 'secret', (array) get_option( Settings::OPTION ) );
+		$clean = Settings::sanitize( (array) get_option( Settings::OPTION ) + array( 'secret' => 'x', 'connection_secret' => 'y' ) );
+		update_option( Settings::OPTION, $clean );
+		$saved = (array) get_option( Settings::OPTION );
+		$this->assertArrayNotHasKey( 'secret', $saved );
+		$this->assertSame( array(), array_diff( array_keys( $saved ), array_keys( Settings::defaults() ) ), 'Only the known settings are stored.' );
+		$this->assertStringNotContainsString( self::SECRET, (string) wp_json_encode( $saved ) );
 	}
 
 	public function test_no_call_without_a_callable_tenant(): void {
@@ -293,13 +289,15 @@ final class ClientTest extends TestCase {
 
 		$this->assertFalse( $reply->ok() );
 		$this->assertFalse( $reply->customer_facing() );
-		$this->assertSame( Messages::GENERIC, $error['message'] );
+		$this->assertSame( Messages::generic(), $error['message'] );
 		$this->assertStringNotContainsString( $raw, (string) wp_json_encode( $error ) );
 		$this->assertCount( 1, $this->logged );
 
-		if ( 'zzz-none' !== $raw ) {
-			$this->assertStringContainsString( $raw, $this->logged[0], 'The raw text is logged.' );
-		}
+		$this->assertSame( array(), $reply->data(), 'No data from an untrusted failure body.' );
+		$this->assertStringContainsString( 'status=' . $status, $this->logged[0] );
+		$this->assertStringContainsString( 'GET /api/dashboards/', $this->logged[0] );
+		$this->assertStringNotContainsString( $raw, $this->logged[0], 'Body text is never logged.' );
+		$this->assertStringNotContainsString( '127.0.0.1', $this->logged[0] );
 	}
 
 	public function test_transport_error_is_unreachable_and_logged(): void {
@@ -311,9 +309,10 @@ final class ClientTest extends TestCase {
 		$error = Messages::from_reply( $reply );
 
 		$this->assertSame( 0, $reply->status() );
-		$this->assertSame( Messages::UNREACHABLE, $error['message'] );
+		$this->assertSame( Messages::unreachable(), $error['message'] );
 		$this->assertStringNotContainsString( 'secret-host', (string) wp_json_encode( $error ) );
-		$this->assertStringContainsString( 'secret-host', $this->logged[0] );
+		$this->assertStringContainsString( 'http_request_failed', $this->logged[0] );
+		$this->assertStringNotContainsString( 'secret-host', $this->logged[0] );
 	}
 
 	public function test_odoowoo_mistake_error_details_never_shown(): void {
@@ -328,8 +327,43 @@ final class ClientTest extends TestCase {
 		// Not shown: the same kind of failure in an {error} body.
 		$this->fake_django( static fn() => array( 500, array( 'error' => 'ValueError: invalid literal for int()' ) ) );
 		$hidden = Messages::from_reply( Client::request( $ctx, 'GET', 'dashboards/' ) );
-		$this->assertSame( Messages::GENERIC, $hidden['message'] );
+		$this->assertSame( Messages::generic(), $hidden['message'] );
 		$this->assertStringNotContainsString( 'ValueError', (string) wp_json_encode( $hidden ) );
+	}
+
+	public function test_secret_in_a_failure_body_is_never_logged_or_returned(): void {
+		$this->connection();
+		list( $ctx ) = $this->ready();
+		$this->fake_django( static fn() => array( 500, array( 'error' => 'boom', 'consumer_secret' => 'cs_LEAK', 'x' => array( 'webhook_secret' => 'wh_LEAK' ) ) ) );
+
+		$reply = Client::request( $ctx, 'GET', 'dashboards/9/woo-keys/', null, array( 'k' => 'v' ) );
+
+		$this->assertSame( array(), $reply->data() );
+		$all = implode( "\n", $this->logged ) . wp_json_encode( Messages::from_reply( $reply ) );
+		$this->assertStringNotContainsString( 'LEAK', $all );
+		$this->assertStringNotContainsString( 'k=v', $all );
+	}
+
+	public function test_failures_go_to_the_woocommerce_log(): void {
+		$this->connection();
+		list( $ctx ) = $this->ready();
+		$this->fake_django( static fn() => array( 500, '' ) );
+		$seen = array();
+		remove_all_filters( 'woocommerce_logger_log_message' );
+		add_filter(
+			'woocommerce_logger_log_message',
+			static function ( $message, $level, $context ) use ( &$seen ) {
+				$seen[] = array( $level, $context['source'] ?? '' );
+				return null;
+			},
+			10,
+			3
+		);
+
+		Client::request( $ctx, 'GET', 'dashboards/' );
+
+		$this->assertNotEmpty( $seen );
+		$this->assertSame( array( array( 'error', 'odoowoo-portal' ) ), array_values( array_unique( $seen, SORT_REGULAR ) ) );
 	}
 
 	public function test_a_success_body_with_code_and_message_is_not_an_error(): void {

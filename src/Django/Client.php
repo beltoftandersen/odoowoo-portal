@@ -27,7 +27,7 @@ final class Client {
 	 *
 	 * @param Context              $ctx    Context of the license.
 	 * @param string               $method HTTP method.
-	 * @param string               $path   Path relative to /api/, for example "dashboards/9/woo-keys/".
+	 * @param string               $path   Path relative to /api/, for example "dashboards/9/woo-keys/". Trusted: callers build it from ints and fixed words.
 	 * @param array<mixed>|null    $body   JSON body, or null for none.
 	 * @param array<string, mixed> $query  Query arguments.
 	 */
@@ -91,7 +91,7 @@ final class Client {
 		$reply    = Reply::from_response( $response );
 
 		if ( ! $reply->ok() && ! $reply->customer_facing() ) {
-			Messages::log( sprintf( '%s /api/%s answered %d: %s', $method, ltrim( strtok( $path, '?' ), '/' ), $reply->status(), $reply->raw() ) );
+			Messages::log( sprintf( '%s /api/%s %s', $method, ltrim( (string) strtok( $path, '?' ), '/' ), $reply->log_summary() ) );
 		}
 
 		return $reply;
