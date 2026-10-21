@@ -215,12 +215,8 @@ final class Renderer {
 			return self::shell( $shell, $attrs );
 		}
 
-		$license_id = $ids['license'];
 		$own        = Context::licenses_for_user( $user );
-
-		if ( 0 === $license_id && array() !== $own ) {
-			$license_id = (int) $own[0]['id'];
-		}
+		$license_id = Context::page_license_id( $user, $ids['license'] );
 
 		$ctx = $license_id > 0 ? Context::for_user( $user, $license_id ) : null;
 

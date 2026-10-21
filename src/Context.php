@@ -100,6 +100,23 @@ final class Context {
 	}
 
 	/**
+	 * Which license a page is about: the one the URL names (kept as given; for_user() decides
+	 * whether the viewer may have it), else the viewer's newest usable one, else 0.
+	 *
+	 * @param int $user_id   User id.
+	 * @param int $requested License id from ?license=, 0 when absent.
+	 */
+	public static function page_license_id( int $user_id, int $requested ): int {
+		if ( $requested > 0 ) {
+			return $requested;
+		}
+
+		$own = self::licenses_for_user( $user_id );
+
+		return array() !== $own ? (int) $own[0]['id'] : 0;
+	}
+
+	/**
 	 * Builds a context.
 	 *
 	 * @param int $user_id    User id.

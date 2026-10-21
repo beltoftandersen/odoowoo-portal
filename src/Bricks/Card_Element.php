@@ -88,7 +88,7 @@ abstract class Card_Element extends \Bricks\Element {
 		$this->controls['fontFamily']  = $variable( esc_html__( 'Font family', 'odoowoo-portal' ), 'text', '--odoowoo-font' );
 		$this->controls['typography']  = $variable( esc_html__( 'Typography', 'odoowoo-portal' ), 'typography', 'font' );
 		$this->controls['border']      = $variable( esc_html__( 'Border', 'odoowoo-portal' ), 'border', 'border' );
-		$this->controls['padding']     = $variable( esc_html__( 'Padding', 'odoowoo-portal' ), 'dimensions', 'padding' );
+		$this->controls['padding']     = $variable( esc_html__( 'Padding', 'odoowoo-portal' ), 'spacing', 'padding' );
 	}
 
 	/**

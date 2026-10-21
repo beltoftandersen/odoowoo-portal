@@ -194,7 +194,7 @@ final class BricksTest extends RestTestCase {
 		$bound     = array(
 			'typography' => 'font',
 			'border'     => 'border',
-			'dimensions' => 'padding',
+			'spacing'    => 'padding',
 		);
 
 		foreach ( array_keys( self::ELEMENTS ) as $card ) {
@@ -410,6 +410,18 @@ final class BricksTest extends RestTestCase {
 		}
 
 		$this->assertSame( 'Hi , x', apply_filters( 'bricks/dynamic_data/render_content', 'Hi {odoowoo_dashboard_name}, x', null, 'text' ) );
+	}
+
+	public function test_the_page_license_is_the_one_in_the_url_else_the_first(): void {
+		$user = self::factory()->user->create();
+		$one  = $this->odoowoo_license( array( 'user_id' => $user ) );
+		$two  = $this->odoowoo_license( array( 'user_id' => $user ) );
+
+		$this->assertSame( (int) $two['id'], Context::page_license_id( $user, 0 ), 'Newest first, as licenses_for_user lists them.' );
+		$this->assertSame( (int) $one['id'], Context::page_license_id( $user, (int) $one['id'] ) );
+		$this->assertSame( 999, Context::page_license_id( $user, 999 ), 'A requested id is kept, and Context::for_user then refuses it.' );
+		$this->assertSame( 0, Context::page_license_id( self::factory()->user->create(), 0 ) );
+		$this->assertSame( 0, Context::page_license_id( 0, 0 ) );
 	}
 
 	public function test_tags_use_the_first_license_when_the_url_names_none(): void {

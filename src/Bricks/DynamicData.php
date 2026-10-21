@@ -133,11 +133,7 @@ final class DynamicData {
 		}
 
 		$ids        = Renderer::context_ids();
-		$license_id = $ids['license'];
-
-		if ( 0 === $license_id && array() !== $licenses ) {
-			$license_id = (int) $licenses[0]['id'];
-		}
+		$license_id = Context::page_license_id( $user, $ids['license'] );
 
 		$ctx = $license_id > 0 ? Context::for_user( $user, $license_id ) : null;
 
