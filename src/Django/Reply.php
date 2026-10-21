@@ -17,17 +17,35 @@ final class Reply {
 
 	public const SECRET_KEYS = array( 'webhook_secret', 'consumer_secret', 'odoo_password', 'middleware_api_key' );
 
-	private int $status       = 0;
-	private bool $ok          = false;
-	/** @var array<mixed> */
-	private array $data       = array();
-	private string $code      = '';
-	private string $message   = '';
-	private string $field     = '';
-	private bool $facing      = false;
-	private bool $transport   = false;
-	private int $length       = 0;
-	private string $why       = '';
+	/** @var int HTTP status, 0 when there was no answer. */
+	private int $status = 0;
+
+	/** @var bool Was the status 2xx with a usable body? */
+	private bool $ok = false;
+
+	/** @var array<mixed> Decoded body, only for a success or a customer error. */
+	private array $data = array();
+
+	/** @var string Django's error code, or "unreachable" / "unavailable". */
+	private string $code = '';
+
+	/** @var string Django's customer-facing message. */
+	private string $message = '';
+
+	/** @var string The field a customer error names. */
+	private string $field = '';
+
+	/** @var bool Was it a `{code, message}` customer error? */
+	private bool $facing = false;
+
+	/** @var bool Was there no answer at all? */
+	private bool $transport = false;
+
+	/** @var int Body length, for the log. */
+	private int $length = 0;
+
+	/** @var string Reason, for the log. */
+	private string $why = '';
 
 	/**
 	 * Use the factories.

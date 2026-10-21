@@ -192,4 +192,37 @@ final class MinorsTest extends RestTestCase {
 		$this->assertFalse( method_exists( Prefixes::class, 'in_use' ) );
 		$this->assertTrue( method_exists( Prefixes::class, 'status' ) );
 	}
+
+	public function test_woo_settings_say_partial_only_when_another_license_could_not_be_read(): void {
+		$a = $this->odoowoo_license();
+		$b = $this->odoowoo_license( array( 'user_id' => (int) $a['user_id'] ) );
+		$this->as_user( (int) $a['user_id'] );
+		$tenant_a = $this->tenant( $a );
+		$b_up     = false;
+		$this->fake_django(
+			function ( $call ) use ( $tenant_a, &$b_up ) {
+				$tenant = $call['headers']['X-Beltoft-Tenant'] ?? '';
+				$path   = preg_replace( '#^/api/#', '', $call['path_and_query'] );
+
+				if ( $tenant !== $tenant_a && ! $b_up ) {
+					return array( 502, '<html>down</html>' );
+				}
+
+				if ( 'dashboards/' === $path ) {
+					return array( 200, array( array( 'id' => $tenant === $tenant_a ? 7 : 9 ) ) );
+				}
+
+				return array( 200, array( 'prefix' => $tenant === $tenant_a ? 'AA' : 'BB', 'used_prefixes' => array( 'AA' ) ) );
+			}
+		);
+
+		$data = $this->rest( 'GET', $this->url( $a, 'woo-keys' ) )->get_data()['data'];
+		$this->assertTrue( $data['used_prefixes_partial'], 'The other license was not read.' );
+
+		$b_up = true;
+		Prefixes::forget( (int) $a['user_id'] );
+		$data = $this->rest( 'GET', $this->url( $a, 'woo-keys' ) )->get_data()['data'];
+		$this->assertFalse( $data['used_prefixes_partial'] );
+		$this->assertSame( array( 'BB' ), $data['used_prefixes'] );
+	}
 }

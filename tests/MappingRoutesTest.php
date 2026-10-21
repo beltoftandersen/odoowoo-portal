@@ -514,4 +514,31 @@ final class MappingRoutesTest extends RestTestCase {
 		$this->assertSame( $django, Map::ROUTES[ $key ]['methods'][ $method ][0] );
 		$this->assertSame( array( $method ), array_keys( array_filter( Map::ROUTES[ $key ]['methods'], fn( $m ) => $m[0] === $django && ( 'PUT' !== $method || 'POST' === $django ) ) ) );
 	}
+
+	/**
+	 * Django answers 204 with a {message} body when Odoo has no taxes (sync_app/views.py:2556,
+	 * Response({"message": "No tax records found in Odoo."}, status=204)). Whatever the body, a 204
+	 * on a shaped row is an empty list, not an unreadable reply.
+	 */
+	public function test_any_204_on_a_shaped_row_is_an_empty_list_whatever_its_body(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+
+		foreach ( array( 'No tax records found in Odoo.', '' ) as $message ) {
+			$this->fake_django( fn() => array( 204, '' === $message ? '' : array( 'message' => $message ) ) );
+
+			$res = $this->rest( 'POST', $this->url( $l, 'fetch-and-store-odoo-taxes' ) );
+
+			$this->assertSame( 200, $res->get_status(), $message );
+			$this->assertSame( array( 'ok' => true, 'data' => array( 'items' => array() ) ), $res->get_data(), $message );
+		}
+
+		// A 200 with the same body is not a list: still unreadable (502), only the 204 is "nothing".
+		$this->fake_django( fn() => array( 200, array( 'message' => 'No tax records found in Odoo.' ) ) );
+		$this->assertSame( 502, $this->rest( 'POST', $this->url( $l, 'fetch-and-store-odoo-taxes' ) )->get_status() );
+
+		// A GET row with a keyed list (price mappings) behaves the same.
+		$this->fake_django( fn() => array( 204, array( 'message' => 'nothing' ) ) );
+		$this->assertSame( array( 'items' => array() ), $this->rest( 'GET', $this->url( $l, 'price-mappings' ) )->get_data()['data'] );
+	}
 }

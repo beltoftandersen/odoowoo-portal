@@ -99,13 +99,24 @@ final class BrowserFixturesTest extends RestTestCase {
 		);
 		$this->keep( 'woo_keys_saved', $this->rest( 'GET', $u( $l, 'woo-keys' ) ) );
 
-		// Woo keys GET when the other dashboard's read failed (500, not in the map): the portal's list is partial; Django's own list (views.py:272-283) still names AB.
-		$l = $this->fresh();
-		$this->django_map(
-			array(
-				'GET dashboards/'            => array( 200, $rows ),
-				'GET dashboards/7/woo-keys/' => array( 200, $own ),
-			)
+		// Woo keys GET when the user's other license could not be read (its tenant answers 502): the portal's list is partial; Django's own list (views.py:272-283) still names AB.
+		$l      = $this->fresh();
+		$second = $this->odoowoo_license( array( 'user_id' => (int) $l['user_id'] ) );
+		$down   = $this->tenant( $second );
+		$this->fake_django(
+			function ( $call ) use ( $down, $rows, $own ) {
+				if ( ( $call['headers']['X-Beltoft-Tenant'] ?? '' ) === $down ) {
+					return array( 502, '<html>down</html>' );
+				}
+
+				$path = preg_replace( '#^/api/#', '', $call['path_and_query'] );
+
+				if ( 'dashboards/' === $path ) {
+					return array( 200, $rows );
+				}
+
+				return array( 200, 'dashboards/8/woo-keys/' === $path ? array_merge( $own, array( 'prefix' => 'AB' ) ) : $own );
+			}
 		);
 		$this->keep( 'woo_keys_partial', $this->rest( 'GET', $u( $l, 'woo-keys' ) ) );
 
@@ -463,7 +474,7 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->keep( 'save_success', $this->rest( 'PUT', $this->url( $l, 'woo-keys' ), self::complete_woo( array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'WS' ) ) ) );
 
 		// A Django field error (the {code, message, field} contract).
-		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_request', 'message' => 'Expected a \'mappings\' list.', 'field' => 'mappings' ) ) ); // Views.py:921, 1090.
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_request', 'message' => 'Expected a \'mappings\' list.', 'field' => 'mappings' ) ) ); // Views.py:970, 1101, 1170 (the real message; the route is only a stand-in for a field refusal).
 		$this->keep( 'refusal_field', $this->rest( 'GET', $this->url( $l, 'odoo-journals' ) ) );
 
 		// Not configured (views.py:110, 125).
@@ -503,7 +514,7 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->keep( 'dashboard_detail_success', $this->rest( 'GET', '/licenses/' . $l['id'] . '/dashboards/' . self::D ) );
 		$this->fake_django( fn() => array( 200, array_merge( $dash, array( 'name' => 'Outlet' ) ) ) ); // DashboardDetailView.patch.
 		$this->keep( 'dashboard_rename_success', $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/' . self::D, array( 'name' => 'Outlet' ) ) );
-		$this->fake_django( fn() => array( 200, array( 'id' => self::D, 'enabled' => false ) ) ); // A patch reply that carries no name.
+		$this->fake_django( fn() => array( 200, array( 'id' => self::D, 'enabled' => false ) ) ); // SYNTHETIC: Django's DashboardDetailView.patch always answers with the serialized dashboard (name included); this body only exercises the portal's handling of a reply without one.
 		$this->keep( 'dashboard_rename_no_name', $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/' . self::D, array( 'name' => 'Outlet' ) ) );
 		$this->fake_django( fn() => array( 404, array( 'code' => 'dashboard_not_found', 'message' => 'This dashboard was not found.' ) ) ); // Api/errors.py:46, middleware.py:78.
 		$this->keep( 'dashboard_not_found', $this->rest( 'GET', '/licenses/' . $l['id'] . '/dashboards/' . self::D ) );

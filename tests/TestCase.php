@@ -132,7 +132,8 @@ abstract class TestCase extends \WP_UnitTestCase {
 	 * @return array<string, mixed> The license row.
 	 */
 	protected function odoowoo_license( array $data = array(), string $state = 'ready' ): array {
-		$data = array_merge(
+		$fresh_user = ! array_key_exists( 'user_id', $data );
+		$data       = array_merge(
 			array(
 				'product_slug'    => (string) Settings::get( 'software_slug' ),
 				'email'           => 'customer@example.com',
@@ -142,6 +143,12 @@ abstract class TestCase extends \WP_UnitTestCase {
 			),
 			$data
 		);
+
+		// The licenses table is not rolled back, and user ids are reused: rows of an earlier test with this id are not ours.
+		if ( $fresh_user ) {
+			global $wpdb;
+			$wpdb->delete( $wpdb->prefix . 'beltoft_licenses', array( 'user_id' => $data['user_id'] ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		}
 
 		global $wp_filter;
 		$saved = $wp_filter['beltoft_licenses_license_created'] ?? null;

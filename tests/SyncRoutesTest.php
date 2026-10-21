@@ -667,7 +667,8 @@ final class SyncRoutesTest extends RestTestCase {
 
 		$d = $this->rest( 'GET', $this->url( $l, 'woo-keys' ) )->get_data()['data'];
 
-		$this->assertTrue( $d['used_prefixes_partial'] );
+		// Dashboard 8 is of this license's tenant, and Django's own used_prefixes covers the whole tenant (views.py:262-264): no gap.
+		$this->assertFalse( $d['used_prefixes_partial'] );
 		$this->assertSame( array( 'BB' ), $d['used_prefixes'], 'Django\'s own list still covers this tenant\'s other dashboards.' );
 	}
 
@@ -679,7 +680,7 @@ final class SyncRoutesTest extends RestTestCase {
 
 		$this->assertSame( 'AA', $d['prefix'] );
 		$this->assertSame( array(), $d['used_prefixes'] );
-		$this->assertTrue( $d['used_prefixes_partial'], 'The dashboards list failed, so the check is partial.' );
+		$this->assertFalse( $d['used_prefixes_partial'], 'The failed list is this license\'s own: Django\'s used_prefixes covers that tenant.' );
 	}
 
 	public function test_refused_input_does_not_consume_a_rate_limit_slot(): void {

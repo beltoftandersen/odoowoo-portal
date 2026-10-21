@@ -261,7 +261,8 @@ final class Routes {
 	public static function respond( Reply $r, string $key = '', string $method = '' ): \WP_REST_Response {
 		if ( $r->ok() ) {
 			if ( '' !== $key && Map::shapes( $key, $method ) ) {
-				$shaped = Map::shape( $key, $method, $r->data() );
+				// A 204 means "nothing": Django may still send a {message} body with it (views.py:2556).
+				$shaped = 204 === $r->status() ? array( 'items' => array() ) : Map::shape( $key, $method, $r->data() );
 
 				if ( null === $shaped ) {
 					return self::refusal( 502, 'server_error', Messages::generic() );
@@ -412,7 +413,7 @@ final class Routes {
 		if ( 'woo-keys' === $key && 'GET' === $r->get_method() && $reply->ok() ) {
 			$data = $response->get_data();
 
-			$status = Prefixes::status( get_current_user_id(), $dashboard );
+			$status = Prefixes::status( get_current_user_id(), $dashboard, (int) $ctx->license()['id'] );
 			$own    = isset( $data['data']['prefix'] ) && is_string( $data['data']['prefix'] ) ? strtoupper( $data['data']['prefix'] ) : '';
 			$used   = $status['used'];
 

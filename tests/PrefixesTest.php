@@ -271,4 +271,40 @@ final class PrefixesTest extends RestTestCase {
 		$this->serve( array( $this->tenant( $b ) => array( 2 => 'BB' ) ) );
 		$this->assertTrue( Prefixes::status( (int) $a['user_id'], 1 )['partial'] );
 	}
+
+	public function test_partial_counts_only_licenses_other_than_the_current_one(): void {
+		// Django's own used_prefixes covers every dashboard of the current tenant (sync_app/views.py:262-264), so only a gap in another license's read can leave a prefix unseen.
+		list( $a, $b ) = $this->two();
+		$uid           = (int) $a['user_id'];
+
+		// The other license (B) is down: partial for A, and for no license at all (current 0).
+		$this->serve( array( $this->tenant( $a ) => array( 1 => 'AA' ) ) );
+		$this->assertTrue( Prefixes::status( $uid, 1, (int) $a['id'] )['partial'], 'B was not read.' );
+		Prefixes::forget( $uid );
+
+		// The current license (A) is the one that failed: Django covers it.
+		$this->serve( array( $this->tenant( $b ) => array( 2 => 'BB' ) ) );
+		$status = Prefixes::status( $uid, 1, (int) $a['id'] );
+		$this->assertFalse( $status['partial'] );
+		$this->assertSame( array( 'BB' ), $status['used'] );
+		Prefixes::forget( $uid );
+
+		// Seen from B, the same gap (A) is a real one.
+		$this->assertTrue( Prefixes::status( $uid, 2, (int) $b['id'] )['partial'] );
+		Prefixes::forget( $uid );
+
+		// The cap inside the current license only: not partial for it.
+		$rows = array();
+
+		for ( $i = 1; $i <= 30; $i++ ) {
+			$rows[ $i ] = 'P' . $i;
+		}
+
+		$solo = $this->license();
+		$this->as_user( (int) $solo['user_id'] );
+		$this->serve( array( $this->tenant( $solo ) => $rows ) );
+		$this->assertFalse( Prefixes::status( (int) $solo['user_id'], 1000, (int) $solo['id'] )['partial'] );
+		Prefixes::forget( (int) $solo['user_id'] );
+		$this->assertTrue( Prefixes::status( (int) $solo['user_id'], 1000 )['partial'], 'Without a current license the gap counts.' );
+	}
 }

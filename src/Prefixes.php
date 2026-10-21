@@ -26,10 +26,11 @@ final class Prefixes {
 	 *
 	 * @param int $user_id      User.
 	 * @param int $dashboard_id Dashboard being edited.
+	 * @param int $license_id   License being edited: Django's own list covers its tenant, so a gap in its read does not make the result partial. 0 when unknown.
 	 * @return array{used: array<int, string>, partial: bool}
 	 */
-	public static function status( int $user_id, int $dashboard_id ): array {
-		list( $all, $complete ) = self::all( $user_id );
+	public static function status( int $user_id, int $dashboard_id, int $license_id = 0 ): array {
+		list( $all, $unread ) = self::all( $user_id );
 		$used                   = array();
 
 		foreach ( $all as $id => $prefix ) {
@@ -44,7 +45,7 @@ final class Prefixes {
 
 		return array(
 			'used'    => $used,
-			'partial' => ! $complete,
+			'partial' => array() !== array_diff( $unread, array( $license_id ) ),
 		);
 	}
 
@@ -67,25 +68,26 @@ final class Prefixes {
 	}
 
 	/**
-	 * Dashboard id => prefix, cached, and whether every dashboard was read (a cached map always was).
+	 * Dashboard id => prefix, cached, and the licenses whose dashboards were not all read (none
+	 * for a cached map).
 	 *
 	 * @param int $user_id User.
-	 * @return array{0: array<int, string>, 1: bool}
+	 * @return array{0: array<int, string>, 1: array<int, int>}
 	 */
 	private static function all( int $user_id ): array {
 		if ( $user_id <= 0 ) {
-			return array( array(), true );
+			return array( array(), array() );
 		}
 
 		$cached = get_transient( self::key( $user_id ) );
 
 		if ( is_array( $cached ) ) {
-			return array( $cached, true );
+			return array( $cached, array() );
 		}
 
 		$map      = array();
-		$reads    = 0;
-		$complete = true;
+		$reads  = 0;
+		$unread = array();
 
 		foreach ( Context::licenses_for_user( $user_id ) as $license ) {
 			$ctx = Context::for_user( $user_id, (int) $license['id'] );
@@ -94,16 +96,18 @@ final class Prefixes {
 				continue;
 			}
 
+			$license_id = (int) $license['id'];
+
 			if ( $reads >= self::MAX_READS ) {
-				$complete = false;
-				break;
+				$unread[] = $license_id;
+				continue;
 			}
 
 			++$reads;
 			$list = Client::request( $ctx, 'GET', 'dashboards/' );
 
 			if ( ! $list->ok() ) {
-				$complete = false;
+				$unread[] = $license_id;
 				continue;
 			}
 
@@ -113,7 +117,7 @@ final class Prefixes {
 				}
 
 				if ( $reads >= self::MAX_READS ) {
-					$complete = false;
+					$unread[] = $license_id;
 					break;
 				}
 
@@ -122,7 +126,7 @@ final class Prefixes {
 				$data = $keys->ok() ? $keys->data() : array();
 
 				if ( ! $keys->ok() ) {
-					$complete = false;
+					$unread[] = $license_id;
 				} elseif ( isset( $data['prefix'] ) && is_string( $data['prefix'] ) ) {
 					$map[ (int) $row['id'] ] = $data['prefix'];
 				}
@@ -130,10 +134,12 @@ final class Prefixes {
 		}
 
 		// A result with a failed read in it is not remembered: the next call tries again.
-		if ( $complete ) {
+		$unread = array_values( array_unique( $unread ) );
+
+		if ( array() === $unread ) {
 			set_transient( self::key( $user_id ), $map, self::TTL );
 		}
 
-		return array( $map, $complete );
+		return array( $map, $unread );
 	}
 }
