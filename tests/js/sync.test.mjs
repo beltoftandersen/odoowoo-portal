@@ -288,6 +288,7 @@ test( 'test_plain_log_text_is_shown_as_written', () => {
 
 	assert.equal( logs.safeLog( rows[ 2 ].log ), rows[ 2 ].log );
 	assert.equal( logs.safeLog( 'The default journal is missing. Faulty lines skipped. Version 1.2.3 of the plan.' ), 'The default journal is missing. Faulty lines skipped. Version 1.2.3 of the plan.' );
+	assert.equal( logs.safeLog( 'Order 1051 was created in Odoo.' ), 'Order 1051 was created in Odoo.', 'A sentence ending in Odoo is not a module path.' );
 	assert.equal( logs.safeLog( '' ), '' );
 	assert.equal( logs.safeLog( undefined ), '' );
 } );

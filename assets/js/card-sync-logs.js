@@ -36,7 +36,7 @@
 		/\bfault\b/,
 		/file ".*"/,
 		/line \d+/,
-		/\b(odoo|odoorpc|psycopg2|xmlrpc|requests|urllib3)\./,
+		/\b(odoo|odoorpc|psycopg2|xmlrpc|requests|urllib3)\.[a-z_]/,
 		/\w+(error|exception)\b/,
 		/host=/,
 		/\b\d{1,3}(\.\d{1,3}){3}\b/,
