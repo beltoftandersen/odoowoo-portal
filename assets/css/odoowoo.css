@@ -1,0 +1,190 @@
+/*
+ * OdooWoo portal. Colours, radius, spacing and font come from --odoowoo-* custom properties,
+ * which default to the site's palette variables. Size in px: the site's root is 62.5%.
+ */
+.odoowoo-card {
+	--odoowoo-text: var(--navy, #14213d);
+	--odoowoo-muted: var(--ink-mid, #4a5568);
+	--odoowoo-bg: var(--bg-card, #ffffff);
+	--odoowoo-border: var(--rule, #d9dde3);
+	--odoowoo-accent: var(--green, #1a7f37);
+	--odoowoo-danger: #b42318;
+	--odoowoo-radius: 8px;
+	--odoowoo-gap: 16px;
+	--odoowoo-font: 'Onest', system-ui, sans-serif;
+
+	box-sizing: border-box;
+	margin: 0 0 var(--odoowoo-gap);
+	padding: calc(var(--odoowoo-gap) * 1.25);
+	color: var(--odoowoo-text);
+	background: var(--odoowoo-bg);
+	border: 1px solid var(--odoowoo-border);
+	border-radius: var(--odoowoo-radius);
+	font-family: var(--odoowoo-font);
+	font-size: 16px;
+	line-height: 1.5;
+}
+
+.odoowoo-card *,
+.odoowoo-dialog * {
+	box-sizing: border-box;
+}
+
+.odoowoo-card__title {
+	margin: 0 0 var(--odoowoo-gap);
+	font-size: 20px;
+	font-weight: 700;
+	color: var(--odoowoo-text);
+}
+
+.odoowoo-notice,
+.odoowoo-banner {
+	margin: 0 0 var(--odoowoo-gap);
+	padding: 8px 12px;
+	font-size: 15px;
+	color: var(--odoowoo-text);
+	border: 1px solid var(--odoowoo-border);
+	border-left: 4px solid var(--odoowoo-accent);
+	border-radius: var(--odoowoo-radius);
+}
+
+.odoowoo-banner {
+	border-left-color: var(--odoowoo-muted);
+	font-weight: 500;
+}
+
+.odoowoo-card a {
+	color: var(--odoowoo-accent);
+	text-decoration: underline;
+}
+
+.odoowoo-card label {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 500;
+}
+
+.odoowoo-card input[type='text'],
+.odoowoo-card input[type='url'],
+.odoowoo-card input[type='password'],
+.odoowoo-card input[type='number'],
+.odoowoo-card input[type='date'],
+.odoowoo-card select,
+.odoowoo-card textarea {
+	width: 100%;
+	max-width: 480px;
+	padding: 8px 10px;
+	font: inherit;
+	color: var(--odoowoo-text);
+	background: var(--odoowoo-bg);
+	border: 1px solid var(--odoowoo-border);
+	border-radius: var(--odoowoo-radius);
+}
+
+.odoowoo-card :focus-visible,
+.odoowoo-dialog :focus-visible {
+	outline: 3px solid var(--odoowoo-accent);
+	outline-offset: 2px;
+}
+
+.odoowoo-button {
+	padding: 8px 16px;
+	font: inherit;
+	font-weight: 500;
+	color: #ffffff;
+	background: var(--odoowoo-accent);
+	border: 1px solid var(--odoowoo-accent);
+	border-radius: var(--odoowoo-radius);
+	cursor: pointer;
+}
+
+.odoowoo-button--secondary {
+	color: var(--odoowoo-text);
+	background: transparent;
+	border-color: var(--odoowoo-border);
+}
+
+.odoowoo-button--danger {
+	background: var(--odoowoo-danger);
+	border-color: var(--odoowoo-danger);
+}
+
+.odoowoo-button[disabled],
+.odoowoo-button[aria-busy='true'] {
+	opacity: 0.6;
+	cursor: progress;
+}
+
+/* Status is text plus a symbol, never colour alone. */
+[data-state] {
+	margin-left: 8px;
+	font-size: 15px;
+}
+
+[data-state='saving']::before {
+	content: '… ';
+}
+
+[data-state='saved']::before {
+	content: '✓ ';
+	color: var(--odoowoo-accent, #1a7f37);
+}
+
+[data-state='error']::before {
+	content: '! ';
+	font-weight: 700;
+	color: var(--odoowoo-danger, #b42318);
+}
+
+.odoowoo-progress__bar {
+	width: 100%;
+	max-width: 480px;
+	height: 12px;
+}
+
+.odoowoo-progress__text {
+	margin: 4px 0 0;
+	font-size: 15px;
+}
+
+.odoowoo-dialog-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.odoowoo-dialog {
+	width: 100%;
+	max-width: 440px;
+	padding: 24px;
+	color: var(--navy, #14213d);
+	background: var(--bg-card, #ffffff);
+	border-radius: 8px;
+	font-family: 'Onest', system-ui, sans-serif;
+	font-size: 16px;
+}
+
+.odoowoo-dialog h2 {
+	margin: 0 0 12px;
+	font-size: 20px;
+}
+
+.odoowoo-dialog__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.odoowoo-card * {
+		transition: none !important;
+		animation: none !important;
+	}
+}

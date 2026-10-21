@@ -42,8 +42,28 @@ final class Plugin {
 
 		Tasks::register();
 
+		Cards\Shortcode::register();
+		add_action( 'wp_enqueue_scripts', array( Cards\Renderer::class, 'register_assets' ) );
+		add_action( 'wp_footer', array( Cards\Renderer::class, 'attach_boot_data' ), 1 );
+		add_action( 'template_redirect', array( __CLASS__, 'template_redirect' ) );
+
 		// Later tasks register their parts here.
 		self::$booted = true;
+	}
+
+	/**
+	 * A support user arriving through the "View as support" link gets the session; Support
+	 * checks the flag, the per-license nonce and the capability.
+	 */
+	public static function template_redirect(): void {
+		$user_id = get_current_user_id();
+
+		if ( $user_id <= 0 ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- the nonce is verified inside arrived().
+		Support::arrived( wp_unslash( $_GET ), $user_id );
 	}
 
 	/**
