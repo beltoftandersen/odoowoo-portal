@@ -244,7 +244,11 @@ final class Routes {
 		}
 
 		// 401 and 403 mean "session expired" to the browser: Django's never do.
-		$status = $r->customer_facing() && $r->status() >= 400 && $r->status() < 600 && ! in_array( $r->status(), array( 401, 403 ), true ) ? $r->status() : 502;
+		$status = 502;
+
+		if ( $r->customer_facing() && $r->status() >= 400 && $r->status() < 600 ) {
+			$status = in_array( $r->status(), array( 401, 403 ), true ) ? 409 : $r->status();
+		}
 
 		return new \WP_REST_Response( array( 'ok' => false ) + $error, $status );
 	}

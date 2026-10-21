@@ -27,7 +27,7 @@ final class RoutesTest extends RestTestCase {
 		$this->assertSame( '/api/dashboards/create/', $call['path_and_query'] );
 		$this->assertSame( array( 'name' => 'Shop' ), json_decode( $call['body'], true ) );
 		$this->assert_signed( $call, $this->tenant( $l ) );
-		$this->assertSame( 502, $res->get_status() );
+		$this->assertSame( 409, $res->get_status() );
 		$this->assertSame( 'dashboard_limit_reached', $res->get_data()['code'] );
 	}
 
@@ -226,7 +226,7 @@ final class RoutesTest extends RestTestCase {
 		foreach ( array( 401 => 401, 403 => 403, 409 => 409 ) as $django => $expect ) {
 			$this->fake_django( fn() => array( $django, array( 'code' => 'some_code', 'message' => 'Shown.' ) ) );
 			$res = $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/5', array( 'name' => 'n' ) );
-			$this->assertSame( 409 === $django ? 409 : 502, $res->get_status() );
+			$this->assertSame( 409, $res->get_status() );
 			$this->assertSame( 'some_code', $res->get_data()['code'] );
 			$this->assertSame( 'Shown.', $res->get_data()['message'] );
 		}
