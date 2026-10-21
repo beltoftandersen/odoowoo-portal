@@ -152,6 +152,7 @@ final class Renderer {
 			'cancel'          => __( 'Cancel', 'odoowoo-portal' ),
 			'taskRunning'     => __( 'Running', 'odoowoo-portal' ),
 			'taskCompleted'   => __( 'Completed', 'odoowoo-portal' ),
+			'taskCompletedIssues' => __( 'Completed, but some items were not synced', 'odoowoo-portal' ),
 			'taskSkipped'     => __( 'Skipped', 'odoowoo-portal' ),
 			'taskFailed'      => __( 'Failed', 'odoowoo-portal' ),
 			'taskStarting'    => __( 'Starting…', 'odoowoo-portal' ),

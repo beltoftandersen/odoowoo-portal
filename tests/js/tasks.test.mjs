@@ -205,3 +205,18 @@ test( 'test_poll_stops_by_itself_when_its_element_is_removed', async () => {
 	// render() leaves a removed element alone.
 	assert.equal( tasks.render( { isConnected: false }, tasks.view( R.task_done.data ) ), false );
 } );
+
+test( 'test_done_with_skipped_or_failed_items_is_not_plain_completed', () => {
+	// Task 18 walk, real Django (views: tasks result items): an orders sync of a pending order ends state
+	// "done" with results [{order: 13, status: "skipped", reason: ...}]; the card said "Completed".
+	const skipped = tasks.view( { state: 'done', current: 1, total: 1, message: 'Sync completed. 0 orders synced, 1 skipped.', results: [ { order: 13, status: 'skipped', reason: 'x' } ] } );
+	assert.equal( skipped.state, 'done' );
+	assert.equal( skipped.text, 'Completed, but some items were not synced' );
+
+	const failed = tasks.view( { state: 'done', results: [ { order: 1, status: 'success' }, { order: 2, status: 'failed' } ] } );
+	assert.equal( failed.text, 'Completed, but some items were not synced' );
+
+	const clean = tasks.view( { state: 'done', results: [ { product_name: 'A', status: 'success' } ] } );
+	assert.equal( clean.text, 'Completed' );
+	assert.equal( tasks.view( { state: 'done', results: [] } ).text, 'Completed' );
+} );

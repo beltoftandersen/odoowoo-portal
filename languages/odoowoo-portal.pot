@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-21T20:30:47+00:00\n"
+"POT-Creation-Date: 2026-10-21T21:37:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: odoowoo-portal\n"
@@ -70,7 +70,7 @@ msgstr ""
 
 #: src/Api/Map.php:829
 #: src/Api/Routes.php:519
-#: src/Cards/Renderer.php:156
+#: src/Cards/Renderer.php:157
 msgid "Failed"
 msgstr ""
 
@@ -125,7 +125,7 @@ msgid "Completed"
 msgstr ""
 
 #: src/Api/Routes.php:517
-#: src/Cards/Renderer.php:155
+#: src/Cards/Renderer.php:156
 msgid "Skipped"
 msgstr ""
 
@@ -246,17 +246,17 @@ msgstr ""
 msgid "Has an OdooWoo plan (1 or empty)"
 msgstr ""
 
-#: src/Bricks/DynamicData.php:160
+#: src/Bricks/DynamicData.php:182
 msgid "unlimited"
 msgstr ""
 
-#: src/Bricks/DynamicData.php:176
+#: src/Bricks/DynamicData.php:198
 #: src/Cards/Registry.php:131
 #: src/Cards/Registry.php:165
 msgid "Active"
 msgstr ""
 
-#: src/Bricks/DynamicData.php:176
+#: src/Bricks/DynamicData.php:198
 #: src/Cards/Registry.php:132
 #: src/Cards/Registry.php:166
 msgid "Paused"
@@ -731,7 +731,7 @@ msgid "You have no dashboards yet. Create one to connect a store."
 msgstr ""
 
 #: src/Cards/Registry.php:139
-#: src/Cards/Renderer.php:226
+#: src/Cards/Renderer.php:227
 msgid "You do not have an OdooWoo plan yet."
 msgstr ""
 
@@ -1350,29 +1350,33 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: src/Cards/Renderer.php:157
+#: src/Cards/Renderer.php:155
+msgid "Completed, but some items were not synced"
+msgstr ""
+
+#: src/Cards/Renderer.php:158
 msgid "Starting…"
 msgstr ""
 
 #. translators: 1: items done, 2: items in all.
-#: src/Cards/Renderer.php:159
+#: src/Cards/Renderer.php:160
 #, php-format
 msgid "%1$s of %2$s"
 msgstr ""
 
-#: src/Cards/Renderer.php:210
+#: src/Cards/Renderer.php:211
 msgid "Please log in to use OdooWoo."
 msgstr ""
 
-#: src/Cards/Renderer.php:212
+#: src/Cards/Renderer.php:213
 msgid "Log in"
 msgstr ""
 
-#: src/Cards/Renderer.php:228
+#: src/Cards/Renderer.php:229
 msgid "See the OdooWoo plans"
 msgstr ""
 
-#: src/Cards/Renderer.php:232
+#: src/Cards/Renderer.php:233
 msgid "This license was not found."
 msgstr ""
 

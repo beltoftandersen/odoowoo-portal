@@ -212,6 +212,7 @@ final class CardSyncTest extends RestTestCase {
 		$core = Renderer::core_strings();
 		$this->assertSame( 'Running', $core['taskRunning'] );
 		$this->assertSame( 'Completed', $core['taskCompleted'] );
+		$this->assertSame( 'Completed, but some items were not synced', $core['taskCompletedIssues'] );
 		$this->assertSame( 'Skipped', $core['taskSkipped'] );
 		$this->assertSame( 'Failed', $core['taskFailed'] );
 

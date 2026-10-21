@@ -54,6 +54,13 @@
 		return isFinite( n ) && n > 0 ? Math.floor( n ) : 0;
 	}
 
+	/** Did the task end "done" with items that were skipped or failed? Then "Completed" alone misleads. */
+	function hasUnsyncedItems( results ) {
+		return Array.isArray( results ) && results.some( function ( item ) {
+			return item && typeof item === 'object' && [ 'skipped', 'failed', 'error' ].indexOf( item.status ) !== -1;
+		} );
+	}
+
 	/** What to show for a task reply's data: the portal's own running text, never Django's. */
 	function view( data ) {
 		var d = data && typeof data === 'object' ? data : {};
@@ -67,6 +74,8 @@
 			line = t( 'taskStarting', 'Starting…' );
 		} else if ( state === 'running' ) {
 			line = label( state ) + ': ' + t( 'taskProgress', '%1$s of %2$s' ).replace( '%1$s', String( current ) ).replace( '%2$s', String( total ) );
+		} else if ( state === 'done' && hasUnsyncedItems( d.results ) ) {
+			line = t( 'taskCompletedIssues', 'Completed, but some items were not synced' );
 		} else {
 			line = label( state );
 		}
