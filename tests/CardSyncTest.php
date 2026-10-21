@@ -360,7 +360,6 @@ final class CardSyncTest extends RestTestCase {
 
 		foreach ( array( 'gift-cards', 'manual-sync', 'sync-logs' ) as $name ) {
 			$this->assertNotSame( array(), $cards[ $name ]['strings'], $name );
-			$this->assertNotSame( array(), $cards[ $name ]['keys'], $name );
 			$this->assertFileExists( ODOOWOO_PORTAL_PATH . 'assets/js/card-' . $name . '.js' );
 			$this->assertFileExists( ODOOWOO_PORTAL_PATH . 'templates/cards/' . $name . '.php' );
 
@@ -370,8 +369,5 @@ final class CardSyncTest extends RestTestCase {
 			}
 		}
 
-		$this->assertSame( array( 'gift-card-settings', 'stored-odoo-taxes', 'saved-odoo-journals', 'saved-odoo-accounts', 'fetch-and-store-odoo-taxes', 'odoo-journals', 'odoo-accounts' ), $cards['gift-cards']['keys'] );
-		$this->assertSame( array( 'trigger-sync', 'trigger-category-sync', 'trigger-brand-sync', 'sync-stock', 'sync-prices', 'sync-barcodes', 'sync-orders', 'task-status' ), $cards['manual-sync']['keys'] );
-		$this->assertSame( array( 'order-syncs' ), $cards['sync-logs']['keys'] );
 	}
 }

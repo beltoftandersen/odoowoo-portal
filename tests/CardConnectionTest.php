@@ -191,14 +191,6 @@ final class CardConnectionTest extends RestTestCase {
 		$this->assertMatchesRegularExpression( '#<p[^>]*class="[^"]*odoowoo-unsaved-note[^"]*"[^>]*role="status"[^>]*hidden#', $this->render_as_owner( 'odoo-connection' ) );
 	}
 
-	public function test_registry_routes_of_the_three_cards(): void {
-		$cards = Registry::cards();
-
-		$this->assertSame( array( 'woo-keys', 'verify-woocommerce', 'inject-woo-webhooks' ), $cards['woo-connection']['keys'] );
-		$this->assertSame( array( 'woo-keys' ), $cards['woo-settings']['keys'] );
-		$this->assertSame( array( 'odoo-settings', 'verify-odoo', 'generate-api-key' ), $cards['odoo-connection']['keys'] );
-	}
-
 	public function test_every_connection_string_is_a_non_empty_string(): void {
 		foreach ( array( 'woo-connection', 'woo-settings', 'odoo-connection' ) as $card ) {
 			$strings = Registry::cards()[ $card ]['strings'];

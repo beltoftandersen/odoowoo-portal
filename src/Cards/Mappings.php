@@ -45,23 +45,6 @@ final class Mappings {
 	}
 
 	/**
-	 * The routes a card calls, for the registry.
-	 *
-	 * @param string $card Card name.
-	 * @return string[]
-	 */
-	public static function keys( string $card ): array {
-		$config = self::config( $card );
-		$keys   = array( $config['route'] );
-
-		foreach ( array_merge( $config['loaders'], $config['saved'] ) as $entry ) {
-			$keys[] = $entry['route'];
-		}
-
-		return array_values( array_unique( $keys ) );
-	}
-
-	/**
 	 * A select that shows what a list offers.
 	 *
 	 * @param string               $key     Row key.

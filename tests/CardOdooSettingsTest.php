@@ -119,7 +119,6 @@ final class CardOdooSettingsTest extends RestTestCase {
 		$this->assertSame( 'Needs tax mappings.', $s['needsTax'] );
 		$this->assertSame( 'Needs a price mapping.', $s['needsPrice'] );
 		$this->assertSame( 'Brand sync is not part of your plan.', $s['needsPlan'] );
-		$this->assertSame( array( 'odoo-settings', 'odoo-pricelists', 'payment-method-mappings', 'tax-mappings', 'price-mappings' ), Registry::cards()['odoo-settings']['keys'] );
 	}
 
 	public function test_save_sends_only_known_fields_and_django_error_shown_next_to_field(): void {

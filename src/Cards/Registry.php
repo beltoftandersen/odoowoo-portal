@@ -10,8 +10,7 @@ namespace OdooWooPortal\Cards;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * name => {title, template, script, keys, strings}. Tasks 9 to 13 fill `keys` (the browser
- * route keys of Api\Map the card calls) and `strings` (the card's JS strings, merged into
+ * name => {title, template, script, strings}. Tasks 9 to 13 fill `strings` (the card's JS strings, merged into
  * window.odoowooPortal.i18n); `template` and `script` are paths relative to the plugin's
  * templates/ and root folders (or an absolute template path and a script URL, for a card
  * added through the odoowoo_portal_cards filter).
@@ -21,7 +20,7 @@ final class Registry {
 	/**
 	 * The cards, in the order the app lists them.
 	 *
-	 * @return array<string, array{title: string, template: string, script: string, keys: string[], strings: array<string, string>}>
+	 * @return array<string, array{title: string, template: string, script: string, strings: array<string, string>}>
 	 */
 	public static function cards(): array {
 		$titles = array(
@@ -49,41 +48,30 @@ final class Registry {
 				'title'    => $title,
 				'template' => 'cards/' . $name . '.php',
 				'script'   => 'assets/js/card-' . $name . '.js',
-				'keys'     => array(),
 				'strings'  => array(),
 			);
 		}
 
-		$cards['dashboard-list']['keys']      = array( 'dashboard-list', 'dashboard-create', 'dashboard-pause', 'dashboard-delete' );
 		$cards['dashboard-list']['strings']   = self::list_strings();
-		$cards['dashboard-header']['keys']    = array( 'dashboard-detail', 'dashboard-rename' );
 		$cards['dashboard-header']['strings'] = self::header_strings();
-		$cards['woo-connection']['keys']      = array( 'woo-keys', 'verify-woocommerce', 'inject-woo-webhooks' );
 		$cards['woo-connection']['strings']   = self::woo_connection_strings();
-		$cards['woo-settings']['keys']        = array( 'woo-keys' );
 		$cards['woo-settings']['strings']     = self::woo_settings_strings();
-		$cards['odoo-connection']['keys']     = array( 'odoo-settings', 'verify-odoo', 'generate-api-key' );
 		$cards['odoo-connection']['strings']  = self::odoo_connection_strings();
-		$cards['odoo-settings']['keys']       = array( 'odoo-settings', 'odoo-pricelists', 'payment-method-mappings', 'tax-mappings', 'price-mappings' );
 		$cards['odoo-settings']['strings']    = self::odoo_settings_strings();
 		$cards['odoo-settings']['requires']   = array( 'odoowoo-deps' );
 
-		$cards['gift-cards']['keys']          = array( 'gift-card-settings', 'stored-odoo-taxes', 'saved-odoo-journals', 'saved-odoo-accounts', 'fetch-and-store-odoo-taxes', 'odoo-journals', 'odoo-accounts' );
 		$cards['gift-cards']['strings']       = self::gift_cards_strings();
-		$cards['manual-sync']['keys']         = array( 'trigger-sync', 'trigger-category-sync', 'trigger-brand-sync', 'sync-stock', 'sync-prices', 'sync-barcodes', 'sync-orders', 'task-status' );
 		$cards['manual-sync']['strings']      = self::manual_sync_strings();
-		$cards['sync-logs']['keys']           = array( 'order-syncs' );
 		$cards['sync-logs']['strings']        = self::sync_logs_strings();
 
 		foreach ( Mappings::CARDS as $mapping_card ) {
 			$cards[ $mapping_card ]['script']   = 'assets/js/card-mappings.js';
 			$cards[ $mapping_card ]['requires'] = array( 'odoowoo-mapping-editor' );
-			$cards[ $mapping_card ]['keys']     = Mappings::keys( $mapping_card );
 			$cards[ $mapping_card ]['strings']  = Mappings::strings();
 		}
 
 		/**
-		 * Filters the cards (name => title, template, script, keys, strings).
+		 * Filters the cards (name => title, template, script, strings).
 		 *
 		 * @param array $cards Cards.
 		 */

@@ -67,10 +67,10 @@ final class CardsTest extends TestCase {
 
 		foreach ( $cards as $name => $card ) {
 			// 'requires' (extra script handles) is optional: only the Odoo settings card has it.
-			$this->assertSame( array( 'title', 'template', 'script', 'keys', 'strings' ), array_values( array_diff( array_keys( $card ), array( 'requires' ) ) ), $name );
+			$this->assertSame( array( 'title', 'template', 'script', 'strings' ), array_values( array_diff( array_keys( $card ), array( 'requires' ) ) ), $name );
 			$this->assertIsString( $card['title'] );
 			$this->assertNotSame( '', $card['title'], $name );
-			$this->assertIsArray( $card['keys'], $name );
+			$this->assertArrayNotHasKey( 'keys', $card, $name . ': a list of routes that nothing reads would only drift from the scripts.' );
 			$this->assertIsArray( $card['strings'], $name );
 			$this->assertTrue( Registry::has( $name ) );
 		}

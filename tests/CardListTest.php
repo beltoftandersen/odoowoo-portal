@@ -132,8 +132,6 @@ final class CardListTest extends RestTestCase {
 		$cards = Registry::cards();
 
 		$this->assertSame( 'Delete %s? This removes its settings and logs. Stores already connected stop syncing.', $cards['dashboard-list']['strings']['deleteBody'] );
-		$this->assertSame( array( 'dashboard-list', 'dashboard-create', 'dashboard-pause', 'dashboard-delete' ), $cards['dashboard-list']['keys'] );
-		$this->assertSame( array( 'dashboard-detail', 'dashboard-rename' ), $cards['dashboard-header']['keys'] );
 
 		foreach ( array( 'newDashboard', 'open', 'pause', 'enable', 'delete', 'active', 'paused', 'emptyList', 'noPlan', 'limitReached', 'limitReachedOne', 'count', 'countOne', 'countOf', 'countOfOne', 'nameRequired' ) as $key ) {
 			$this->assertArrayHasKey( $key, $cards['dashboard-list']['strings'], $key );

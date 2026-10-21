@@ -152,14 +152,12 @@ final class CardMappingsTest extends RestTestCase {
 			foreach ( $config['loaders'] as $loader ) {
 				$this->assertArrayHasKey( $loader['route'], Map::ROUTES, $card . ' loader ' . $loader['route'] );
 				$this->assertArrayHasKey( $loader['method'], Map::ROUTES[ $loader['route'] ]['methods'], $card . ' loader method' );
-				$this->assertContains( $loader['route'], Registry::cards()[ $card ]['keys'], $card . ': the card lists the loader route.' );
 				$this->assertNotSame( '', $loader['empty'], $card . ': what an empty reply says.' );
 				$this->assertSame( Mappings::writes( $loader['route'], $loader['method'] ), $loader['writes'], $card . ' ' . $loader['route'] . ': writes comes from the map.' );
 			}
 
 			foreach ( $config['saved'] as $saved ) {
 				$this->assertArrayHasKey( $saved['route'], Map::ROUTES, $card . ' saved ' . $saved['route'] );
-				$this->assertContains( $saved['route'], Registry::cards()[ $card ]['keys'], $card );
 				$this->assertContains( $saved['idKey'], Map::ROUTES[ $saved['route'] ]['read_fields'], $card . ' ' . $saved['route'] . ' idKey' );
 				$this->assertContains( $saved['nameKey'], Map::ROUTES[ $saved['route'] ]['read_fields'], $card . ' ' . $saved['route'] . ' nameKey' );
 			}
@@ -170,7 +168,7 @@ final class CardMappingsTest extends RestTestCase {
 				}
 			}
 
-			$this->assertContains( $route, Registry::cards()[ $card ]['keys'], $card );
+			$this->assertArrayHasKey( $route, Map::ROUTES, $card );
 			$this->assertSame( 'assets/js/card-mappings.js', Registry::cards()[ $card ]['script'], $card );
 			$this->assertContains( 'odoowoo-mapping-editor', Registry::cards()[ $card ]['requires'], $card );
 		}
