@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "gift_card_incomplete",
+        "message": "Choose the exempt tax for gift card sales before turning this on.",
+        "field": "sale_tax_id"
+    }
+}

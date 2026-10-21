@@ -1,0 +1,39 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "task_id": "tk-1",
+            "state": "done",
+            "label": "Completed",
+            "current": 3,
+            "total": 3,
+            "message": "Task completed successfully.",
+            "results": [
+                {
+                    "product_name": "Blue mug",
+                    "product_id": 11,
+                    "sku": "MUG-1",
+                    "type": "simple",
+                    "status": "success"
+                },
+                {
+                    "product_name": "Red mug",
+                    "product_id": 12,
+                    "sku": "MUG-2",
+                    "type": "simple",
+                    "status": "skipped",
+                    "reason": "No SKU"
+                },
+                {
+                    "product_name": "Green mug",
+                    "product_id": 13,
+                    "sku": "MUG-3",
+                    "type": "simple",
+                    "status": "error",
+                    "message": "This item was not synced. See the sync log for details."
+                }
+            ]
+        }
+    }
+}

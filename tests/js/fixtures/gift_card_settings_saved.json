@@ -1,0 +1,32 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "settings": {
+                "enabled": true,
+                "enable_expiry_sweep": false,
+                "sale_tax_id": 3,
+                "expiry_tax_id": null,
+                "redeem_journal_id": 8,
+                "expiry_journal_id": null,
+                "expiry_debit_account_id": null,
+                "expiry_credit_account_id": null,
+                "expiry_vat_account_id": null,
+                "sale_line_meta_key": "_bgcw_amount",
+                "sale_product_codes": "",
+                "sale_tax_name": "0% VAT sales",
+                "redeem_order_meta_key": "_bgcw_deducted_amounts,_bgcw_pending_deductions",
+                "card_api_path": "wc-bgcw/v1/gift-cards/code/",
+                "paid_flag_field": "is_paid",
+                "redeem_journal_name": "Bank",
+                "expiry_api_path": "wc-bgcw/v1/gift-cards",
+                "expiry_status_values": "expired",
+                "expiry_journal_name": "",
+                "expiry_tax_name": "",
+                "legacy_card_cutoff": "2026-01-31T00:00:00+00:00",
+                "expiry_min_balance": "2.50"
+            }
+        }
+    }
+}

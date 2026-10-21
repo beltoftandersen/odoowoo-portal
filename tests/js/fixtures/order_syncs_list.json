@@ -1,0 +1,50 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "woocommerce_order_id": "WS_1051",
+                    "odoo_order_id": "S00042",
+                    "status": "success",
+                    "status_text": "Synced",
+                    "synced_at": "2026-10-21T10:15:00Z",
+                    "log": ""
+                },
+                {
+                    "woocommerce_order_id": "WS_1050",
+                    "odoo_order_id": "",
+                    "status": "error",
+                    "status_text": "Failed",
+                    "synced_at": "2026-10-21T09:40:00Z",
+                    "log": "Order 1050 was not created in Odoo: its line names MUG-9 through line meta, but no product in Odoo carries that reference."
+                },
+                {
+                    "woocommerce_order_id": "WS_1049",
+                    "odoo_order_id": "17",
+                    "status": "warning",
+                    "status_text": "Warning",
+                    "synced_at": "2026-10-21T09:10:00Z",
+                    "log": "Order 17 was paid with 20.00 of gift card value, but no gift card journal is configured. Skipping auto payment so the invoice is not settled out of the wrong journal."
+                },
+                {
+                    "woocommerce_order_id": "WS_1048",
+                    "odoo_order_id": "16",
+                    "status": "failed",
+                    "status_text": "Failed",
+                    "synced_at": "2026-10-20T18:00:00Z",
+                    "log": "<Fault 1: 'Traceback (most recent call last):\\n  File \"odoo/http.py\", line 1\\nValueError'>"
+                },
+                {
+                    "woocommerce_order_id": "WS_1047",
+                    "odoo_order_id": "15",
+                    "status": "pending",
+                    "status_text": "Unknown",
+                    "synced_at": "2026-10-20T17:00:00Z",
+                    "log": ""
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "gift_card_incomplete",
+        "message": "The expiry sweep cannot be turned on while gift card booking is off. The sweep releases value out of the gift card liability account, and nothing is in that account unless gift cards are being booked this way. Turn gift card booking on first.",
+        "field": "enabled"
+    }
+}

@@ -68,6 +68,13 @@ final class Registry {
 		$cards['odoo-settings']['strings']    = self::odoo_settings_strings();
 		$cards['odoo-settings']['requires']   = array( 'odoowoo-deps' );
 
+		$cards['gift-cards']['keys']          = array( 'gift-card-settings', 'stored-odoo-taxes', 'saved-odoo-journals', 'saved-odoo-accounts', 'fetch-and-store-odoo-taxes', 'odoo-journals', 'odoo-accounts' );
+		$cards['gift-cards']['strings']       = self::gift_cards_strings();
+		$cards['manual-sync']['keys']         = array( 'trigger-sync', 'trigger-category-sync', 'trigger-brand-sync', 'sync-stock', 'sync-prices', 'sync-barcodes', 'sync-orders', 'task-status' );
+		$cards['manual-sync']['strings']      = self::manual_sync_strings();
+		$cards['sync-logs']['keys']           = array( 'order-syncs' );
+		$cards['sync-logs']['strings']        = self::sync_logs_strings();
+
 		foreach ( Mappings::CARDS as $mapping_card ) {
 			$cards[ $mapping_card ]['script']   = 'assets/js/card-mappings.js';
 			$cards[ $mapping_card ]['requires'] = array( 'odoowoo-mapping-editor' );
@@ -319,6 +326,71 @@ final class Registry {
 			'save' => __( 'Save', 'odoowoo-portal' ),
 			/* translators: %s: the name of a setting. */
 			'helpFor' => __( 'Help: %s', 'odoowoo-portal' ),
+		);
+	}
+
+	/**
+	 * The gift cards card's strings (labels and help are in its template).
+	 *
+	 * @return array<string, string>
+	 */
+	private static function gift_cards_strings(): array {
+		return array(
+			'selectTax'       => __( 'Select a sale tax', 'odoowoo-portal' ),
+			'selectJournal'   => __( 'Select a journal', 'odoowoo-portal' ),
+			'selectAccount'   => __( 'Select an account', 'odoowoo-portal' ),
+			'loadFirst'       => __( 'Load taxes, journals and accounts first', 'odoowoo-portal' ),
+			/* translators: %s: the Odoo id of a tax. */
+			'taxFallback'     => __( 'Tax %s', 'odoowoo-portal' ),
+			/* translators: %s: the Odoo id of a journal. */
+			'journalFallback' => __( 'Journal %s', 'odoowoo-portal' ),
+			/* translators: %s: the Odoo id of an account. */
+			'accountFallback' => __( 'Account %s', 'odoowoo-portal' ),
+			'loadingLists'    => __( 'Loading…', 'odoowoo-portal' ),
+			'listsLoaded'     => __( 'Taxes, journals and accounts loaded.', 'odoowoo-portal' ),
+		);
+	}
+
+	/**
+	 * The manual sync card's strings (labels and help are in its template). The input messages
+	 * are the ones Api\Map gives for the same inputs, so a refusal reads the same either way.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function manual_sync_strings(): array {
+		return array(
+			'syncing'         => __( 'Syncing…', 'odoowoo-portal' ),
+			'brandsNotInPlan' => __( 'Brand sync is not part of your plan.', 'odoowoo-portal' ),
+			'backToList'      => __( 'Back to your dashboards', 'odoowoo-portal' ),
+			'noValidId'       => __( 'Enter at least one valid id, or leave the field empty.', 'odoowoo-portal' ),
+			'tooManyIds'      => __( 'At most 500 ids at a time.', 'odoowoo-portal' ),
+			'nothingChosen'   => __( 'Enter order ids, or choose a start and end date.', 'odoowoo-portal' ),
+			'badDates'        => __( 'Enter a valid start and end date.', 'odoowoo-portal' ),
+			'reversedDates'   => __( 'The start date is after the end date.', 'odoowoo-portal' ),
+			'itemsHeading'    => __( 'Items that were not synced', 'odoowoo-portal' ),
+			'resultLost'      => __( 'We could not follow this sync any more. See the sync log for what happened.', 'odoowoo-portal' ),
+		);
+	}
+
+	/**
+	 * The sync logs card's strings.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function sync_logs_strings(): array {
+		return array(
+			'loading'       => __( 'Loading logs…', 'odoowoo-portal' ),
+			'empty'         => __( 'No sync logs yet.', 'odoowoo-portal' ),
+			'refresh'       => __( 'Refresh', 'odoowoo-portal' ),
+			'refreshed'     => __( 'Refreshed', 'odoowoo-portal' ),
+			/* translators: %s: the WooCommerce order reference. */
+			'wooRef'        => __( 'WooCommerce %s', 'odoowoo-portal' ),
+			/* translators: %s: the Odoo order reference. */
+			'odooRef'       => __( 'Odoo %s', 'odoowoo-portal' ),
+			'odooNone'      => __( 'Odoo N/A', 'odoowoo-portal' ),
+			'logLabel'      => __( 'Log', 'odoowoo-portal' ),
+			'itemFailed'    => __( 'This item was not synced. See the sync log for details.', 'odoowoo-portal' ),
+			'unknownStatus' => __( 'Unknown', 'odoowoo-portal' ),
 		);
 	}
 }

@@ -1,0 +1,8 @@
+{
+    "status": 409,
+    "body": {
+        "ok": false,
+        "code": "dashboard_paused",
+        "message": "This dashboard is paused. Enable it to run a sync."
+    }
+}

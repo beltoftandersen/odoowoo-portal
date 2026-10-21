@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "The exempt tax for gift card sales is not one of this dashboard's stored Odoo taxes. Load the taxes and choose one of them.",
+        "field": "sale_tax_id"
+    }
+}

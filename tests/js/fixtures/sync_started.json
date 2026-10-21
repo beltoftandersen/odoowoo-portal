@@ -1,0 +1,10 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "task_id": "tk-1",
+            "kind": "products"
+        }
+    }
+}

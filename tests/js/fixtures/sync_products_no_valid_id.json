@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "Enter at least one valid id, or leave the field empty.",
+        "field": "product_ids"
+    }
+}

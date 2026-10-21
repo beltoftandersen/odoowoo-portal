@@ -21,6 +21,10 @@
 		saveOdooFirst: 'Save your Odoo connection first.',
 	} );
 
+	var fieldOf = core.fieldOf;
+	var showFieldError = core.showFieldError;
+	var clearFieldErrors = core.clearFieldErrors;
+
 	var store = core.odooSettingsStore;
 	var EVENT = 'odoowoo:mappings-saved';
 	var LISTS = [ [ 'payment-method-mappings', 'hasPayment' ], [ 'tax-mappings', 'hasTax' ], [ 'price-mappings', 'hasPrice' ] ];
@@ -31,11 +35,6 @@
 
 	function filled( v ) {
 		return typeof v === 'string' && v !== '';
-	}
-
-	/** The field a Django refusal names, or ''. */
-	function fieldOf( reply ) {
-		return reply && typeof reply.field === 'string' ? reply.field : '';
 	}
 
 	/** Dependencies from the values and the known facts (brandSync is the settings' own brand_sync_allowed). */
@@ -171,31 +170,6 @@
 		} else {
 			store_.patch( { odoo_order_pricelist_id: null, odoo_order_pricelist_name: '' } );
 		}
-	}
-
-	/** Marks the input a refusal names and shows the message below it (DOM glue; form is any element). */
-	function showFieldError( form, reply ) {
-		clearFieldErrors( form );
-
-		var field = fieldOf( reply );
-		var input = field !== '' ? form.elements[ field ] : null;
-		var place = field !== '' ? form.querySelector( '[data-error-for="' + field + '"]' ) : null;
-
-		if ( input && place ) {
-			input.setAttribute( 'aria-invalid', 'true' );
-			place.textContent = typeof reply.message === 'string' ? reply.message : '';
-			place.hidden = false;
-		}
-	}
-
-	function clearFieldErrors( form ) {
-		Array.prototype.forEach.call( form.querySelectorAll( '[data-error-for]' ), function ( place ) {
-			place.textContent = '';
-			place.hidden = true;
-		} );
-		Array.prototype.forEach.call( form.querySelectorAll( '[aria-invalid]' ), function ( input ) {
-			input.removeAttribute( 'aria-invalid' );
-		} );
 	}
 
 	function init( root ) {

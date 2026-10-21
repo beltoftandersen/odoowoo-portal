@@ -310,6 +310,141 @@ final class BrowserFixturesTest extends RestTestCase {
 		}
 	}
 
+	/**
+	 * Task 13: manual syncs, the running-task memory, the sync log and the gift card settings.
+	 * Every Django body is copied from the view named next to it (Django branch at 5ab091e,
+	 * /root/projects/beltoft/odoowoo-tenants; sync_app/... paths).
+	 */
+	private function sync_fixtures(): void {
+		$u = static fn( array $l, string $route ): string => '/licenses/' . $l['id'] . '/dashboards/' . self::D . '/' . $route;
+
+		// A trigger answers 202 {message, task_id}: product/sync_products.py:105 (the other six are the same shape, sync_stock.py:60, sync_orders.py:84-87).
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 202, array( 'message' => 'Product sync started', 'task_id' => 'tk-1' ) ) );
+		$this->keep( 'sync_started', $this->rest( 'POST', $u( $l, 'trigger-sync' ), array( 'product_ids' => array( 1, 2, 3 ) ) ) );
+
+		// The guard's refusals: api/triggers.py:33-34 and 84 (dashboard paused), middleware.py:57-58 (tenant paused), triggers.py:35-37 and 86-87 (brands not in the plan).
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 409, array( 'code' => 'dashboard_paused', 'message' => 'This dashboard is paused. Enable it to run a sync.' ) ) );
+		$this->keep( 'sync_dashboard_paused', $this->rest( 'POST', $u( $l, 'trigger-category-sync' ) ) );
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 409, array( 'code' => 'tenant_paused', 'message' => 'Your OdooWoo plan is paused. Renew it to make changes or run syncs.' ) ) );
+		$this->keep( 'sync_tenant_paused', $this->rest( 'POST', $u( $l, 'trigger-category-sync' ) ) );
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 403, array( 'code' => 'plan_feature_unavailable', 'message' => 'Brand sync is not included in your plan.', 'field' => 'enable_brand_sync' ) ) );
+		$this->keep( 'sync_brands_not_in_plan', $this->rest( 'POST', $u( $l, 'trigger-brand-sync' ) ) );
+
+		// The portal's own refusals of an input (Map::sync_input): no Django call is made.
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 202, array( 'message' => 'Order sync started', 'task_id' => 'tk-2' ) ) );
+		$this->keep( 'sync_orders_nothing_chosen', $this->rest( 'POST', $u( $l, 'sync-orders' ), array() ) );
+		$this->keep( 'sync_orders_reversed', $this->rest( 'POST', $u( $l, 'sync-orders' ), array( 'from_date' => '2026-02-01', 'to_date' => '2026-01-01' ) ) );
+		$this->keep( 'sync_orders_one_date', $this->rest( 'POST', $u( $l, 'sync-orders' ), array( 'from_date' => '2026-02-01' ) ) );
+		$this->keep( 'sync_products_no_valid_id', $this->rest( 'POST', $u( $l, 'trigger-sync' ), array( 'product_ids' => 'x, -1' ) ) );
+		$this->keep( 'sync_products_too_many', $this->rest( 'POST', $u( $l, 'trigger-sync' ), array( 'product_ids' => range( 1, 501 ) ) ) );
+		$this->assertSame( array(), $this->django_calls(), 'A refused input sends nothing.' );
+
+		// sync/active: nothing running, then a remembered task (Tasks::active).
+		$l = $this->fresh();
+		$this->keep( 'sync_active_none', $this->rest( 'GET', $u( $l, 'sync/active' ) ) );
+		Tasks::remember( (int) $l['user_id'], (int) $l['id'], self::D, 'products', 'tk-1' );
+		$res  = $this->rest( 'GET', $u( $l, 'sync/active' ) );
+		$data = $res->get_data();
+		$data['data']['task']['started'] = 1700000000; // The start time changes on every run.
+		$res->set_data( $data );
+		$this->keep( 'sync_active_task', $res );
+
+		// A finished product sync with per-item results: product/views.py:31-60 (kept keys, ITEM_FAILED, reason), 71-141 (reply).
+		$base = array( 'task_id' => 'tk-1', 'status' => 'SUCCESS', 'state' => 'done', 'message' => 'Task completed successfully.', 'progress' => array( 'current' => 3, 'total' => 3 ), 'current' => 3, 'total' => 3, 'skipped_products' => 1, 'synced_products' => 1 );
+		$l    = $this->fresh();
+		$this->task(
+			'task_done_with_results',
+			$l,
+			array_merge(
+				$base,
+				array(
+					'results' => array(
+						array( 'product_name' => 'Blue mug', 'product_id' => 11, 'sku' => 'MUG-1', 'type' => 'simple', 'status' => 'success' ),
+						array( 'product_name' => 'Red mug', 'product_id' => 12, 'sku' => 'MUG-2', 'type' => 'simple', 'status' => 'skipped', 'reason' => 'No SKU' ),
+						array( 'product_name' => 'Green mug', 'product_id' => 13, 'sku' => 'MUG-3', 'type' => 'simple', 'status' => 'error', 'error' => 'Traceback (most recent call last): boom' ),
+					),
+				)
+			)
+		);
+
+		// The sync log: product-less order rows as views.py:2307-2331 writes them (status text comes from Map::order_sync_rows).
+		$l = $this->fresh();
+		$rows = array(
+			array( 'woocommerce_order_id' => 'WS_1051', 'odoo_order_id' => 'S00042', 'status' => 'success', 'synced_at' => '2026-10-21T10:15:00Z', 'log' => '' ),
+			array( 'woocommerce_order_id' => 'WS_1050', 'odoo_order_id' => null, 'status' => 'error', 'synced_at' => '2026-10-21T09:40:00Z', 'log' => 'Order 1050 was not created in Odoo: its line names MUG-9 through line meta, but no product in Odoo carries that reference.' ), // orders/tasks.py:526-532, refuse_order 77-97.
+			array( 'woocommerce_order_id' => 'WS_1049', 'odoo_order_id' => '17', 'status' => 'warning', 'synced_at' => '2026-10-21T09:10:00Z', 'log' => 'Order 17 was paid with 20.00 of gift card value, but no gift card journal is configured. Skipping auto payment so the invoice is not settled out of the wrong journal.' ), // orders/tasks.py:1143-1145 via _skip_auto_payment (1021-1036).
+			array( 'woocommerce_order_id' => 'WS_1048', 'odoo_order_id' => '16', 'status' => 'failed', 'synced_at' => '2026-10-20T18:00:00Z', 'log' => "<Fault 1: 'Traceback (most recent call last):\\n  File \"odoo/http.py\", line 1\\nValueError'>" ), // SYNTHETIC text: the shape of an XML-RPC Fault (utils/odoo_helpers.py:138 logs one); no view writes this exact log, it exercises the ledger ruling on tracebacks.
+			array( 'woocommerce_order_id' => 'WS_1047', 'odoo_order_id' => '15', 'status' => 'pending', 'synced_at' => '2026-10-20T17:00:00Z', 'log' => null ), // An unknown status text: OrderSync.status is any 20 characters (models.py:264); log is nullable (models.py:266).
+		);
+		$this->fake_django( fn() => array( 200, $rows ) );
+		$this->keep( 'order_syncs_list', $this->rest( 'GET', $u( $l, 'order-syncs' ) ) );
+		$this->fake_django( fn() => array( 200, array() ) );
+		$this->keep( 'order_syncs_empty', $this->rest( 'GET', $u( $l, 'order-syncs' ) ) );
+	}
+
+	/**
+	 * Task 13: gift card settings. views.py:1463-1841 (manage_gift_card_settings); defaults are the
+	 * model's (models.py:470-570).
+	 */
+	private function gift_card_fixtures(): void {
+		$u = static fn( array $l, string $route ): string => '/licenses/' . $l['id'] . '/dashboards/' . self::D . '/' . $route;
+
+		$defaults = array(
+			'enabled' => false, 'enable_expiry_sweep' => false,
+			'sale_tax_id' => null, 'expiry_tax_id' => null, 'redeem_journal_id' => null, 'expiry_journal_id' => null,
+			'expiry_debit_account_id' => null, 'expiry_credit_account_id' => null, 'expiry_vat_account_id' => null,
+			'sale_line_meta_key' => '_bgcw_amount', 'sale_product_codes' => '', 'sale_tax_name' => '',
+			'redeem_order_meta_key' => '_bgcw_deducted_amounts,_bgcw_pending_deductions', 'card_api_path' => 'wc-bgcw/v1/gift-cards/code/',
+			'paid_flag_field' => 'is_paid', 'redeem_journal_name' => '', 'expiry_api_path' => 'wc-bgcw/v1/gift-cards',
+			'expiry_status_values' => 'expired', 'expiry_journal_name' => '', 'expiry_tax_name' => '',
+			'legacy_card_cutoff' => null, 'expiry_min_balance' => '0.00',
+		); // The GET reply of an unsaved dashboard: views.py:1503-1523 with the model's defaults.
+
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 200, array( 'settings' => $defaults ) ) );
+		$this->keep( 'gift_card_settings_new', $this->rest( 'GET', $u( $l, 'gift-card-settings' ) ) );
+
+		$saved = array_merge( $defaults, array( 'enabled' => true, 'sale_tax_id' => 3, 'sale_tax_name' => '0% VAT sales', 'redeem_journal_id' => 8, 'redeem_journal_name' => 'Bank', 'legacy_card_cutoff' => '2026-01-31T00:00:00+00:00', 'expiry_min_balance' => '2.50' ) );
+		$l     = $this->fresh();
+		$this->fake_django( fn() => array( 200, array( 'settings' => $saved ) ) );
+		$this->keep( 'gift_card_settings_saved', $this->rest( 'GET', $u( $l, 'gift-card-settings' ) ) );
+
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 200, array( 'message' => 'Gift card settings saved.' ) ) ); // Views.py:1841.
+		$this->keep( 'gift_card_save_success', $this->rest( 'PUT', $u( $l, 'gift-card-settings' ), array( 'settings' => array( 'enabled' => false ) ) ) );
+
+		$refusals = array(
+			// Views.py:1582-1585 (gift_card_incomplete), 1453-1460 with the labels of 1246-1254 (unknown id), 1622-1629 (sweep before booking), 1347 with 1275-1278 (amount).
+			'gift_card_incomplete'  => array( 'gift_card_incomplete', 'Choose the exempt tax for gift card sales before turning this on.', 'sale_tax_id' ),
+			'gift_card_unknown_id'  => array( 'invalid_value', "The exempt tax for gift card sales is not one of this dashboard's stored Odoo taxes. Load the taxes and choose one of them.", 'sale_tax_id' ),
+			'gift_card_sweep_needs_booking' => array( 'gift_card_incomplete', 'The expiry sweep cannot be turned on while gift card booking is off. The sweep releases value out of the gift card liability account, and nothing is in that account unless gift cards are being booked this way. Turn gift card booking on first.', 'enabled' ),
+			'gift_card_amount_invalid' => array( 'invalid_value', 'The smallest balance the expiry sweep releases must be an amount, such as 2.50.', 'expiry_min_balance' ), 
+		);
+
+		foreach ( $refusals as $name => list( $code, $message, $field ) ) {
+			$l = $this->fresh();
+			$this->fake_django( fn() => array( 400, array( 'code' => $code, 'message' => $message, 'field' => $field ) ) );
+			$this->keep( $name, $this->rest( 'PUT', $u( $l, 'gift-card-settings' ), array( 'settings' => array( 'enabled' => true ) ) ) );
+		}
+
+		// The two lists the loader button reads besides the stored taxes: views.py:897-905 (accounts, live) and 934-946 (stored).
+		$reads = array(
+			'odoo_accounts'       => array( 'odoo-accounts', array( array( 'account_id' => 41, 'code' => '2191', 'name' => 'Gift card liability' ), array( 'account_id' => 96, 'code' => '7881', 'name' => 'Breakage income' ) ) ),
+			'saved_odoo_accounts' => array( 'saved-odoo-accounts', array( array( 'account_id' => 41, 'code' => '2191', 'name' => 'Gift card liability' ), array( 'account_id' => 96, 'code' => '7881', 'name' => 'Breakage income' ) ) ),
+		);
+
+		foreach ( $reads as $name => list( $route, $body ) ) {
+			$l = $this->fresh();
+			$this->fake_django( fn() => array( 200, $body ) );
+			$this->keep( $name, $this->rest( 'GET', $u( $l, $route ) ) );
+		}
+	}
+
 	public function test_browser_fixtures_match_the_real_routes(): void {
 		$l = $this->odoowoo_license();
 		$this->as_user( (int) $l['user_id'] );
@@ -381,6 +516,8 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->connection_fixtures();
 		$this->odoo_settings_fixtures();
 		$this->mapping_fixtures();
+		$this->sync_fixtures();
+		$this->gift_card_fixtures();
 
 		// GET /licenses: the real summary of a ready, a paused and a getting-ready license (Routes::license_summary).
 		foreach ( array( 'ready' => 'ready', 'paused' => 'paused', 'getting_ready' => 'provisioning' ) as $label => $resource_state ) {

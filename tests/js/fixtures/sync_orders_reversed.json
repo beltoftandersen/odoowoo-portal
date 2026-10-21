@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "The start date is after the end date.",
+        "field": "from_date"
+    }
+}

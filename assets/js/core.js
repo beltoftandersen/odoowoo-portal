@@ -428,6 +428,46 @@
 		};
 	}
 
+	/** The field a Django refusal names, or ''. */
+	function fieldOf( reply ) {
+		return reply && typeof reply.field === 'string' ? reply.field : '';
+	}
+
+	function clearFieldErrors( form ) {
+		Array.prototype.forEach.call( form.querySelectorAll( '[data-error-for]' ), function ( place ) {
+			place.textContent = '';
+			place.hidden = true;
+		} );
+		Array.prototype.forEach.call( form.querySelectorAll( '[aria-invalid]' ), function ( input ) {
+			input.removeAttribute( 'aria-invalid' );
+		} );
+	}
+
+	/**
+	 * Marks the input a refusal names and shows its message in the place next to it. Returns true
+	 * when there was such a place (otherwise the caller shows the message itself). DOM glue.
+	 */
+	function showFieldError( form, reply ) {
+		clearFieldErrors( form );
+
+		var field = fieldOf( reply );
+		var input = field !== '' && form.elements ? form.elements[ field ] : null;
+		var place = field !== '' ? form.querySelector( '[data-error-for="' + field + '"]' ) : null;
+
+		if ( ! place ) {
+			return false;
+		}
+
+		if ( input ) {
+			input.setAttribute( 'aria-invalid', 'true' );
+		}
+
+		place.textContent = typeof reply.message === 'string' ? reply.message : '';
+		place.hidden = false;
+
+		return true;
+	}
+
 	/** The REST path of a route of one dashboard: licenses/<l>/dashboards/<d>/<route>. */
 	function dashboardPath( ctx, route ) {
 		return 'licenses/' + encodeURIComponent( String( ctx.licenseId ) ) + '/dashboards/' + encodeURIComponent( String( ctx.dashboardId ) ) + '/' + route;
@@ -688,6 +728,9 @@
 		text: text,
 		translator: translator,
 		dashboardPath: dashboardPath,
+		fieldOf: fieldOf,
+		showFieldError: showFieldError,
+		clearFieldErrors: clearFieldErrors,
 		verifyView: verifyView,
 		secretState: secretState,
 		createStore: createStore,

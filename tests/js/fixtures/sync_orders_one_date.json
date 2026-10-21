@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "Enter a valid start and end date.",
+        "field": "from_date"
+    }
+}

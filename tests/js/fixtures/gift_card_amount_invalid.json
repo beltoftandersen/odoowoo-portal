@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "The smallest balance the expiry sweep releases must be an amount, such as 2.50.",
+        "field": "expiry_min_balance"
+    }
+}

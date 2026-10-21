@@ -322,6 +322,21 @@ final class Renderer {
 			);
 		}
 
+		if ( in_array( $card, array( 'gift-cards', 'manual-sync', 'sync-logs' ), true ) ) {
+			// Syncs and the gift card loaders write; the log and the stored lists are reads.
+			$attrs = array(
+				'data-can-write' => $ctx->can_write() ? '1' : '0',
+				'data-can-read'  => $ctx->calls_allowed() ? '1' : '0',
+			);
+
+			if ( 'manual-sync' === $card ) {
+				// Where a paused dashboard's refusal sends the customer: this license's list.
+				$attrs['data-list-url'] = Urls::license_list( (int) $ctx->license()['id'] );
+			}
+
+			return $attrs;
+		}
+
 		if ( Mappings::is_card( $card ) ) {
 			// Reads need a ready or paused tenant; writing (Save and the loaders that rewrite rows) needs the owner of an active one.
 			return array(

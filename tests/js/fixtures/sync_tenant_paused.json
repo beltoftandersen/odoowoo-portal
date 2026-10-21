@@ -1,0 +1,8 @@
+{
+    "status": 409,
+    "body": {
+        "ok": false,
+        "code": "tenant_paused",
+        "message": "Your OdooWoo plan is paused. Renew it to make changes or run syncs."
+    }
+}

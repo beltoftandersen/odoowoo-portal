@@ -1,0 +1,20 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "account_id": 41,
+                    "code": "2191",
+                    "name": "Gift card liability"
+                },
+                {
+                    "account_id": 96,
+                    "code": "7881",
+                    "name": "Breakage income"
+                }
+            ]
+        }
+    }
+}

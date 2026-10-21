@@ -85,6 +85,11 @@
 		};
 	}
 
+	/** The one line for a task view: its state, then (when it has ended) the message Django's task gave. */
+	function lineOf( v ) {
+		return typeof v.message === 'string' && v.message !== '' ? v.text + ': ' + v.message : v.text;
+	}
+
 	/**
 	 * Polls a task until it finishes. fetch() resolves a core.api() reply. Starts at 2 s, grows
 	 * 1.5x to 10 s, resets when progress changes, 30 s while the tab is hidden. Stops on done,
@@ -204,12 +209,12 @@
 			bar.setAttribute( 'value', String( v.percent ) );
 		}
 
-		line.textContent = v.message !== '' ? v.text + ' ' + v.message : v.text;
+		line.textContent = lineOf( v );
 
 		return true;
 	}
 
-	var out = { poll: poll, label: label, percent: percent, view: view, render: render };
+	var out = { poll: poll, label: label, percent: percent, view: view, render: render, line: lineOf };
 
 	if ( typeof module !== 'undefined' && module.exports ) {
 		module.exports = out;

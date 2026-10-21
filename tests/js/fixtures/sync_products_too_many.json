@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "At most 500 ids at a time.",
+        "field": "product_ids"
+    }
+}
