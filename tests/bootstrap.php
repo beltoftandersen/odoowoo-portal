@@ -79,3 +79,4 @@ require $odoowoo_portal_tests_dir . '/includes/bootstrap.php';
 require __DIR__ . '/Support/FakeHttpDriver.php';
 require __DIR__ . '/Support/FakeDjango.php';
 require __DIR__ . '/TestCase.php';
+require __DIR__ . '/RestTestCase.php';
