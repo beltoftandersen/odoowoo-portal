@@ -107,7 +107,7 @@ final class Client {
 	 * @param string $path Path relative to /api/.
 	 */
 	private static function path_is_plain( string $path ): bool {
-		if ( '' === $path || preg_match( '/[?#\\\\\x00-\x20]|%2e|%2f|%5c/i', $path ) || false !== strpos( $path, '//' ) ) {
+		if ( '' === $path || preg_match( '/[?#\\\\\x00-\x20]|%25|%2e|%2f|%5c/i', $path ) || false !== strpos( $path, '//' ) ) {
 			return false;
 		}
 

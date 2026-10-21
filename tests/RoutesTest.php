@@ -202,7 +202,7 @@ final class RoutesTest extends RestTestCase {
 
 		// The client itself refuses odd paths.
 		$ctx = Context::for_user( (int) $l['user_id'], (int) $l['id'] );
-		foreach ( array( 'dashboards/5/../../tenants/x/', 'a/./b', 'a?x=1', 'a#f', 'a//b', 'a/%2e%2e/b', '' ) as $path ) {
+		foreach ( array( 'dashboards/5/../../tenants/x/', 'a/./b', 'a?x=1', 'a#f', 'a//b', 'a/%2e%2e/b', 'a/%252e%252e/b', 'a/%2E%2E/b', '' ) as $path ) {
 			$r = \OdooWooPortal\Django\Client::request( $ctx, 'GET', $path );
 			$this->assertFalse( $r->ok(), $path );
 		}
@@ -246,5 +246,16 @@ final class RoutesTest extends RestTestCase {
 		$this->as_user( (int) $l['user_id'] );
 		$res = $this->rest( 'DELETE', '/licenses/' . $l['id'] . '/dashboards/5' );
 		$this->assertSame( '{"ok":true,"data":{}}', wp_json_encode( $res->get_data() ) );
+	}
+
+	public function test_empty_list_stays_a_list_and_suffix_refusal_uses_no_rate_slot(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, '[]' ) );
+		$res = $this->rest( 'GET', '/licenses/' . $l['id'] . '/dashboards/5' );
+		$this->assertSame( '{"ok":true,"data":[]}', wp_json_encode( $res->get_data() ) );
+
+		$this->assertSame( 400, $this->rest( 'POST', '/licenses/' . $l['id'] . '/dashboards/5/verify-odoo/abc', array( 'odoo_url' => 'u' ) )->get_status() );
+		$this->assertFalse( \BeltoftServices\RateLimit::exceeded( (int) $l['user_id'], 'odoowoo-portal:verify', 1 ), 'No slot was used.' );
 	}
 }

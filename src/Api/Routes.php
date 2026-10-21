@@ -174,6 +174,10 @@ final class Routes {
 			return self::refusal( 405, 'odoowoo_portal_bad_method', __( 'This request is not valid.', 'odoowoo-portal' ) );
 		}
 
+		if ( '' !== self::url_param( $r, 'task' ) && empty( Map::ROUTES[ $route_key ]['task'] ) ) {
+			return self::refusal( 400, 'odoowoo_portal_bad_request', __( 'This request is not valid.', 'odoowoo-portal' ) );
+		}
+
 		$ctx = Context::for_user( $user_id, $license_id );
 
 		if ( null === $ctx ) {
@@ -231,7 +235,7 @@ final class Routes {
 			return new \WP_REST_Response(
 				array(
 					'ok'   => true,
-					'data' => array() === $r->data() ? new \stdClass() : $r->data(),
+					'data' => array() === $r->data() && 204 === $r->status() ? new \stdClass() : $r->data(),
 				),
 				200
 			);
