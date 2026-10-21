@@ -73,7 +73,7 @@ final class Plugin {
 	 * WordPress does not look there by itself).
 	 */
 	public static function load_textdomain(): void {
-		load_plugin_textdomain( 'odoowoo-portal', false, dirname( plugin_basename( ODOOWOO_PORTAL_FILE ) ) . '/languages' );
+		load_plugin_textdomain( 'odoowoo-portal', false, dirname( plugin_basename( ODOOWOO_PORTAL_FILE ) ) . '/languages' ); // phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound -- not hosted on wordpress.org, so WordPress does not load /languages by itself.
 	}
 
 	/**
@@ -85,7 +85,7 @@ final class Plugin {
 		self::$uncacheable = true;
 
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
-			define( 'DONOTCACHEPAGE', true );
+			define( 'DONOTCACHEPAGE', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- the constant page caches look for.
 		}
 
 		nocache_headers();
