@@ -47,6 +47,11 @@ final class Plugin {
 		add_action( 'wp_footer', array( Cards\Renderer::class, 'attach_boot_data' ), 1 );
 		add_action( 'template_redirect', array( __CLASS__, 'template_redirect' ) );
 
+		Bricks\DynamicData::register();
+		Bricks\Conditions::register();
+		// After Bricks' own init-10 registration, which loads the element base class.
+		add_action( 'init', array( Bricks\Elements::class, 'register' ), 11 );
+
 		// Later tasks register their parts here.
 		self::$booted = true;
 	}
