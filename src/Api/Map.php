@@ -456,7 +456,7 @@ final class Map {
 	}
 
 	/**
-	 * Allowed keys with null, bool, number or string values; strings are trimmed.
+	 * Allowed keys with null, bool, number or string values, byte-exact.
 	 *
 	 * @param array<mixed>  $data    Data.
 	 * @param array<string> $allowed Keys.
@@ -475,7 +475,7 @@ final class Map {
 			if ( null === $v || is_bool( $v ) || is_int( $v ) || is_float( $v ) ) {
 				$out[ $name ] = $v;
 			} elseif ( is_string( $v ) ) {
-				$out[ $name ] = trim( $v );
+				$out[ $name ] = $v;
 			}
 		}
 
