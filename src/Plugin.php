@@ -40,6 +40,8 @@ final class Plugin {
 
 		Api\Routes::register();
 
+		Tasks::register();
+
 		// Later tasks register their parts here.
 		self::$booted = true;
 	}

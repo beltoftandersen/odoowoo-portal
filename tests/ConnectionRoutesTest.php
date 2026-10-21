@@ -162,7 +162,8 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$calls = $this->django_calls();
 
 		$this->assertSame( 200, $res->get_status() );
-		$this->assertCount( 1, $calls );
+		// Reading the WooCommerce settings also reads the user's dashboards for the prefixes in use (Task 7).
+		$this->assertCount( 'woo-keys' === $route && 'GET' === $method ? 2 : 1, $calls );
 		$this->assertSame( $dj_meth, $calls[0]['method'] );
 		$this->assertSame( '/api/dashboards/' . self::D . '/' . $dj_path, $calls[0]['path_and_query'] );
 		$sent = (string) $calls[0]['body'];

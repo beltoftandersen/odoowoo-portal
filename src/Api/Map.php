@@ -285,6 +285,75 @@ final class Map {
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
+		'trigger-sync' => array(
+			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/trigger-sync/' ) ),
+			'fields'       => array(),
+			'ids'          => array( 'product_ids' ),
+			'kind'         => 'products',
+			'read_only_ok' => false,
+			'limit'        => 'sync',
+		),
+		'trigger-category-sync' => array(
+			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/trigger-category-sync/' ) ),
+			'fields'       => array(),
+			'kind'         => 'categories',
+			'read_only_ok' => false,
+			'limit'        => 'sync',
+		),
+		'trigger-brand-sync' => array(
+			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/trigger-brand-sync/' ) ),
+			'fields'       => array(),
+			'kind'         => 'brands',
+			'read_only_ok' => false,
+			'limit'        => 'sync',
+		),
+		'sync-stock' => array(
+			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/sync-stock/' ) ),
+			'fields'       => array(),
+			'ids'          => array( 'product_ids' ),
+			'kind'         => 'stock',
+			'read_only_ok' => false,
+			'limit'        => 'sync',
+		),
+		'sync-prices' => array(
+			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/sync-prices/' ) ),
+			'fields'       => array(),
+			'ids'          => array( 'product_ids' ),
+			'kind'         => 'prices',
+			'read_only_ok' => false,
+			'limit'        => 'sync',
+		),
+		'sync-barcodes' => array(
+			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/sync-barcodes/' ) ),
+			'fields'       => array(),
+			'ids'          => array( 'product_ids' ),
+			'kind'         => 'barcodes',
+			'read_only_ok' => false,
+			'limit'        => 'sync',
+		),
+		'sync-orders' => array(
+			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/sync-orders/' ) ),
+			'fields'       => array(),
+			'ids'          => array( 'order_ids' ),
+			'range'        => true,
+			'kind'         => 'orders',
+			'read_only_ok' => false,
+			'limit'        => 'sync',
+		),
+		'task-status' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/task-status/' ) ),
+			'fields'       => array(),
+			'task'         => true,
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'order-syncs' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/order-syncs/' ) ),
+			'fields'       => array(),
+			'shape'        => 'order_syncs',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
 		'gift-card-settings' => array(
 			'methods'      => array(
 				'GET' => array( 'GET', 'dashboards/{d}/gift-card-settings/' ),
@@ -344,7 +413,7 @@ final class Map {
 	 * @return array<string, mixed>
 	 */
 	public static function filter_body( string $key, array $body ): array {
-		$out = array();
+		$out = self::sync_input( $key, $body );
 
 		foreach ( self::ROUTES[ $key ]['fields'] ?? array() as $field ) {
 			if ( ! array_key_exists( $field, $body ) ) {
@@ -381,6 +450,132 @@ final class Map {
 		$clean = self::ROUTES[ $key ]['clean'] ?? null;
 
 		return null === $clean ? $out : self::$clean( $out );
+	}
+
+	/**
+	 * Unique positive ids from an array or from text like "1, 2,,x 3". Never truncates: more than
+	 * the cap is refused.
+	 *
+	 * @param mixed $input Browser value.
+	 * @param int   $cap   Most ids allowed.
+	 * @return array<int, int>
+	 * @throws \LengthException When there are more than $cap ids.
+	 */
+	public static function clean_ids( $input, int $cap = 500 ): array {
+		if ( is_string( $input ) ) {
+			$input = preg_split( '/[\s,;]+/', $input, -1, PREG_SPLIT_NO_EMPTY );
+		}
+
+		$ids = array();
+
+		foreach ( is_array( $input ) ? $input : array() as $item ) {
+			if ( is_string( $item ) ) {
+				$item = trim( $item );
+				$item = '' !== $item && strlen( $item ) <= 15 && ctype_digit( $item ) ? (int) $item : 0;
+			}
+
+			if ( is_int( $item ) && $item > 0 ) {
+				$ids[ $item ] = $item;
+			}
+		}
+
+		if ( count( $ids ) > $cap ) {
+			throw new \LengthException( esc_html__( 'At most 500 ids at a time.', 'odoowoo-portal' ) );
+		}
+
+		return array_values( $ids );
+	}
+
+	/**
+	 * A date range: both days (Y-m-d) or neither.
+	 *
+	 * @param mixed $from Start.
+	 * @param mixed $to   End.
+	 * @return array{from_date: string, to_date: string}|null Null when both are empty.
+	 * @throws \InvalidArgumentException When a date is missing, invalid, or the range is reversed.
+	 */
+	public static function clean_range( $from, $to ): ?array {
+		$blank = static fn( $v ) => null === $v || '' === $v;
+
+		if ( $blank( $from ) && $blank( $to ) ) {
+			return null;
+		}
+
+		$a = is_string( $from ) ? self::day( trim( $from ) ) : null;
+		$b = is_string( $to ) ? self::day( trim( $to ) ) : null;
+
+		if ( null === $a || null === $b ) {
+			throw new \InvalidArgumentException( esc_html__( 'Enter a valid start and end date.', 'odoowoo-portal' ) );
+		}
+
+		if ( $a > $b ) {
+			throw new \InvalidArgumentException( esc_html__( 'The start date is after the end date.', 'odoowoo-portal' ) );
+		}
+
+		return array(
+			'from_date' => $a,
+			'to_date'   => $b,
+		);
+	}
+
+	/**
+	 * A real calendar day in Y-m-d, or null.
+	 *
+	 * @param string $value Text.
+	 */
+	private static function day( string $value ): ?string {
+		$date = \DateTimeImmutable::createFromFormat( '!Y-m-d', $value, new \DateTimeZone( 'UTC' ) );
+
+		return $date && $date->format( 'Y-m-d' ) === $value ? $value : null;
+	}
+
+	/**
+	 * The id lists and date range of a sync row. Empty fields mean "everything".
+	 *
+	 * @param string       $key  Row.
+	 * @param array<mixed> $body Raw body.
+	 * @return array<string, mixed>
+	 * @throws InputRefused When an input is not acceptable.
+	 */
+	private static function sync_input( string $key, array $body ): array {
+		$row = self::ROUTES[ $key ];
+		$out = array();
+
+		foreach ( $row['ids'] ?? array() as $field ) {
+			$raw = $body[ $field ] ?? null;
+
+			if ( null === $raw || array() === $raw || ( is_string( $raw ) && '' === trim( $raw ) ) ) {
+				continue;
+			}
+
+			try {
+				$ids = self::clean_ids( $raw );
+			} catch ( \LengthException $e ) {
+				throw new InputRefused( $e->getMessage(), $field ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			}
+
+			if ( array() === $ids ) {
+				throw new InputRefused( __( 'Enter at least one valid id, or leave the field empty.', 'odoowoo-portal' ), $field ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			}
+
+			$out[ $field ] = $ids;
+		}
+
+		if ( empty( $row['range'] ) || array() !== $out ) {
+			return $out;
+		}
+
+		try {
+			$range = self::clean_range( $body['from_date'] ?? null, $body['to_date'] ?? null );
+		} catch ( \InvalidArgumentException $e ) {
+			throw new InputRefused( $e->getMessage(), 'from_date' ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+		}
+
+		if ( null === $range ) {
+			throw new InputRefused( __( 'Enter order ids, or choose a start and end date.', 'odoowoo-portal' ), 'order_ids' ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+		}
+
+		return $range;
 	}
 
 	/**
@@ -511,6 +706,10 @@ final class Map {
 			return $data;
 		}
 
+		if ( 'order_syncs' === $shape ) {
+			return array( 'items' => self::order_sync_rows( $data ) );
+		}
+
 		if ( ! array_is_list( $data ) ) {
 			$data = $data['mappings'] ?? $data['items'] ?? $data['taxes'] ?? array();
 		}
@@ -528,6 +727,47 @@ final class Map {
 		}
 
 		return array( 'items' => $items );
+	}
+
+	/**
+	 * Sync log rows as Django sent them (its order), the fields the app shows, plus a status text.
+	 *
+	 * @param array<mixed> $data Django list.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function order_sync_rows( array $data ): array {
+		$rows = array();
+
+		foreach ( array_is_list( $data ) ? $data : array() as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+
+			$text = static fn( $name ) => isset( $row[ $name ] ) && is_scalar( $row[ $name ] ) ? (string) $row[ $name ] : '';
+
+			$status = strtolower( $text( 'status' ) );
+
+			if ( 'success' === $status ) {
+				$status_text = __( 'Synced', 'odoowoo-portal' );
+			} elseif ( in_array( $status, array( 'failed', 'error' ), true ) ) {
+				$status_text = __( 'Failed', 'odoowoo-portal' );
+			} elseif ( 'warning' === $status ) {
+				$status_text = __( 'Warning', 'odoowoo-portal' );
+			} else {
+				$status_text = __( 'Unknown', 'odoowoo-portal' );
+			}
+
+			$rows[] = array(
+				'woocommerce_order_id' => $text( 'woocommerce_order_id' ),
+				'odoo_order_id'        => $text( 'odoo_order_id' ),
+				'status'               => $text( 'status' ),
+				'status_text'          => $status_text,
+				'synced_at'            => $text( 'synced_at' ),
+				'log'                  => $text( 'log' ),
+			);
+		}
+
+		return $rows;
 	}
 
 	/**

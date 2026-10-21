@@ -12,6 +12,8 @@ use OdooWooPortal\Context;
 use OdooWooPortal\Django\Client;
 use OdooWooPortal\Django\Messages;
 use OdooWooPortal\Django\Reply;
+use OdooWooPortal\Prefixes;
+use OdooWooPortal\Tasks;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -114,6 +116,16 @@ final class Routes {
 					'args'     => $dash,
 				) + $common,
 			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/licenses/(?P<license>\d+)/dashboards/(?P<dashboard>\d+)/sync/active',
+			array(
+				'methods'  => \WP_REST_Server::ALLMETHODS,
+				'callback' => array( __CLASS__, 'sync_active' ),
+				'args'     => $dash,
+			) + $common
 		);
 
 		$keys = Map::generic_keys();
@@ -303,10 +315,28 @@ final class Routes {
 			return self::refusal( 405, 'odoowoo_portal_bad_request', __( 'This request is not valid.', 'odoowoo-portal' ) );
 		}
 
+		$task = self::url_param( $r, 'task' );
+
+		if ( 'task-status' === $key && ! Tasks::owns( get_current_user_id(), (int) $ctx->license()['id'], (int) self::url_param( $r, 'dashboard' ), $task ) ) {
+			return self::refusal( 404, 'odoowoo_portal_task_unknown', __( 'This sync was not found. It may have finished more than a day ago.', 'odoowoo-portal' ) );
+		}
+
 		$body = null;
 
 		if ( $with_body && 'GET' !== $target[0] && 'DELETE' !== $target[0] ) {
-			$body = self::body( $r, $key );
+			try {
+				$body = self::body( $r, $key );
+			} catch ( InputRefused $e ) {
+				return new \WP_REST_Response(
+					array(
+						'ok'      => false,
+						'code'    => 'invalid_value',
+						'message' => $e->getMessage(),
+						'field'   => $e->field(),
+					),
+					400
+				);
+			}
 
 			if ( 'PATCH' === $target[0] && array() === $body ) {
 				return self::refusal( 400, 'odoowoo_portal_bad_request', __( 'There is nothing to change.', 'odoowoo-portal' ) );
@@ -321,9 +351,206 @@ final class Routes {
 
 		if ( 'GET' !== $target[0] ) {
 			unset( self::$summaries[ self::summary_key( $ctx ) ] );
+			Prefixes::forget( get_current_user_id() );
 		}
 
-		return self::respond( $reply, $key, $r->get_method() );
+		$dashboard = (int) self::url_param( $r, 'dashboard' );
+
+		if ( isset( Map::ROUTES[ $key ]['kind'] ) ) {
+			return self::started( $reply, $ctx, $dashboard, (string) Map::ROUTES[ $key ]['kind'], $key );
+		}
+
+		if ( 'task-status' === $key ) {
+			return self::task_response( $reply, $ctx, $dashboard, $task );
+		}
+
+		$response = self::respond( $reply, $key, $r->get_method() );
+
+		if ( 'woo-keys' === $key && 'GET' === $r->get_method() && $reply->ok() ) {
+			$data = $response->get_data();
+
+			$data['data']['used_prefixes'] = Prefixes::in_use( get_current_user_id(), $dashboard );
+			$response->set_data( $data );
+		}
+
+		return $response;
+	}
+
+	/**
+	 * The answer to a sync trigger: remembered only when Django accepted it (202) with a task id.
+	 *
+	 * @param Reply   $reply     Reply.
+	 * @param Context $ctx       Context.
+	 * @param int     $dashboard Dashboard.
+	 * @param string  $kind      Sync kind.
+	 * @param string  $key       Row.
+	 */
+	private static function started( Reply $reply, Context $ctx, int $dashboard, string $kind, string $key ): \WP_REST_Response {
+		if ( ! $reply->ok() ) {
+			return self::respond( $reply, $key, 'POST' );
+		}
+
+		$data    = $reply->data();
+		$task_id = isset( $data['task_id'] ) && is_string( $data['task_id'] ) ? $data['task_id'] : '';
+
+		if ( 202 !== $reply->status() || 1 !== preg_match( '/^[A-Za-z0-9_-]{1,100}$/', $task_id ) ) {
+			Messages::log( sprintf( 'sync %s answered %d without a usable task id', $key, $reply->status() ) );
+
+			return new \WP_REST_Response( array( 'ok' => false ) + Messages::from_reply( Reply::unavailable( 'no task id' ) ), 502 );
+		}
+
+		Tasks::remember( get_current_user_id(), (int) $ctx->license()['id'], $dashboard, $kind, $task_id );
+
+		return new \WP_REST_Response(
+			array(
+				'ok'   => true,
+				'data' => array(
+					'task_id' => $task_id,
+					'kind'    => $kind,
+				),
+			),
+			200
+		);
+	}
+
+	/**
+	 * The answer to a task status read. The task is forgotten once it is over (or Django has
+	 * lost it); a failed read keeps it.
+	 *
+	 * @param Reply   $reply     Reply.
+	 * @param Context $ctx       Context.
+	 * @param int     $dashboard Dashboard.
+	 * @param string  $task_id   Task.
+	 */
+	private static function task_response( Reply $reply, Context $ctx, int $dashboard, string $task_id ): \WP_REST_Response {
+		$license = (int) $ctx->license()['id'];
+
+		if ( ! $reply->ok() ) {
+			if ( 404 === $reply->status() && 'task_not_found' === $reply->code() ) {
+				Tasks::forget( get_current_user_id(), $license, $dashboard, $task_id );
+			}
+
+			return self::respond( $reply, 'task-status', 'GET' );
+		}
+
+		$view = self::task_view( $reply );
+
+		if ( 'running' !== $view['state'] ) {
+			Tasks::forget( get_current_user_id(), $license, $dashboard, $task_id );
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'ok'   => true,
+				'data' => $view,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Django's task reply as the browser sees it. State is Django's; anything unknown is failed.
+	 * Exception text is never passed on: failed items get a fixed message.
+	 *
+	 * @param Reply $r Reply.
+	 * @return array{task_id: string, state: string, label: string, current: int, total: int, message: string, results: array<int, array<string, mixed>>}
+	 */
+	public static function task_view( Reply $r ): array {
+		$d        = $r->data();
+		$state    = isset( $d['state'] ) && is_string( $d['state'] ) ? $d['state'] : '';
+		$known    = in_array( $state, array( 'running', 'done', 'skipped', 'failed' ), true );
+		$progress = isset( $d['progress'] ) && is_array( $d['progress'] ) ? $d['progress'] : array();
+		$number   = static function ( string $name ) use ( $d, $progress ): int {
+			$value = isset( $d[ $name ] ) && is_numeric( $d[ $name ] ) ? $d[ $name ] : ( $progress[ $name ] ?? 0 );
+
+			return is_numeric( $value ) ? max( 0, (int) $value ) : 0;
+		};
+
+		if ( ! $known ) {
+			$state = 'failed';
+		}
+
+		if ( 'running' === $state ) {
+			$label = __( 'Running', 'odoowoo-portal' );
+		} elseif ( 'done' === $state ) {
+			$label = __( 'Completed', 'odoowoo-portal' );
+		} elseif ( 'skipped' === $state ) {
+			$label = __( 'Skipped', 'odoowoo-portal' );
+		} else {
+			$label = __( 'Failed', 'odoowoo-portal' );
+		}
+
+		$message = $known && isset( $d['message'] ) && is_string( $d['message'] ) ? $d['message'] : '';
+
+		if ( ! $known ) {
+			$message = __( 'The sync failed. See the sync log for details.', 'odoowoo-portal' );
+		}
+
+		return array(
+			'task_id' => isset( $d['task_id'] ) && is_string( $d['task_id'] ) ? $d['task_id'] : '',
+			'state'   => $state,
+			'label'   => $label,
+			'current' => $number( 'current' ),
+			'total'   => $number( 'total' ),
+			'message' => $message,
+			'results' => self::task_results( $d['results'] ?? array() ),
+		);
+	}
+
+	/**
+	 * The per-item results: what identifies the item and its outcome. A failed item gets a fixed
+	 * message, never Django's error text.
+	 *
+	 * @param mixed $results Django results.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function task_results( $results ): array {
+		$kept = array( 'order', 'product_name', 'product_id', 'sku', 'type', 'status', 'reason' );
+		$out  = array();
+
+		foreach ( is_array( $results ) ? $results : array() as $entry ) {
+			if ( ! is_array( $entry ) ) {
+				continue;
+			}
+
+			$row = array();
+
+			foreach ( $entry as $name => $value ) {
+				if ( in_array( $name, $kept, true ) && ( is_string( $value ) || is_int( $value ) || is_float( $value ) ) ) {
+					$row[ $name ] = $value;
+				}
+			}
+
+			if ( 'error' === strtolower( (string) ( $entry['status'] ?? '' ) ) ) {
+				unset( $row['reason'] );
+				$row['message'] = __( 'This item was not synced. See the sync log for details.', 'odoowoo-portal' );
+			}
+
+			$out[] = $row;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * GET .../sync/active: the task this user started for the dashboard, from memory only.
+	 *
+	 * @param \WP_REST_Request $r Request.
+	 */
+	public static function sync_active( \WP_REST_Request $r ): \WP_REST_Response {
+		$ctx = self::guard( $r, 'task-status' );
+
+		if ( $ctx instanceof \WP_REST_Response ) {
+			return $ctx;
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'ok'   => true,
+				'data' => array( 'task' => Tasks::active( get_current_user_id(), (int) $ctx->license()['id'], (int) self::url_param( $r, 'dashboard' ) ) ),
+			),
+			200
+		);
 	}
 
 	/**
