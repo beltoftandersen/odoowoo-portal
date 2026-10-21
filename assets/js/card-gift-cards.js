@@ -169,7 +169,7 @@
 		var saved = Number.isInteger( savedId ) && savedId > 0 ? savedId : 0;
 
 		if ( saved > 0 && ! listed.some( function ( o ) { return o.value === String( saved ); } ) ) {
-			options.push( option( String( saved ), typeof savedName === 'string' && savedName !== '' ? savedName : t( fallback ).replace( '%s', String( saved ) ) ) );
+			options.push( option( String( saved ), typeof savedName === 'string' && savedName !== '' ? savedName : core.fill( t( fallback ), saved ) ) );
 		}
 
 		return options.concat( listed );

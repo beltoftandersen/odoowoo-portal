@@ -50,15 +50,22 @@
 	 */
 	function createChecker( ctx, onChange ) {
 		var facts = { hasPayment: undefined, hasTax: undefined, hasPrice: undefined };
+		var latest = 0;
 
 		return {
 			facts: function () {
 				return Object.assign( {}, facts );
 			},
 			refresh: async function () {
+				// Refreshes can overlap (load, then a saved mapping): only the newest one may apply its answers.
+				var mine = ++latest;
 				var replies = await Promise.all( LISTS.map( function ( l ) {
 					return core.api( 'GET', core.dashboardPath( ctx, l[ 0 ] ) );
 				} ) );
+
+				if ( mine !== latest ) {
+					return Object.assign( {}, facts );
+				}
 
 				replies.forEach( function ( reply, i ) {
 					if ( reply && reply.ok === true ) {

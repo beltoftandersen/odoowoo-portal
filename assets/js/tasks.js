@@ -6,6 +6,7 @@
 	'use strict';
 
 	var G = typeof window !== 'undefined' ? window : globalThis;
+	var core = typeof module !== 'undefined' && module.exports ? require( './core.js' ) : G.odoowoo;
 
 	var START = 2000;
 	var CAP = 10000;
@@ -16,23 +17,28 @@
 
 	var FINISHED = [ 'done', 'skipped', 'failed' ];
 
-	function t( key, fallback ) {
-		var i18n = ( G.odoowooPortal && G.odoowooPortal.i18n ) || {};
-
-		return typeof i18n[ key ] === 'string' && i18n[ key ] !== '' ? i18n[ key ] : fallback;
-	}
+	var FALLBACK = {
+		taskCompleted: 'Completed',
+		taskSkipped: 'Skipped',
+		taskRunning: 'Running',
+		taskFailed: 'Failed',
+		taskStarting: 'Starting…',
+		taskProgress: '%1$s of %2$s',
+		taskCompletedIssues: 'Completed, but some items were not synced',
+	};
+	var t = core.translator( FALLBACK );
 
 	/** The word for a state; anything unknown is Failed. */
 	function label( state ) {
 		switch ( state ) {
 			case 'done':
-				return t( 'taskCompleted', 'Completed' );
+				return t( 'taskCompleted' );
 			case 'skipped':
-				return t( 'taskSkipped', 'Skipped' );
+				return t( 'taskSkipped' );
 			case 'running':
-				return t( 'taskRunning', 'Running' );
+				return t( 'taskRunning' );
 			default:
-				return t( 'taskFailed', 'Failed' );
+				return t( 'taskFailed' );
 		}
 	}
 
@@ -71,11 +77,11 @@
 		var line;
 
 		if ( indeterminate ) {
-			line = t( 'taskStarting', 'Starting…' );
+			line = t( 'taskStarting' );
 		} else if ( state === 'running' ) {
-			line = label( state ) + ': ' + t( 'taskProgress', '%1$s of %2$s' ).replace( '%1$s', String( current ) ).replace( '%2$s', String( total ) );
+			line = label( state ) + ': ' + core.fill( t( 'taskProgress' ), current, total );
 		} else if ( state === 'done' && hasUnsyncedItems( d.results ) ) {
-			line = t( 'taskCompletedIssues', 'Completed, but some items were not synced' );
+			line = t( 'taskCompletedIssues' );
 		} else {
 			line = label( state );
 		}

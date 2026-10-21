@@ -41,20 +41,7 @@
 		limitReachedOne: 'You have reached your plan limit of 1 dashboard.',
 	};
 
-	function t( key ) {
-		var i18n = ( G.odoowooPortal && G.odoowooPortal.i18n ) || {};
-
-		return typeof i18n[ key ] === 'string' && i18n[ key ] !== '' ? i18n[ key ] : FALLBACK[ key ];
-	}
-
-	/** Fills %s, %1$s and %2$s. A function replacer, so "$&" in a name stays text. */
-	function fill( template ) {
-		var values = Array.prototype.slice.call( arguments, 1 );
-
-		return String( template )
-			.replace( /%(\d)\$s/g, function ( m, n ) { return String( values[ Number( n ) - 1 ] ); } )
-			.replace( /%s/g, function () { return String( values[ 0 ] ); } );
-	}
+	var t = core.translator( FALLBACK );
 
 	function isObject( v ) {
 		return v !== null && typeof v === 'object' && ! Array.isArray( v );
@@ -65,7 +52,7 @@
 	}
 
 	function limitReachedText( limit ) {
-		return limit === 1 ? t( 'limitReachedOne' ) : fill( t( 'limitReached' ), limit );
+		return limit === 1 ? t( 'limitReachedOne' ) : core.fill( t( 'limitReached' ), limit );
 	}
 
 	/** "N of M dashboards", or "N dashboards" for an unlimited plan (limit 0). '' when unknown. */
@@ -75,10 +62,10 @@
 		}
 
 		if ( limit === 0 || limit === null ) {
-			return used === 1 ? t( 'countOne' ) : fill( t( 'count' ), used );
+			return used === 1 ? t( 'countOne' ) : core.fill( t( 'count' ), used );
 		}
 
-		return limit === 1 ? fill( t( 'countOfOne' ), used ) : fill( t( 'countOf' ), used, limit );
+		return limit === 1 ? core.fill( t( 'countOfOne' ), used ) : core.fill( t( 'countOf' ), used, limit );
 	}
 
 	/**
@@ -185,7 +172,7 @@
 	}
 
 	function deleteText( name ) {
-		return fill( t( 'deleteBody' ), name );
+		return core.fill( t( 'deleteBody' ), name );
 	}
 
 	function nameRefused() {
@@ -290,18 +277,18 @@
 			var when = formatCreated( d.created_at, lang );
 
 			if ( when !== '' ) {
-				li.appendChild( el( 'span', 'odoowoo-created', fill( t( 'created' ), when ) ) );
+				li.appendChild( el( 'span', 'odoowoo-created', core.fill( t( 'created' ), when ) ) );
 			}
 
 			var link = el( 'a', 'odoowoo-button odoowoo-open', t( 'open' ) );
 			link.setAttribute( 'href', dashboardUrl( template, group.id, d.id ) );
-			link.setAttribute( 'aria-label', fill( t( 'openNamed' ), d.name ) );
+			link.setAttribute( 'aria-label', core.fill( t( 'openNamed' ), d.name ) );
 			actions.appendChild( link );
 
 			var pause = el( 'button', 'odoowoo-button odoowoo-button--secondary odoowoo-pause', d.pauseLabel );
 			pause.type = 'button';
 			pause.disabled = ! d.canPause;
-			pause.setAttribute( 'aria-label', fill( t( d.enabled ? 'pauseNamed' : 'enableNamed' ), d.name ) );
+			pause.setAttribute( 'aria-label', core.fill( t( d.enabled ? 'pauseNamed' : 'enableNamed' ), d.name ) );
 			pause.addEventListener( 'click', function () {
 				var release = core.busy( pause );
 
@@ -323,7 +310,7 @@
 			var del = el( 'button', 'odoowoo-button odoowoo-button--danger odoowoo-delete', t( 'delete' ) );
 			del.type = 'button';
 			del.disabled = ! d.canDelete;
-			del.setAttribute( 'aria-label', fill( t( 'deleteNamed' ), d.name ) );
+			del.setAttribute( 'aria-label', core.fill( t( 'deleteNamed' ), d.name ) );
 			del.addEventListener( 'click', function () {
 				core.dialog( { title: t( 'deleteTitle' ), body: deleteText( d.name ), confirm: t( 'delete' ) } ).then( function ( yes ) {
 					if ( ! yes ) {

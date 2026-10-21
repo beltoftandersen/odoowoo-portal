@@ -447,7 +447,7 @@ a.odoowoo-button,
 	max-width: 80vw;
 	padding: 0;
 	font-size: 14px;
-	background: var(--odoowoo-bg, #fff);
+	background: var(--odoowoo-bg, var(--bg-card, Canvas));
 	border: 0 solid var(--odoowoo-border);
 	border-radius: 6px;
 	clip: rect(0 0 0 0);

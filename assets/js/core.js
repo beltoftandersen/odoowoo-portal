@@ -260,19 +260,18 @@
 		return reply;
 	}
 
-	/** A password field that is saved: blank means keep. */
-	function secretField( input, saved ) {
-		input.setAttribute( 'autocomplete', 'new-password' );
-
-		if ( saved ) {
-			input.value = '';
-			input.setAttribute( 'placeholder', text( 'secretSaved' ) );
-		}
+	/** Is this a link the app may follow: an http(s) URL or a path of this site (never "//host", never a script URL)? */
+	function safeUrl( url ) {
+		return typeof url === 'string' && /^(https?:\/\/|\/(?!\/))/.test( url );
 	}
 
-	/** The value to send: undefined (leave it out) for blank-and-saved, otherwise byte-exact. */
-	function secretValue( input, saved ) {
-		return saved && input.value === '' ? undefined : input.value;
+	/** Fills %s (the first value), %1$s and %2$s. A function replacer, so "$&" in a value stays text. */
+	function fill( template ) {
+		var values = Array.prototype.slice.call( arguments, 1 );
+
+		return String( template )
+			.replace( /%(\d)\$s/g, function ( m, n ) { return String( values[ Number( n ) - 1 ] ); } )
+			.replace( /%s/g, function () { return String( values[ 0 ] ); } );
 	}
 
 	/** Shows Django's message and a link to the Connections tab. DOM glue. */
@@ -285,7 +284,7 @@
 		p.textContent = reply.message + ' ';
 		container.appendChild( p );
 
-		if ( typeof url === 'string' && /^(https?:\/\/|\/(?!\/))/.test( url ) ) {
+		if ( safeUrl( url ) ) {
 			var a = G.document.createElement( 'a' );
 			a.setAttribute( 'href', url );
 			a.textContent = text( 'goToConnections' );
@@ -540,11 +539,13 @@
 	 * save): the last read as `saved`, the typed changes as `edits`, listeners for the cards that
 	 * show it. Secrets are only ever edits: they are left out of the body when blank, kept
 	 * byte-exact otherwise, and forgotten once saved. opts: fields (the body's keys), secrets
-	 * (field names), flags (secret name => has_* name, set locally if a re-read fails).
+	 * (field names), optional (fields Django treats as unchanged when absent: a save may go
+	 * without them), flags (secret name => has_* name, set locally if a re-read fails).
 	 */
 	function createStore( opts ) {
 		var fields = ( opts && opts.fields ) || [];
 		var secrets = ( opts && opts.secrets ) || [];
+		var optional = ( opts && opts.optional ) || [];
 		var flags = ( opts && opts.flags ) || {};
 		var saved = {};
 		var edits = {};
@@ -667,7 +668,7 @@
 				var all = store.get();
 
 				return loaded && fields.every( function ( f ) {
-					return secrets.indexOf( f ) !== -1 || all[ f ] !== undefined;
+					return secrets.indexOf( f ) !== -1 || optional.indexOf( f ) !== -1 || all[ f ] !== undefined;
 				} );
 			},
 			/** Reads once for every card of the page: the loader is called only by the first. */
@@ -737,6 +738,8 @@
 	var odooSettingsStore = createStore( {
 		fields: [ 'odoo_url', 'odoo_db', 'odoo_user', 'odoo_password', 'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'odoo_order_pricelist_id', 'odoo_order_pricelist_name', 'capture_stage', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax', 'quantity_settings', 'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync', 'stock_sku_meta_keys', 'stock_units_meta_keys' ],
 		secrets: [ 'odoo_password' ],
+		// Django: absent means unchanged (views.py:753-759), so a read without them still allows a save.
+		optional: [ 'stock_sku_meta_keys', 'stock_units_meta_keys' ],
 		flags: { odoo_password: 'has_odoo_password' },
 	} );
 
@@ -748,13 +751,13 @@
 		busy: busy,
 		status: status,
 		errorText: errorText,
-		secretField: secretField,
-		secretValue: secretValue,
 		showNotConfigured: showNotConfigured,
 		dialog: dialog,
 		submit: submit,
 		text: text,
 		translator: translator,
+		safeUrl: safeUrl,
+		fill: fill,
 		dashboardPath: dashboardPath,
 		fieldOf: fieldOf,
 		showFieldError: showFieldError,

@@ -260,7 +260,7 @@
 	function runningText( kind ) {
 		var name = KINDS[ kind ] ? t( 'kind' + kind.charAt( 0 ).toUpperCase() + kind.slice( 1 ) ) : '';
 
-		return name === '' ? '' : t( 'running' ).replace( '%s', name );
+		return name === '' ? '' : core.fill( t( 'running' ), name );
 	}
 
 	function init( root ) {
@@ -318,7 +318,7 @@
 			core.status( messageEl, 'error', v.message + ' ' );
 			messageEl.hidden = false;
 
-			if ( v.back && /^(https?:\/\/|\/(?!\/))/.test( listUrl ) ) {
+			if ( v.back && core.safeUrl( listUrl ) ) {
 				var a = doc.createElement( 'a' );
 
 				a.setAttribute( 'href', listUrl );

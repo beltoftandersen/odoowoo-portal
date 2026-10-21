@@ -21,11 +21,7 @@
 		retry: 'Try again',
 	};
 
-	function t( key ) {
-		var i18n = ( G.odoowooPortal && G.odoowooPortal.i18n ) || {};
-
-		return typeof i18n[ key ] === 'string' && i18n[ key ] !== '' ? i18n[ key ] : FALLBACK[ key ];
-	}
+	var t = core.translator( FALLBACK );
 
 	function renameBody( name ) {
 		var n = typeof name === 'string' ? name.trim() : '';

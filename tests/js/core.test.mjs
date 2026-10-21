@@ -251,19 +251,6 @@ test( 'test_submit_shows_saved_only_for_ok_and_always_reenables', async () => {
 	assert.equal( button.attrs[ 'aria-busy' ], undefined );
 } );
 
-test( 'test_secret_value_is_byte_exact_and_blank_keeps_the_saved_one', () => {
-	const input = el();
-	input.value = '';
-	core.secretField( input, true );
-	assert.equal( input.attrs.placeholder, 'Saved. Leave blank to keep it.' );
-	assert.equal( input.attrs.autocomplete, 'new-password' );
-	assert.equal( core.secretValue( input, true ), undefined, 'Blank and saved: leave it out of the body.' );
-	input.value = '  sp ace  ';
-	assert.equal( core.secretValue( input, true ), '  sp ace  ', 'No trimming.' );
-	input.value = '';
-	assert.equal( core.secretValue( input, false ), '' );
-} );
-
 test( 'test_api_unwraps_the_browser_envelope', async () => {
 	boot();
 	fakeFetch( [ fixtureRes( 'list_success' ) ] );

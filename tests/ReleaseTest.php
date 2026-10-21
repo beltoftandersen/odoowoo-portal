@@ -51,4 +51,12 @@ final class ReleaseTest extends TestCase {
 			$this->assertStringContainsString( '`' . $hook . '`', $readme, $hook . ' is listed in the readme.' );
 		}
 	}
+
+	public function test_tooltip_background_has_no_raw_hex_fallback(): void {
+		$css = $this->read( 'assets/css/odoowoo.css' );
+
+		$this->assertSame( 1, preg_match( '/\.odoowoo-tip \{[^}]*\}/', $css, $m ) );
+		$this->assertStringContainsString( 'background: var(--odoowoo-bg, var(--bg-card,', $m[0], 'A palette variable chain.' );
+		$this->assertDoesNotMatchRegularExpression( '/#[0-9a-fA-F]{3,8}\b/', $m[0], 'No raw hex in the tooltip rule.' );
+	}
 }

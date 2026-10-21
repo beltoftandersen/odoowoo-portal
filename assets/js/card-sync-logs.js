@@ -80,7 +80,7 @@
 
 		return {
 			woo: str( r.woocommerce_order_id ),
-			odoo: odoo !== '' ? t( 'odooRef' ).replace( '%s', odoo ) : t( 'odooNone' ),
+			odoo: odoo !== '' ? core.fill( t( 'odooRef' ), odoo ) : t( 'odooNone' ),
 			badge: str( r.status_text ) !== '' ? str( r.status_text ) : t( 'unknownStatus' ),
 			raw: raw,
 			at: str( r.synced_at ),
@@ -106,7 +106,7 @@
 			li.className = 'odoowoo-log-row';
 			head.className = 'odoowoo-log-row__head';
 			woo.className = 'odoowoo-log-ref';
-			woo.textContent = t( 'wooRef' ).replace( '%s', v.woo );
+			woo.textContent = core.fill( t( 'wooRef' ), v.woo );
 			odoo.className = 'odoowoo-log-ref';
 			odoo.textContent = v.odoo;
 			badge.className = 'odoowoo-log-badge';

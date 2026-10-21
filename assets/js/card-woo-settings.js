@@ -41,7 +41,7 @@
 		function add( value ) {
 			var blocked = taken[ value ] === true && value !== mine;
 
-			options.push( { value: value, label: blocked ? t( 'prefixTaken' ).replace( '%s', value ) : value, disabled: blocked } );
+			options.push( { value: value, label: blocked ? core.fill( t( 'prefixTaken' ), value ) : value, disabled: blocked } );
 		}
 
 		for ( var i = 0; i < 26; i++ ) {
