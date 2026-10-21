@@ -254,6 +254,7 @@ final class Renderer {
 		self::register_assets();
 		self::register_tabs();
 		self::$app_page = true;
+		\OdooWooPortal\Plugin::mark_uncacheable();
 
 		if ( isset( $entry['strings'] ) && is_array( $entry['strings'] ) ) {
 			foreach ( $entry['strings'] as $key => $value ) {

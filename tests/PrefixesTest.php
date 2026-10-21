@@ -112,16 +112,16 @@ final class PrefixesTest extends RestTestCase {
 			)
 		);
 
-		$this->assertSame( array( 'BB' ), Prefixes::in_use( (int) $a['user_id'], 1 ) );
-		$this->assertSame( array( 'AA' ), Prefixes::in_use( (int) $a['user_id'], 2 ) );
-		$this->assertSame( array( 'AA', 'BB' ), Prefixes::in_use( (int) $a['user_id'], 99 ), 'A new dashboard sees both.' );
+		$this->assertSame( array( 'BB' ), Prefixes::status( (int) $a['user_id'], 1 )['used'] );
+		$this->assertSame( array( 'AA' ), Prefixes::status( (int) $a['user_id'], 2 )['used'] );
+		$this->assertSame( array( 'AA', 'BB' ), Prefixes::status( (int) $a['user_id'], 99 )['used'], 'A new dashboard sees both.' );
 	}
 
 	public function test_an_unavailable_license_is_skipped_not_fatal(): void {
 		list( $a, $b ) = $this->two();
 		$this->serve( array( $this->tenant( $b ) => array( 2 => 'BB' ) ) );
 
-		$this->assertSame( array( 'BB' ), Prefixes::in_use( (int) $a['user_id'], 1 ) );
+		$this->assertSame( array( 'BB' ), Prefixes::status( (int) $a['user_id'], 1 )['used'] );
 	}
 
 	public function test_a_license_that_is_not_ready_makes_no_call(): void {
@@ -129,7 +129,7 @@ final class PrefixesTest extends RestTestCase {
 		$this->as_user( (int) $a['user_id'] );
 		$this->serve( array() );
 
-		$this->assertSame( array(), Prefixes::in_use( (int) $a['user_id'], 1 ) );
+		$this->assertSame( array(), Prefixes::status( (int) $a['user_id'], 1 )['used'] );
 		$this->assertSame( array(), $this->django_calls() );
 	}
 
@@ -142,16 +142,16 @@ final class PrefixesTest extends RestTestCase {
 			)
 		);
 
-		Prefixes::in_use( (int) $a['user_id'], 1 );
+		Prefixes::status( (int) $a['user_id'], 1 )['used'];
 		$first = count( $this->django_calls() );
 		$this->assertSame( 4, $first, 'Two lists and two woo-keys reads.' );
 
 		Context::reset();
-		$this->assertSame( array( 'BB' ), Prefixes::in_use( (int) $a['user_id'], 1 ) );
+		$this->assertSame( array( 'BB' ), Prefixes::status( (int) $a['user_id'], 1 )['used'] );
 		$this->assertCount( $first, $this->django_calls() );
 
 		Prefixes::forget( (int) $a['user_id'] );
-		Prefixes::in_use( (int) $a['user_id'], 1 );
+		Prefixes::status( (int) $a['user_id'], 1 )['used'];
 		$this->assertCount( $first * 2, $this->django_calls(), 'Forgotten, so read again.' );
 	}
 
@@ -166,7 +166,7 @@ final class PrefixesTest extends RestTestCase {
 		$this->as_user( (int) $a['user_id'] );
 		$this->serve( array( $this->tenant( $a ) => $rows ) );
 
-		$used = Prefixes::in_use( (int) $a['user_id'], 1000 );
+		$used = Prefixes::status( (int) $a['user_id'], 1000 )['used'];
 
 		$this->assertCount( 20, $this->django_calls() );
 		$this->assertCount( 19, $used, 'One list read and 19 woo-keys reads.' );
@@ -181,7 +181,7 @@ final class PrefixesTest extends RestTestCase {
 			)
 		);
 
-		$this->assertSame( array( 'CC' ), Prefixes::in_use( (int) $a['user_id'], 9 ) );
+		$this->assertSame( array( 'CC' ), Prefixes::status( (int) $a['user_id'], 9 )['used'] );
 	}
 
 	public function test_other_users_license_is_never_read(): void {
@@ -195,7 +195,7 @@ final class PrefixesTest extends RestTestCase {
 			)
 		);
 
-		$this->assertSame( array( 'AA', 'BB' ), Prefixes::in_use( (int) $a['user_id'], 99 ) );
+		$this->assertSame( array( 'AA', 'BB' ), Prefixes::status( (int) $a['user_id'], 99 )['used'] );
 	}
 
 	public function test_a_failed_read_is_not_cached(): void {
@@ -218,13 +218,13 @@ final class PrefixesTest extends RestTestCase {
 			}
 		);
 
-		$this->assertSame( array( 'AA' ), Prefixes::in_use( (int) $a['user_id'], 99 ) );
+		$this->assertSame( array( 'AA' ), Prefixes::status( (int) $a['user_id'], 99 )['used'] );
 
 		$up = true;
-		$this->assertSame( array( 'AA', 'BB' ), Prefixes::in_use( (int) $a['user_id'], 99 ), 'The failure was not remembered.' );
+		$this->assertSame( array( 'AA', 'BB' ), Prefixes::status( (int) $a['user_id'], 99 )['used'], 'The failure was not remembered.' );
 
 		$before = count( $this->django_calls() );
-		Prefixes::in_use( (int) $a['user_id'], 99 );
+		Prefixes::status( (int) $a['user_id'], 99 )['used'];
 		$this->assertCount( $before, $this->django_calls(), 'A complete result is cached.' );
 	}
 

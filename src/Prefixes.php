@@ -21,18 +21,7 @@ final class Prefixes {
 	public const MAX_READS = 20;
 
 	/**
-	 * The prefixes of the user's other dashboards (every license), flat, without the one edited.
-	 *
-	 * @param int $user_id      User.
-	 * @param int $dashboard_id Dashboard being edited (its own prefix is not "in use").
-	 * @return array<int, string>
-	 */
-	public static function in_use( int $user_id, int $dashboard_id ): array {
-		return self::status( $user_id, $dashboard_id )['used'];
-	}
-
-	/**
-	 * Like in_use(), and whether the read was partial (a failed read, or more dashboards than
+	 * The prefixes of the user's other dashboards (every license), flat, without the one edited, and whether the read was partial (a failed read, or more dashboards than
 	 * MAX_READS allows): a prefix shown as free may then still be taken.
 	 *
 	 * @param int $user_id      User.

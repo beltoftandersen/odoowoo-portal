@@ -279,7 +279,7 @@ final class Routes {
 			return new \WP_REST_Response(
 				array(
 					'ok'   => true,
-					'data' => array() === $r->data() && 204 === $r->status() ? new \stdClass() : $r->data(),
+					'data' => array() === $r->data() && 204 === $r->status() ? new \stdClass() : ( '' === $key ? $r->data() : Map::read_only_fields( $key, $method, $r->data() ) ),
 				),
 				200
 			);
@@ -390,7 +390,11 @@ final class Routes {
 
 		if ( 'GET' !== $target[0] ) {
 			unset( self::$summaries[ self::summary_key( $ctx ) ] );
-			Prefixes::forget( get_current_user_id() );
+
+			// Only what changes a dashboard's prefix or the number of dashboards makes the cached map stale.
+			if ( in_array( $key, array( 'woo-keys', 'dashboard-create', 'dashboard-delete' ), true ) ) {
+				Prefixes::forget( get_current_user_id() );
+			}
 		}
 
 		$dashboard = (int) self::url_param( $r, 'dashboard' );
@@ -709,6 +713,24 @@ final class Routes {
 	}
 
 	/**
+	 * Django's dashboard rows cut to what the app shows (DashboardListView: id, name, enabled, created_at).
+	 *
+	 * @param array<mixed> $rows Django list.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function dashboard_rows( array $rows ): array {
+		$out = array();
+
+		foreach ( $rows as $row ) {
+			if ( is_array( $row ) ) {
+				$out[] = array_intersect_key( $row, array_flip( array( 'id', 'name', 'enabled', 'created_at' ) ) );
+			}
+		}
+
+		return $out;
+	}
+
+	/**
 	 * The license entry for the app: usage and dashboards. One tenant read and one dashboards
 	 * read per request, none while the license is not ready.
 	 *
@@ -752,7 +774,7 @@ final class Routes {
 			$list = Client::request( $ctx, 'GET', 'dashboards/' );
 
 			if ( $list->ok() ) {
-				$entry['dashboards'] = array_values( $list->data() );
+				$entry['dashboards'] = self::dashboard_rows( $list->data() );
 			} else {
 				$entry['error'] = Messages::from_reply( $list )['message'];
 			}
