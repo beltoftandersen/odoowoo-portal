@@ -216,12 +216,39 @@ final class Settings {
 		printf( '<select name="%1$s" id="%2$s">', esc_attr( self::OPTION . '[' . $key . ']' ), esc_attr( $id ) );
 		printf( '<option value="0">%s</option>', esc_html__( '— Select —', 'odoowoo-portal' ) );
 
-		foreach ( is_array( $pages ) ? $pages : array() as $page ) {
+		$pages = is_array( $pages ) ? $pages : array();
+		$shown = array();
+
+		foreach ( $pages as $page ) {
+			$shown[] = (int) $page->ID;
+		}
+
+		// A saved page that is no longer published stays selectable, so saving does not reset it silently.
+		if ( $selected > 0 && ! in_array( $selected, $shown, true ) ) {
+			$saved = get_post( $selected );
+
+			if ( $saved instanceof \WP_Post && 'page' === $saved->post_type ) {
+				$pages[] = $saved;
+			}
+		}
+
+		foreach ( $pages as $page ) {
+			$title = get_the_title( $page );
+
+			if ( '' === trim( $title ) ) {
+				$title = __( '(no title)', 'odoowoo-portal' );
+			}
+
+			if ( 'publish' !== $page->post_status ) {
+				/* translators: %s: page title. */
+				$title = sprintf( __( '%s (not published)', 'odoowoo-portal' ), $title );
+			}
+
 			printf(
 				'<option value="%1$d"%2$s>%3$s</option>',
 				(int) $page->ID,
 				selected( $selected, (int) $page->ID, false ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core returns a fixed attribute.
-				esc_html( get_the_title( $page ) )
+				esc_html( $title )
 			);
 		}
 

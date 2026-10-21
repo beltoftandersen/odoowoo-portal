@@ -33,7 +33,7 @@ When Bricks is active the plugin registers fifteen elements (one per card), five
 ## Development
 
 ```bash
-/root/plugin-tests/run.sh /path/to/odoowoo-portal      # PHP suite
+# PHP suite: run the PHPUnit suite (phpunit.xml.dist) in a WordPress test environment
 node --test tests/js                                   # JavaScript logic
 wp i18n make-pot . languages/odoowoo-portal.pot --exclude=tests,.internal
 ```

@@ -105,4 +105,21 @@ final class SettingsTest extends TestCase {
 		$this->assertMatchesRegularExpression( '/<option[^>]*value="' . $dashboard . '"[^>]*selected(?:="selected")?[^>]*>One app</', $html );
 		$this->assertStringContainsString( 'value="0"', $html );
 	}
+
+	public function test_dropdown_keeps_an_unpublished_saved_page_and_names_untitled_ones(): void {
+		$draft    = self::factory()->post->create( array( 'post_type' => 'page', 'post_status' => 'draft', 'post_title' => 'Old apps' ) );
+		$untitled = self::factory()->post->create( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => '' ) );
+		// Saved before the page was unpublished: written straight to the option, as an older save would have.
+		update_option( Settings::OPTION, array_merge( Settings::defaults(), array( 'list_page_id' => $draft ) ) );
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		ob_start();
+		Settings::render();
+		$html = (string) ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '/<option[^>]*value="' . $draft . '"[^>]*selected(?:="selected")?[^>]*>Old apps \(not published\)</', $html );
+		$this->assertMatchesRegularExpression( '/<option[^>]*value="' . $untitled . '"[^>]*>\(no title\)</', $html );
+		$this->assertSame( 1, substr_count( $html, 'value="' . $draft . '"' ) );
+		$this->assertDoesNotMatchRegularExpression( '/<option[^>]*value="' . $draft . '"[^>]*>Old apps</', $html, 'Not shown as a plain published page.' );
+	}
 }

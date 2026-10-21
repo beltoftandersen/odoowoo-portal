@@ -144,7 +144,7 @@ final class Client {
 		}
 
 		/** This filter is documented in beltoft-services, src/Http/HttpDriver.php. */
-		$connection = apply_filters( 'beltoft_services_connection', null, $id );
+		$connection = apply_filters( 'beltoft_services_connection', null, $id ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- beltoft-services' own filter.
 
 		if ( ! is_array( $connection ) ) {
 			return null;

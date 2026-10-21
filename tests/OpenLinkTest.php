@@ -93,6 +93,26 @@ final class OpenLinkTest extends TestCase {
 		$this->assertSame( '', (string) ob_get_clean() );
 	}
 
+	public function test_no_button_for_an_email_matched_license_in_support_mode(): void {
+		$this->list_page();
+		$this->connection();
+		Context::reset();
+
+		// The license belongs to someone else, but its email is the viewer's (the account page lists by email too).
+		$admin   = self::factory()->user->create( array( 'role' => 'administrator', 'user_email' => 'matched@example.com' ) );
+		$license = $this->odoowoo_license( array( 'email' => 'matched@example.com' ) );
+		$this->assertNotSame( $admin, (int) $license['user_id'] );
+		$this->as_user( $admin );
+
+		$this->assertSame( '', $this->printed( $license ), 'No session, no button.' );
+
+		\OdooWooPortal\Support::grant( $admin, (int) $license['id'] );
+		Context::reset();
+
+		$this->assertSame( 'support', Context::for_user( $admin, (int) $license['id'] )->mode() );
+		$this->assertSame( '', $this->printed( $license ), 'A support session is not the owner: still no button.' );
+	}
+
 	public function test_button_text_is_translatable(): void {
 		$this->list_page();
 		Context::reset();

@@ -12,7 +12,7 @@ The OdooWoo customer app: dashboards, connections, mappings and syncs for licens
 
 == Description ==
 
-Built on Beltoft Licenses and Beltoft Services. It needs WooCommerce, Beltoft Licenses 0.7.0 or newer and Beltoft Services 0.1.1 or newer; if one is missing or too old it shows a notice and does nothing else.
+Required plugins: WooCommerce, Beltoft Licenses and Beltoft Services. It is built on the last two and needs WooCommerce, Beltoft Licenses 0.7.0 or newer and Beltoft Services 0.1.1 or newer; if one is missing or too old it shows a notice and does nothing else.
 
 * **Dashboards.** Customers create, rename, pause and delete dashboards within their plan.
 * **Connections and settings.** WooCommerce and Odoo connections with verification, and the sync settings of each side.
