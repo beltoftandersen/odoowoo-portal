@@ -10,6 +10,7 @@ namespace OdooWooPortal\Tests;
 use BeltoftLicenses\Licenses;
 use BeltoftServices\Resource;
 use OdooWooPortal\Context;
+use OdooWooPortal\Support;
 
 /**
  * Who may see which license, and what the app may do with it.
@@ -156,6 +157,10 @@ final class ContextTest extends TestCase {
 		$admin   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		get_userdata( $admin )->add_cap( 'manage_woocommerce' );
 
+		$this->assertNull( Context::for_user( $admin, (int) $license['id'] ), 'No arrival, no access.' );
+
+		Support::grant( $admin, (int) $license['id'] );
+		Context::reset();
 		$context = Context::for_user( $admin, (int) $license['id'] );
 		$this->assertSame( 'support', $context->mode() );
 		$this->assertFalse( $context->can_write() );
@@ -163,15 +168,27 @@ final class ContextTest extends TestCase {
 		$this->assertSame( 'Viewing as support (read-only)', $context->notice() );
 
 		$revoked = $this->revoked_license();
+		Support::grant( $admin, (int) $revoked['id'] );
 		$this->assertNull( Context::for_user( $admin, (int) $revoked['id'] ) );
 
 		$other = $this->odoowoo_license( array( 'product_slug' => 'some-plugin' ) );
+		Support::grant( $admin, (int) $other['id'] );
 		$this->assertNull( Context::for_user( $admin, (int) $other['id'] ) );
+
+		// A session for one license is no access to another.
+		$second = $this->odoowoo_license();
+		$this->assertNull( Context::for_user( $admin, (int) $second['id'] ) );
+
+		// The session ends.
+		update_user_meta( $admin, 'odoowoo_support_until_' . $license['id'], time() - 1 );
+		Context::reset();
+		$this->assertNull( Context::for_user( $admin, (int) $license['id'] ) );
 	}
 
 	public function test_owner_with_support_capability_stays_owner(): void {
 		$license = $this->odoowoo_license();
 		get_userdata( (int) $license['user_id'] )->add_cap( 'manage_woocommerce' );
+		Support::grant( (int) $license['user_id'], (int) $license['id'] );
 
 		$this->assertSame( 'owner', Context::for_user( (int) $license['user_id'], (int) $license['id'] )->mode() );
 	}

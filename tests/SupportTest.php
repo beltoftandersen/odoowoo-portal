@@ -45,15 +45,17 @@ final class SupportTest extends TestCase {
 		$admin   = $this->support_user();
 		$this->as_user( $admin );
 
-		$context = Context::for_user( $admin, (int) $license['id'] );
-		$this->assertSame( 'support', $context->mode() );
-		$this->assertFalse( $context->can_write() );
+		$this->assertNull( Context::for_user( $admin, (int) $license['id'] ) );
 
 		$query = array( 'license' => (string) $license['id'], 'odoowoo_support' => '1', '_wpnonce' => wp_create_nonce( 'odoowoo_support_' . $license['id'] ) );
 
 		$this->assertTrue( Support::arrived( $query, $admin ) );
 		$this->assertTrue( Support::arrived( $query, $admin ) );
 		$this->assertSame( 2, $this->visits( (int) $license['id'] ), 'No dedupe.' );
+
+		$context = Context::for_user( $admin, (int) $license['id'] );
+		$this->assertSame( 'support', $context->mode() );
+		$this->assertFalse( $context->can_write() );
 
 		// Loading the context, and plain visits without the link, log nothing.
 		Context::for_user( $admin, (int) $license['id'] );
@@ -85,6 +87,44 @@ final class SupportTest extends TestCase {
 		$this->assertFalse( Support::arrived( $nonce, $stranger ) );
 
 		$this->assertSame( 0, $this->visits( $id ) );
+	}
+
+	public function test_nonce_of_another_license_or_user_is_refused(): void {
+		$a     = $this->odoowoo_license();
+		$b     = $this->odoowoo_license();
+		$admin = $this->support_user();
+		$other = $this->support_user();
+		$this->as_user( $admin );
+
+		$query = array( 'license' => (string) $b['id'], 'odoowoo_support' => '1', '_wpnonce' => wp_create_nonce( 'odoowoo_support_' . $a['id'] ) );
+		$this->assertFalse( Support::arrived( $query, $admin ) );
+		$this->assertNull( Context::for_user( $admin, (int) $b['id'] ) );
+
+		// Another user's nonce, and a user id that is not the acting one.
+		$query = array( 'license' => (string) $a['id'], 'odoowoo_support' => '1', '_wpnonce' => wp_create_nonce( 'odoowoo_support_' . $a['id'] ) );
+		$this->assertFalse( Support::arrived( $query, $other ) );
+		$this->as_user( $other );
+		$this->assertFalse( Support::arrived( $query, $other ) );
+		$this->assertNull( Context::for_user( $other, (int) $a['id'] ) );
+		$this->assertSame( 0, $this->visits( (int) $a['id'] ) + $this->visits( (int) $b['id'] ) );
+	}
+
+	public function test_arrival_gives_a_session_that_expires(): void {
+		$license = $this->odoowoo_license();
+		$admin   = $this->support_user();
+		$this->as_user( $admin );
+		$id    = (int) $license['id'];
+		$query = array( 'license' => (string) $id, 'odoowoo_support' => '1', '_wpnonce' => wp_create_nonce( 'odoowoo_support_' . $id ) );
+
+		$this->assertTrue( Support::arrived( $query, $admin ) );
+		$this->assertTrue( Support::has_session( $admin, $id ) );
+		$this->assertEqualsWithDelta( time() + 2 * HOUR_IN_SECONDS, (int) get_user_meta( $admin, 'odoowoo_support_until_' . $id, true ), 5 );
+		$this->assertSame( 'support', Context::for_user( $admin, $id )->mode() );
+
+		update_user_meta( $admin, 'odoowoo_support_until_' . $id, time() - 1 );
+		Context::reset();
+		$this->assertFalse( Support::has_session( $admin, $id ) );
+		$this->assertNull( Context::for_user( $admin, $id ) );
 	}
 
 	public function test_url_carries_license_flag_and_nonce(): void {

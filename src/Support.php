@@ -19,6 +19,11 @@ final class Support {
 	public const FLAG = 'odoowoo_support';
 
 	/**
+	 * How long a support session lasts after an arrival.
+	 */
+	public const SESSION_TTL = 2 * HOUR_IN_SECONDS;
+
+	/**
 	 * Hooks the admin link.
 	 */
 	public static function register(): void {
@@ -33,9 +38,9 @@ final class Support {
 	public static function url( int $license_id ): string {
 		return add_query_arg(
 			array(
-				'license'    => $license_id,
-				self::FLAG   => 1,
-				'_wpnonce'   => wp_create_nonce( self::action( $license_id ) ),
+				'license'  => $license_id,
+				self::FLAG => 1,
+				'_wpnonce' => wp_create_nonce( self::action( $license_id ) ),
 			),
 			Urls::list()
 		);
@@ -51,8 +56,10 @@ final class Support {
 	}
 
 	/**
-	 * Records the visit when a request arrived through the support link: flag, valid
-	 * nonce, and the user is support for that license (not its owner). Every arrival is logged.
+	 * Handles an arrival through the support link: flag, a valid per-license nonce of the
+	 * acting user, manage_woocommerce, and the user is not the owner. Every arrival is
+	 * logged and (re)starts the user's support session for that license, which is the only
+	 * way Context::for_user() gives a non-owner access.
 	 *
 	 * @param array<string, mixed> $query   Query args (normally $_GET).
 	 * @param int                  $user_id Viewer.
@@ -70,15 +77,46 @@ final class Support {
 			return false;
 		}
 
-		$context = Context::for_user( $user_id, $license_id );
+		$license = Context::support_license( $user_id, $license_id );
 
-		if ( ! $context || 'support' !== $context->mode() ) {
+		if ( ! $license || get_current_user_id() !== $user_id ) {
 			return false;
 		}
 
-		self::record_visit( $context->license(), $user_id );
+		self::grant( $user_id, $license_id );
+		Context::reset();
+		self::record_visit( $license, $user_id );
 
 		return true;
+	}
+
+	/**
+	 * Meta key of a user's support session for a license.
+	 *
+	 * @param int $license_id License id.
+	 */
+	private static function meta_key( int $license_id ): string {
+		return 'odoowoo_support_until_' . $license_id;
+	}
+
+	/**
+	 * Starts a support session.
+	 *
+	 * @param int $user_id    Support user.
+	 * @param int $license_id License id.
+	 */
+	public static function grant( int $user_id, int $license_id ): void {
+		update_user_meta( $user_id, self::meta_key( $license_id ), time() + self::SESSION_TTL );
+	}
+
+	/**
+	 * Does the user have a running support session for the license?
+	 *
+	 * @param int $user_id    User id.
+	 * @param int $license_id License id.
+	 */
+	public static function has_session( int $user_id, int $license_id ): bool {
+		return $user_id > 0 && (int) get_user_meta( $user_id, self::meta_key( $license_id ), true ) > time();
 	}
 
 	/**

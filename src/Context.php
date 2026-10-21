@@ -114,13 +114,31 @@ final class Context {
 
 		if ( $user_id > 0 && (int) $license['user_id'] === $user_id ) {
 			$mode = 'owner';
-		} elseif ( $user_id > 0 && user_can( $user_id, 'manage_woocommerce' ) ) {
+		} elseif ( $user_id > 0 && user_can( $user_id, 'manage_woocommerce' ) && Support::has_session( $user_id, $license_id ) ) {
 			$mode = 'support';
 		} else {
 			return null;
 		}
 
 		return new self( $license, Resource::for_license( $license_id ), $mode );
+	}
+
+	/**
+	 * The license a manager may be given a support session for: an OdooWoo license that is not
+	 * revoked, the user can manage_woocommerce and is not its owner. Null otherwise.
+	 *
+	 * @param int $user_id    User id.
+	 * @param int $license_id License id.
+	 * @return array<string, mixed>|null
+	 */
+	public static function support_license( int $user_id, int $license_id ): ?array {
+		$license = $license_id > 0 ? Licenses::find( $license_id ) : null;
+
+		if ( ! $license || ! self::usable( $license ) || $user_id <= 0 || (int) $license['user_id'] === $user_id || ! user_can( $user_id, 'manage_woocommerce' ) ) {
+			return null;
+		}
+
+		return $license;
 	}
 
 	/**
@@ -200,7 +218,9 @@ final class Context {
 	}
 
 	/**
-	 * The notice for the app, or ''.
+	 * The state notice (paused, getting ready, unavailable), or for a support viewer in a
+	 * ready state the support banner, or ''. Contract: the page shows banner() whenever
+	 * mode() is support, in addition to notice() (never rely on notice() for the banner).
 	 */
 	public function notice(): string {
 		switch ( $this->state() ) {
@@ -216,7 +236,7 @@ final class Context {
 	}
 
 	/**
-	 * The support banner, '' for an owner.
+	 * The support banner, '' for an owner. Shown whenever mode() is support.
 	 */
 	public function banner(): string {
 		return 'support' === $this->mode ? __( 'Viewing as support (read-only)', 'odoowoo-portal' ) : '';
