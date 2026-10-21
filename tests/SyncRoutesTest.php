@@ -599,4 +599,31 @@ final class SyncRoutesTest extends RestTestCase {
 		$this->assertSame( 'AA', $d['prefix'] );
 		$this->assertSame( array(), $d['used_prefixes'] );
 	}
+
+	public function test_refused_input_does_not_consume_a_rate_limit_slot(): void {
+		$l = $this->owner();
+		$this->fake_django( fn() => array( 202, array( 'task_id' => 'tk' ) ) );
+
+		for ( $i = 0; $i < 15; $i++ ) {
+			$res = $this->rest( 'POST', $this->url( $l, 'sync-orders' ), array( 'from_date' => '2026-02-01', 'to_date' => '2026-01-01' ) );
+			$this->assertSame( 400, $res->get_status(), 'Refused ' . $i );
+		}
+
+		$this->assertSame( 400, $this->rest( 'POST', $this->url( $l, 'trigger-sync' ), array( 'product_ids' => range( 1, 600 ) ) )->get_status() );
+		$this->assertSame( array(), $this->django_calls() );
+
+		for ( $i = 0; $i < 10; $i++ ) {
+			$this->assertSame( 200, $this->rest( 'POST', $this->url( $l, 'sync-stock' ) )->get_status(), 'Valid ' . $i );
+		}
+
+		$this->assertSame( 429, $this->rest( 'POST', $this->url( $l, 'sync-stock' ) )->get_status() );
+	}
+
+	public function test_a_valid_call_still_counts_and_a_read_only_refusal_is_before_validation(): void {
+		$l = $this->odoowoo_license( array(), 'paused' );
+		$this->as_user( (int) $l['user_id'] );
+		$res = $this->rest( 'POST', $this->url( $l, 'sync-orders' ), array( 'from_date' => 'x', 'to_date' => 'y' ) );
+
+		$this->assertSame( 403, $res->get_status(), 'Read-only is decided before the body is looked at.' );
+	}
 }

@@ -79,8 +79,9 @@ final class Prefixes {
 			return $cached;
 		}
 
-		$map   = array();
-		$reads = 0;
+		$map      = array();
+		$reads    = 0;
+		$complete = true;
 
 		foreach ( Context::licenses_for_user( $user_id ) as $license ) {
 			$ctx = Context::for_user( $user_id, (int) $license['id'] );
@@ -97,6 +98,7 @@ final class Prefixes {
 			$list = Client::request( $ctx, 'GET', 'dashboards/' );
 
 			if ( ! $list->ok() ) {
+				$complete = false;
 				continue;
 			}
 
@@ -113,13 +115,18 @@ final class Prefixes {
 				$keys = Client::request( $ctx, 'GET', 'dashboards/' . (int) $row['id'] . '/woo-keys/' );
 				$data = $keys->ok() ? $keys->data() : array();
 
-				if ( isset( $data['prefix'] ) && is_string( $data['prefix'] ) ) {
+				if ( ! $keys->ok() ) {
+					$complete = false;
+				} elseif ( isset( $data['prefix'] ) && is_string( $data['prefix'] ) ) {
 					$map[ (int) $row['id'] ] = $data['prefix'];
 				}
 			}
 		}
 
-		set_transient( self::key( $user_id ), $map, self::TTL );
+		// A result with a failed read in it is not remembered: the next call tries again.
+		if ( $complete ) {
+			set_transient( self::key( $user_id ), $map, self::TTL );
+		}
 
 		return $map;
 	}

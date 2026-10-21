@@ -107,4 +107,16 @@ final class TasksTest extends TestCase {
 
 		$this->assertFalse( Tasks::owns( $u, 11, 7, 'a' ) );
 	}
+
+	public function test_the_write_lock_is_released_and_a_stale_one_is_ignored(): void {
+		Tasks::remember( 5, 11, 7, 'products', 'a' );
+		$this->assertFalse( get_option( 'odoowoo_portal_tasks_lock_5' ), 'Released after the write.' );
+
+		add_option( 'odoowoo_portal_tasks_lock_5', time() - 60, '', 'no' );
+		Tasks::remember( 5, 11, 7, 'stock', 'b' );
+
+		$this->assertTrue( Tasks::owns( 5, 11, 7, 'a' ) );
+		$this->assertTrue( Tasks::owns( 5, 11, 7, 'b' ) );
+		$this->assertFalse( get_option( 'odoowoo_portal_tasks_lock_5' ) );
+	}
 }

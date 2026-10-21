@@ -161,9 +161,10 @@ final class Routes {
 	 *
 	 * @param \WP_REST_Request $r         Request.
 	 * @param string           $route_key Map row.
+	 * @param callable|null    $validate  Runs after the access checks and before the rate limit: gets the Context, returns a refusal or null. Input is checked here so a refused input never uses a slot.
 	 * @return Context|\WP_REST_Response
 	 */
-	public static function guard( \WP_REST_Request $r, string $route_key ) {
+	public static function guard( \WP_REST_Request $r, string $route_key, ?callable $validate = null ) {
 		$user_id = get_current_user_id();
 
 		if ( $user_id <= 0 ) {
@@ -204,6 +205,14 @@ final class Routes {
 
 		if ( Map::is_write( $route_key, $r->get_method() ) && ! $ctx->can_write() && ! ( $row['read_only_ok'] && 'owner' === $ctx->mode() ) ) {
 			return self::refusal( 403, 'odoowoo_portal_read_only', $ctx->notice() );
+		}
+
+		if ( null !== $validate ) {
+			$refusal = $validate( $ctx );
+
+			if ( $refusal instanceof \WP_REST_Response ) {
+				return $refusal;
+			}
 		}
 
 		$bucket = $row['limit'];
@@ -303,44 +312,47 @@ final class Routes {
 	 * @param bool             $with_body Send the filtered body.
 	 */
 	private static function call( \WP_REST_Request $r, string $key, string $suffix = '', bool $with_body = true ): \WP_REST_Response {
-		$ctx = self::guard( $r, $key );
+		$body   = null;
+		$task   = self::url_param( $r, 'task' );
+		$target = Map::target( $key, $r->get_method(), (int) self::url_param( $r, 'dashboard' ) );
+
+		// Everything about the input is decided before the rate limiter is touched.
+		$validate = static function ( Context $ctx ) use ( $r, $key, $with_body, $task, &$body, $target ) {
+			if ( null === $target ) {
+				return self::refusal( 405, 'odoowoo_portal_bad_request', __( 'This request is not valid.', 'odoowoo-portal' ) );
+			}
+
+			if ( 'task-status' === $key && ! Tasks::owns( get_current_user_id(), (int) $ctx->license()['id'], (int) self::url_param( $r, 'dashboard' ), $task ) ) {
+				return self::refusal( 404, 'odoowoo_portal_task_unknown', __( 'This sync was not found. It may have finished more than a day ago.', 'odoowoo-portal' ) );
+			}
+
+			if ( $with_body && 'GET' !== $target[0] && 'DELETE' !== $target[0] ) {
+				try {
+					$body = self::body( $r, $key );
+				} catch ( InputRefused $e ) {
+					return new \WP_REST_Response(
+						array(
+							'ok'      => false,
+							'code'    => 'invalid_value',
+							'message' => $e->getMessage(),
+							'field'   => $e->field(),
+						),
+						400
+					);
+				}
+
+				if ( 'PATCH' === $target[0] && array() === $body ) {
+					return self::refusal( 400, 'odoowoo_portal_bad_request', __( 'There is nothing to change.', 'odoowoo-portal' ) );
+				}
+			}
+
+			return null;
+		};
+
+		$ctx = self::guard( $r, $key, $validate );
 
 		if ( $ctx instanceof \WP_REST_Response ) {
 			return $ctx;
-		}
-
-		$target = Map::target( $key, $r->get_method(), (int) self::url_param( $r, 'dashboard' ) );
-
-		if ( null === $target ) {
-			return self::refusal( 405, 'odoowoo_portal_bad_request', __( 'This request is not valid.', 'odoowoo-portal' ) );
-		}
-
-		$task = self::url_param( $r, 'task' );
-
-		if ( 'task-status' === $key && ! Tasks::owns( get_current_user_id(), (int) $ctx->license()['id'], (int) self::url_param( $r, 'dashboard' ), $task ) ) {
-			return self::refusal( 404, 'odoowoo_portal_task_unknown', __( 'This sync was not found. It may have finished more than a day ago.', 'odoowoo-portal' ) );
-		}
-
-		$body = null;
-
-		if ( $with_body && 'GET' !== $target[0] && 'DELETE' !== $target[0] ) {
-			try {
-				$body = self::body( $r, $key );
-			} catch ( InputRefused $e ) {
-				return new \WP_REST_Response(
-					array(
-						'ok'      => false,
-						'code'    => 'invalid_value',
-						'message' => $e->getMessage(),
-						'field'   => $e->field(),
-					),
-					400
-				);
-			}
-
-			if ( 'PATCH' === $target[0] && array() === $body ) {
-				return self::refusal( 400, 'odoowoo_portal_bad_request', __( 'There is nothing to change.', 'odoowoo-portal' ) );
-			}
 		}
 
 		if ( '' !== $suffix && empty( Map::ROUTES[ $key ]['task'] ) ) {

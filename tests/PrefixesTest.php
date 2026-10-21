@@ -15,6 +15,15 @@ use OdooWooPortal\Prefixes;
  */
 final class PrefixesTest extends RestTestCase {
 
+	public function set_up(): void {
+		parent::set_up();
+
+		// Licenses are in custom tables the test rollback does not cover, and user ids are reused:
+		// a license of an earlier test would be this user's third.
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}beltoft_licenses" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
 	/**
 	 * Two licenses of one user: AA (Shop A, id 1) and BB (id 2) in the first/second tenant.
 	 *
@@ -155,5 +164,35 @@ final class PrefixesTest extends RestTestCase {
 		);
 
 		$this->assertSame( array( 'AA', 'BB' ), Prefixes::in_use( (int) $a['user_id'], 99 ) );
+	}
+
+	public function test_a_failed_read_is_not_cached(): void {
+		list( $a, $b ) = $this->two();
+		$up = false;
+		$this->fake_django(
+			function ( $call ) use ( &$up, $a, $b ) {
+				$tenant = $call['headers']['X-Beltoft-Tenant'] ?? '';
+				$path   = preg_replace( '#^/api/#', '', $call['path_and_query'] );
+
+				if ( $tenant === $this->tenant( $b ) && ! $up ) {
+					return array( 502, 'down' );
+				}
+
+				if ( 'dashboards/' === $path ) {
+					return array( 200, array( array( 'id' => $tenant === $this->tenant( $a ) ? 1 : 2 ) ) );
+				}
+
+				return array( 200, array( 'prefix' => $tenant === $this->tenant( $a ) ? 'AA' : 'BB' ) );
+			}
+		);
+
+		$this->assertSame( array( 'AA' ), Prefixes::in_use( (int) $a['user_id'], 99 ) );
+
+		$up = true;
+		$this->assertSame( array( 'AA', 'BB' ), Prefixes::in_use( (int) $a['user_id'], 99 ), 'The failure was not remembered.' );
+
+		$before = count( $this->django_calls() );
+		Prefixes::in_use( (int) $a['user_id'], 99 );
+		$this->assertCount( $before, $this->django_calls(), 'A complete result is cached.' );
 	}
 }

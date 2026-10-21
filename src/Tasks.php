@@ -39,22 +39,21 @@ final class Tasks {
 			return;
 		}
 
-		$entries = array_values(
-			array_filter(
-				self::load( $user_id ),
-				static fn( $e ) => $e['task_id'] !== $task_id
-			)
-		);
+		self::mutate(
+			$user_id,
+			static function ( array $entries ) use ( $license_id, $dashboard_id, $kind, $task_id ): array {
+				$entries   = array_values( array_filter( $entries, static fn( $e ) => $e['task_id'] !== $task_id ) );
+				$entries[] = array(
+					'license'   => $license_id,
+					'dashboard' => $dashboard_id,
+					'kind'      => $kind,
+					'task_id'   => $task_id,
+					'started'   => time(),
+				);
 
-		$entries[] = array(
-			'license'   => $license_id,
-			'dashboard' => $dashboard_id,
-			'kind'      => $kind,
-			'task_id'   => $task_id,
-			'started'   => time(),
+				return array_slice( $entries, -self::MAX );
+			}
 		);
-
-		self::save( $user_id, array_slice( $entries, -self::MAX ) );
 	}
 
 	/**
@@ -112,17 +111,15 @@ final class Tasks {
 	 * @param string $task_id      Task.
 	 */
 	public static function forget( int $user_id, int $license_id, int $dashboard_id, string $task_id ): void {
-		$entries = self::load( $user_id );
-		$kept    = array_values(
-			array_filter(
-				$entries,
-				static fn( $e ) => ! ( $e['task_id'] === $task_id && $e['license'] === $license_id && $e['dashboard'] === $dashboard_id )
+		self::mutate(
+			$user_id,
+			static fn( array $entries ): array => array_values(
+				array_filter(
+					$entries,
+					static fn( $e ) => ! ( $e['task_id'] === $task_id && $e['license'] === $license_id && $e['dashboard'] === $dashboard_id )
+				)
 			)
 		);
-
-		if ( count( $kept ) !== count( $entries ) ) {
-			self::save( $user_id, $kept );
-		}
 	}
 
 	/**
@@ -145,27 +142,26 @@ final class Tasks {
 		);
 
 		foreach ( $users as $user_id ) {
-			$entries = self::load( (int) $user_id );
-			$kept    = array_values(
-				array_filter(
-					$entries,
-					static fn( $e ) => ! ( $e['license'] === $license_id && $e['dashboard'] === $dashboard_id )
+			self::mutate(
+				(int) $user_id,
+				static fn( array $entries ): array => array_values(
+					array_filter(
+						$entries,
+						static fn( $e ) => ! ( $e['license'] === $license_id && $e['dashboard'] === $dashboard_id )
+					)
 				)
 			);
-
-			if ( count( $kept ) !== count( $entries ) ) {
-				self::save( (int) $user_id, $kept );
-			}
 		}
 	}
 
 	/**
 	 * A user's live, well-formed entries. Expired or odd ones are dropped and the meta rewritten.
 	 *
-	 * @param int $user_id User.
+	 * @param int  $user_id           User.
+	 * @param bool $reading_for_write Inside mutate(): do not clean up on the side.
 	 * @return array<int, array{license: int, dashboard: int, kind: string, task_id: string, started: int}>
 	 */
-	private static function load( int $user_id ): array {
+	private static function load( int $user_id, bool $reading_for_write = false ): array {
 		if ( $user_id <= 0 ) {
 			return array();
 		}
@@ -193,11 +189,58 @@ final class Tasks {
 			}
 		}
 
-		if ( '' !== $raw && $raw !== $out ) {
-			self::save( $user_id, $out );
+		if ( '' !== $raw && $raw !== $out && ! $reading_for_write ) {
+			self::mutate( $user_id, static fn( array $entries ): array => $entries );
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Changes a user's entries under a short lock: the entries are read again once the lock is
+	 * held and the change is applied to that fresh copy, so two tabs starting syncs at once keep
+	 * both tasks. The lock is an option row (add_option is atomic); a lock older than 5 seconds
+	 * is stale and taken over; after about a second of waiting the change goes ahead without it
+	 * (the window left is then the few milliseconds between the read and the write).
+	 *
+	 * @param int      $user_id User.
+	 * @param callable $change  Gets the fresh entries, returns the entries to store.
+	 */
+	private static function mutate( int $user_id, callable $change ): void {
+		if ( $user_id <= 0 ) {
+			return;
+		}
+
+		$lock = self::META . '_lock_' . $user_id;
+		$held = false;
+
+		for ( $i = 0; $i < 20; $i++ ) {
+			if ( add_option( $lock, time(), '', 'no' ) ) {
+				$held = true;
+				break;
+			}
+
+			wp_cache_delete( $lock, 'options' );
+			wp_cache_delete( 'alloptions', 'options' );
+			$since = (int) get_option( $lock, 0 );
+
+			if ( $since < time() - 5 ) {
+				delete_option( $lock );
+				continue;
+			}
+
+			usleep( 50000 );
+		}
+
+		try {
+			$fresh = self::load( $user_id, true );
+
+			self::save( $user_id, array_values( $change( $fresh ) ) );
+		} finally {
+			if ( $held ) {
+				delete_option( $lock );
+			}
+		}
 	}
 
 	/**
