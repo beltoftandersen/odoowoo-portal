@@ -380,13 +380,15 @@ final class MappingRoutesTest extends RestTestCase {
 	public function test_items_that_are_not_a_list_of_rows_are_not_sent( $items ): void {
 		$l = $this->odoowoo_license();
 		$this->as_user( (int) $l['user_id'] );
-		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_request', 'message' => "Expected a 'mappings' list.", 'field' => 'mappings' ) ) );
+		$this->fake_django( fn() => array( 200, array() ) );
 
 		$res = $this->rest( 'PUT', $this->url( $l, 'order-route-mappings' ), array( 'items' => $items ) );
 
-		$this->assertSame( '{}', $this->django_calls()[0]['body'], 'No mappings key: Django refuses it.' );
+		// Django would read the missing list as "delete every mapping" (see PartialWriteTest): refused here.
+		$this->assertSame( array(), $this->django_calls() );
 		$this->assertSame( 400, $res->get_status() );
-		$this->assertSame( 'invalid_request', $res->get_data()['code'] );
+		$this->assertSame( 'invalid_value', $res->get_data()['code'] );
+		$this->assertSame( 'items', $res->get_data()['field'] );
 	}
 
 	/**

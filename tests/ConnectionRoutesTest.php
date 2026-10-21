@@ -46,11 +46,11 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$this->as_user( (int) $l['user_id'] );
 		$this->fake_django( fn() => array( 200, array( 'message' => 'WooCommerce keys updated successfully.' ) ) );
 
-		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example/', 'prefix' => 'WS' ) );
+		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), self::complete_woo( array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example/', 'prefix' => 'WS' ) ) );
 		$call = $this->django_calls()[0];
 
 		$this->assertSame( 'POST', $call['method'] );
-		$this->assertSame( array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'WS' ), json_decode( $call['body'], true ) );
+		$this->assertSame( self::complete_woo( array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'WS' ) ), json_decode( $call['body'], true ) );
 
 		$this->fake_django( fn() => array( 200, array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'leak1', 'has_consumer_secret' => true, 'has_webhook_secret' => true, 'webhook_secret' => 'leak2', 'odoo_password' => 'leak3', 'middleware_api_key' => 'leak4', 'prefix' => 'WS', 'used_prefixes' => array( 'WS' ) ) ) );
 		$res  = $this->rest( 'GET', $this->url( $l, 'woo-keys' ) );
@@ -82,8 +82,8 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$this->as_user( (int) $l['user_id'] );
 		$this->fake_django( fn() => array( 200, array( 'message' => 'ok' ) ) );
 
-		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'consumer_secret' => '', 'woocommerce_url' => 'https://s.example' ) );
-		$this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), array( 'odoo_url' => 'https://o.example', 'odoo_password' => '' ) );
+		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), self::complete_woo( array( 'consumer_secret' => '' ) ) );
+		$this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), self::complete_odoo( array( 'odoo_password' => '', 'odoo_order_pricelist_name' => 'PL' ) ) );
 		$calls = $this->django_calls();
 
 		$this->assertArrayNotHasKey( 'consumer_secret', json_decode( $calls[0]['body'], true ) );
@@ -96,7 +96,7 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$this->as_user( (int) $l['user_id'] );
 		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'The WooCommerce consumer secret is required for the first save.', 'field' => 'consumer_secret' ) ) );
 
-		$res = $this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'woocommerce_url' => 'https://s.example', 'prefix' => 'ab', 'webhook_secret_override' => 'typed' ) );
+		$res = $this->rest( 'PUT', $this->url( $l, 'woo-keys' ), self::complete_woo( array( 'prefix' => 'ab', 'webhook_secret_override' => 'typed' ) ) );
 		$body = json_decode( $this->django_calls()[0]['body'], true );
 
 		$this->assertSame( 400, $res->get_status() );
@@ -126,7 +126,7 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$woo  = array( 'consumer_key' => 'ck', 'consumer_secret' => 'cs', 'woocommerce_url' => 'https://s.example/' );
 		$wooc = array( 'consumer_key' => 'ck', 'consumer_secret' => 'cs', 'woocommerce_url' => 'https://s.example' );
 		$od   = array( 'odoo_url' => 'https://o.example', 'odoo_db' => 'db', 'odoo_user' => 'u', 'odoo_password' => 'p' );
-		$set  = $od + array( 'enable_auto_payment' => true, 'odoo_order_pricelist_id' => 3, 'capture_stage' => 'processing', 'quantity_settings' => 'on_hand', 'stock_sku_meta_keys' => '_sku', 'webhook_secret_override' => 'x', 'tenant' => 'evil' );
+		$set  = self::complete_odoo( array( 'odoo_password' => 'p', 'enable_auto_payment' => true, 'odoo_order_pricelist_id' => 3, 'stock_sku_meta_keys' => '_sku', 'webhook_secret_override' => 'x', 'tenant' => 'evil' ) );
 
 		return array(
 			'woo-keys get'         => array( 'GET', 'woo-keys', null, 'GET', 'woo-keys/', null ),
@@ -134,7 +134,7 @@ final class ConnectionRoutesTest extends RestTestCase {
 			'verify-woocommerce'   => array( 'POST', 'verify-woocommerce', $woo, 'POST', 'verify-woocommerce/', $wooc ),
 			'inject-woo-webhooks'  => array( 'POST', 'inject-woo-webhooks', array( 'x' => 1 ), 'POST', 'inject-woo-webhooks/', array() ),
 			'odoo-settings get'    => array( 'GET', 'odoo-settings', null, 'GET', 'odoo-settings/', null ),
-			'odoo-settings put'    => array( 'PUT', 'odoo-settings', $set, 'POST', 'odoo-settings/', $od + array( 'enable_auto_payment' => true, 'odoo_order_pricelist_id' => 3, 'capture_stage' => 'processing', 'quantity_settings' => 'on_hand', 'stock_sku_meta_keys' => '_sku' ) ),
+			'odoo-settings put'    => array( 'PUT', 'odoo-settings', $set, 'POST', 'odoo-settings/', self::complete_odoo( array( 'odoo_password' => 'p', 'enable_auto_payment' => true, 'odoo_order_pricelist_id' => 3, 'stock_sku_meta_keys' => '_sku' ) ) ),
 			'verify-odoo'          => array( 'POST', 'verify-odoo', $od, 'POST', 'verify-odoo/', $od ),
 			'generate-api-key'     => array( 'POST', 'generate-api-key', array( 'x' => 1 ), 'POST', 'generate-api-key/', array() ),
 			'odoo-pricelists'      => array( 'GET', 'odoo-pricelists', null, 'GET', 'odoo-pricelists/', null ),
@@ -172,7 +172,10 @@ final class ConnectionRoutesTest extends RestTestCase {
 		if ( null === $expected ) {
 			$this->assertSame( '', $sent );
 		} else {
-			$this->assertSame( $expected, (array) json_decode( $sent, true ) );
+			$got = (array) json_decode( $sent, true );
+			ksort( $got );
+			ksort( $expected );
+			$this->assertSame( $expected, $got );
 		}
 		$this->assert_signed( $calls[0], $this->tenant( $l ) );
 	}
@@ -211,9 +214,9 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$this->as_user( (int) $l['user_id'] );
 		$this->fake_django( fn() => array( 200, array( 'ok' => 1 ) ) );
 
-		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'consumer_secret' => ' cs ', 'woocommerce_url' => 'https://s.example' ) );
-		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'consumer_secret' => '  ', 'woocommerce_url' => 'https://s.example' ) );
-		$this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), array( 'odoo_password' => ' pw ' ) );
+		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), self::complete_woo( array( 'consumer_secret' => ' cs ' ) ) );
+		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), self::complete_woo( array( 'consumer_secret' => '  ' ) ) );
+		$this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), self::complete_odoo( array( 'odoo_password' => ' pw ' ) ) );
 		$this->rest( 'POST', $this->url( $l, 'verify-odoo' ), array( 'odoo_password' => ' pw ' ) );
 		$calls = $this->django_calls();
 
@@ -242,11 +245,11 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$this->fake_django( fn() => array( 200, array( 'ok' => 1 ) ) );
 		$extra = array( 'middleware_api_key' => 'k', 'webhook_secret' => 'w', 'webhook_secret_override' => 'o', 'has_webhook_secret' => true, 'has_odoo_password' => true, 'has_consumer_secret' => true, 'has_middleware_api_key' => true, 'used_prefixes' => array( 'A' ), 'brand_sync_allowed' => true );
 
-		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'woocommerce_url' => 'https://s.example' ) + $extra );
-		$this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), array( 'odoo_url' => 'https://o.example' ) + $extra );
+		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), self::complete_woo() + $extra );
+		$this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), self::complete_odoo() + $extra );
 		$calls = $this->django_calls();
 
-		$this->assertSame( array( 'consumer_key' => 'ck', 'woocommerce_url' => 'https://s.example' ), json_decode( $calls[0]['body'], true ) );
-		$this->assertSame( array( 'odoo_url' => 'https://o.example' ), json_decode( $calls[1]['body'], true ) );
+		$this->assertSame( self::complete_woo(), json_decode( $calls[0]['body'], true ) );
+		$this->assertSame( array_filter( self::complete_odoo(), static fn( $v ) => null !== $v ), json_decode( $calls[1]['body'], true ) );
 	}
 }

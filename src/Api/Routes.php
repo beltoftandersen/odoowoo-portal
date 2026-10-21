@@ -355,6 +355,22 @@ final class Routes {
 				if ( 'PATCH' === $target[0] && array() === $body ) {
 					return self::refusal( 400, 'odoowoo_portal_bad_request', __( 'There is nothing to change.', 'odoowoo-portal' ) );
 				}
+
+				// Django replaces a whole list or object on a save: never send a partial one.
+				$json    = $r->get_json_params();
+				$missing = Map::incomplete( $key, $r->get_method(), is_array( $json ) ? $json : array(), $body );
+
+				if ( null !== $missing ) {
+					return new \WP_REST_Response(
+						array(
+							'ok'      => false,
+							'code'    => 'invalid_value',
+							'message' => __( 'This save is incomplete, so nothing was changed. Reload the page and try again.', 'odoowoo-portal' ),
+							'field'   => $missing,
+						),
+						400
+					);
+				}
 			}
 
 			return null;

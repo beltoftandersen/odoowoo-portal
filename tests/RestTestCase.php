@@ -34,6 +34,56 @@ abstract class RestTestCase extends TestCase {
 	}
 
 	/**
+	 * A complete woo-keys save (the route refuses a partial one), with overrides.
+	 *
+	 * @param array<string, mixed> $over Overrides.
+	 * @return array<string, mixed>
+	 */
+	public static function complete_woo( array $over = array() ): array {
+		return $over + array(
+			'consumer_key'           => 'ck',
+			'woocommerce_url'        => 'https://s.example',
+			'prefix'                 => 'A',
+			'enable_stock_update'    => true,
+			'change_status_delivery' => true,
+		);
+	}
+
+	/**
+	 * A complete odoo-settings save (the route refuses a partial one), with overrides.
+	 *
+	 * @param array<string, mixed> $over Overrides.
+	 * @return array<string, mixed>
+	 */
+	public static function complete_odoo( array $over = array() ): array {
+		return $over + array(
+			'odoo_url'                         => 'https://o.example',
+			'odoo_db'                          => 'db',
+			'odoo_user'                        => 'u',
+			'enable_auto_payment'              => false,
+			'enable_auto_payment_cn'           => false,
+			'enable_set_invoice_status'        => false,
+			'enable_reset_all_deliveries'      => false,
+			'enable_set_deliveries_to_waiting' => false,
+			'enable_auto_complete_deliveries'  => false,
+			'odoo_order_pricelist_id'          => null,
+			'odoo_order_pricelist_name'        => '',
+			'capture_stage'                    => 'processing',
+			'confirm_pending_orders'           => false,
+			'price_includes_tax'               => false,
+			'order_incl_tax'                   => true,
+			'quantity_settings'                => 'on_hand',
+			'enable_brand_sync'                => false,
+			'enable_category_sync'             => true,
+			'enable_product_name_sync'         => true,
+			'enable_tag_sync'                  => true,
+			'enable_image_sync'                => true,
+			'enable_price_sync'                => false,
+			'enable_barcode_sync'              => false,
+		);
+	}
+
+	/**
 	 * The tenant of a license.
 	 *
 	 * @param array<string, mixed> $license License.

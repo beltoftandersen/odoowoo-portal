@@ -127,20 +127,16 @@ final class CardOdooSettingsTest extends RestTestCase {
 		$this->as_user( (int) $l['user_id'] );
 		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'Add at least one price mapping before enabling the price sync.', 'field' => 'enable_price_sync' ) ) ); // Views.py:704 (staging Django c2ae25d).
 
-		$body = array(
-			'odoo_url'                 => 'https://o.example',
-			'odoo_db'                  => 'db',
-			'odoo_user'                => 'u',
-			'odoo_order_pricelist_id'  => null,
-			'enable_price_sync'        => true,
-			'enable_brand_sync'        => false,
-			'capture_stage'            => 'processing',
-			'quantity_settings'        => 'on_hand',
-			'stock_sku_meta_keys'      => '',
-			'brand_sync_allowed'       => true,
-			'has_odoo_password'        => true,
-			'tenant'                   => 'evil',
-			'dashboard'                => 99,
+		$body = self::complete_odoo(
+			array(
+				'enable_price_sync'   => true,
+				'enable_brand_sync'   => false,
+				'stock_sku_meta_keys' => '',
+				'brand_sync_allowed'  => true,
+				'has_odoo_password'   => true,
+				'tenant'              => 'evil',
+				'dashboard'           => 99,
+			)
 		);
 		$res  = $this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), $body );
 		$sent = json_decode( $this->django_calls()[0]['body'], true );
@@ -167,7 +163,7 @@ final class CardOdooSettingsTest extends RestTestCase {
 		$this->as_user( (int) $l['user_id'] );
 		$this->fake_django( fn() => array( 403, array( 'code' => 'plan_feature_unavailable', 'message' => 'Brand sync is not included in your plan.', 'field' => 'enable_brand_sync' ) ) ); // Views.py:671, api/triggers.py:35.
 
-		$res = $this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), array( 'odoo_url' => 'https://o.example', 'odoo_db' => 'db', 'odoo_user' => 'u', 'enable_brand_sync' => true ) );
+		$res = $this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), self::complete_odoo( array( 'enable_brand_sync' => true ) ) );
 		$calls = $this->django_calls();
 
 		$this->assertCount( 1, $calls, 'The portal forwards it; Django decides.' );

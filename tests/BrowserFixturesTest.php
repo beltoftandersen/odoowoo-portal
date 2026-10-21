@@ -124,9 +124,9 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->fake_django( fn() => array( 201, array( 'message' => 'WooCommerce keys created successfully.' ) ) ); // Views.py:365.
 		$this->keep( 'woo_save_created', $this->rest( 'PUT', $u( $l, 'woo-keys' ), array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'WS', 'enable_stock_update' => true, 'change_status_delivery' => true ) ) );
 		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'That order prefix is already used by another of your dashboards.', 'field' => 'prefix' ) ) ); // Views.py:358-361.
-		$this->keep( 'woo_prefix_taken', $this->rest( 'PUT', $u( $l, 'woo-keys' ), array( 'consumer_key' => 'ck_1', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'AB' ) ) );
+		$this->keep( 'woo_prefix_taken', $this->rest( 'PUT', $u( $l, 'woo-keys' ), self::complete_woo( array( 'consumer_key' => 'ck_1', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'AB' ) ) ) );
 		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'The WooCommerce consumer secret is required for the first save.', 'field' => 'consumer_secret' ) ) ); // Views.py:336-339.
-		$this->keep( 'woo_secret_required', $this->rest( 'PUT', $u( $l, 'woo-keys' ), array( 'consumer_key' => 'ck_1', 'woocommerce_url' => 'https://shop.example' ) ) );
+		$this->keep( 'woo_secret_required', $this->rest( 'PUT', $u( $l, 'woo-keys' ), self::complete_woo( array( 'consumer_key' => 'ck_1', 'woocommerce_url' => 'https://shop.example' ) ) ) );
 
 		// Verify WooCommerce: success views.py:2186-2189; failures 2206-2209 (reshaped by middleware.py:165-166) and 2211-2216.
 		$l = $this->fresh();
@@ -157,9 +157,9 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->keep( 'odoo_settings_new', $this->rest( 'GET', $u( $l, 'odoo-settings' ) ) );
 
 		$this->fake_django( fn() => array( 200, array( 'message' => 'Odoo settings saved.' ) ) ); // Views.py:774.
-		$this->keep( 'odoo_save_success', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com', 'odoo_password' => 'pw_dummy' ) ) );
+		$this->keep( 'odoo_save_success', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), self::complete_odoo( array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com', 'odoo_password' => 'pw_dummy' ) ) ) );
 		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'Password is required for initial setup.', 'field' => 'odoo_password' ) ) ); // Views.py:711.
-		$this->keep( 'odoo_password_required', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com' ) ) );
+		$this->keep( 'odoo_password_required', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), self::complete_odoo( array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com' ) ) ) );
 
 		// Verify Odoo: views.py:2287-2291 (both messages), 2256-2259 (reshaped), 2295-2299.
 		$l = $this->fresh();
@@ -460,7 +460,7 @@ final class BrowserFixturesTest extends RestTestCase {
 
 		// A save: Django answers a message (ConnectionRoutesTest, views.py woo-keys POST).
 		$this->fake_django( fn() => array( 200, array( 'message' => 'WooCommerce keys updated successfully.' ) ) );
-		$this->keep( 'save_success', $this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'WS' ) ) );
+		$this->keep( 'save_success', $this->rest( 'PUT', $this->url( $l, 'woo-keys' ), self::complete_woo( array( 'consumer_key' => 'ck_1', 'consumer_secret' => 'cs_dummy', 'woocommerce_url' => 'https://shop.example', 'prefix' => 'WS' ) ) ) );
 
 		// A Django field error (the {code, message, field} contract).
 		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_request', 'message' => 'Expected a \'mappings\' list.', 'field' => 'mappings' ) ) ); // Views.py:921, 1090.
