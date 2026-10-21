@@ -148,6 +148,153 @@ final class Map {
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
+		'payment-method-mappings' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/payment-method-mappings/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/payment-method-mappings/' ),
+			),
+			'fields'       => array( 'items' ),
+			'item_fields'  => array( 'woocommerce_payment_method', 'woocommerce_payment_method_name', 'odoo_journal_id', 'odoo_journal_name', 'payment_ref_meta_keys' ),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'woocommerce-payment-methods' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/woocommerce-payment-methods/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'saved-woocommerce-payment-methods' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/saved-woocommerce-payment-methods/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'odoo-journals' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/odoo-journals/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'saved-odoo-journals' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/saved-odoo-journals/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'odoo-accounts' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/odoo-accounts/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'saved-odoo-accounts' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/saved-odoo-accounts/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'tax-mappings' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/tax-mappings/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/tax-mappings/' ),
+			),
+			'fields'       => array( 'items' ),
+			'item_fields'  => array( 'woocommerce_tax_class', 'odoo_customer_tax_id', 'odoo_supplier_tax_id', 'odoo_customer_tax_name', 'odoo_supplier_tax_name' ),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'woo-tax-classes' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/woo-tax-classes/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'odoo-taxes' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/odoo-taxes/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'stored-odoo-taxes' => array(
+			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/stored-odoo-taxes/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'fetch-and-store-odoo-taxes' => array(
+			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/fetch-and-store-odoo-taxes/' ) ),
+			'fields'       => array(),
+			'shape'        => 'items',
+			'shape_for'    => array( 'POST' ),
+			'read_only_ok' => false,
+			'limit'        => 'verify',
+		),
+		'price-mappings' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/price-mappings/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/price-mappings/' ),
+			),
+			'fields'       => array( 'items' ),
+			'item_fields'  => array( 'source', 'odoo_pricelist_id', 'odoo_pricelist_name', 'target_field', 'target_meta_key', 'tax_treatment', 'require_explicit_rule' ),
+			'shape'        => 'price_rows',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'stock-mappings' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/stock-mappings/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/stock-mappings/' ),
+			),
+			'fields'       => array( 'items' ),
+			'item_fields'  => array( 'odoo_location_id', 'odoo_location_name', 'quantity_setting', 'target_field', 'target_meta_key' ),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'order-route-mappings' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/order-route-mappings/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/order-route-mappings/' ),
+			),
+			'fields'       => array( 'items' ),
+			'item_fields'  => array( 'meta_key', 'meta_value', 'odoo_route_id', 'odoo_route_name' ),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'order-pricelist-mappings' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/order-pricelist-mappings/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/order-pricelist-mappings/' ),
+			),
+			'fields'       => array( 'items' ),
+			'item_fields'  => array( 'meta_key', 'meta_value', 'odoo_pricelist_id', 'odoo_pricelist_name' ),
+			'shape'        => 'items',
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'gift-card-settings' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/gift-card-settings/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/gift-card-settings/' ),
+			),
+			'fields'       => array( 'settings' ),
+			'setting_fields' => array( 'enabled', 'enable_expiry_sweep', 'sale_tax_id', 'expiry_tax_id', 'redeem_journal_id', 'expiry_journal_id', 'expiry_debit_account_id', 'expiry_credit_account_id', 'expiry_vat_account_id', 'sale_line_meta_key', 'sale_product_codes', 'sale_tax_name', 'redeem_order_meta_key', 'card_api_path', 'paid_flag_field', 'redeem_journal_name', 'expiry_api_path', 'expiry_status_values', 'expiry_journal_name', 'expiry_tax_name', 'legacy_card_cutoff', 'expiry_min_balance' ),
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
 	);
 
 	/**
@@ -190,7 +337,7 @@ final class Map {
 	}
 
 	/**
-	 * Keeps the allowed body keys; strings are trimmed.
+	 * Keeps the allowed body keys; strings are trimmed, except the two secrets (sent byte-exact).
 	 *
 	 * @param string       $key  Row.
 	 * @param array<mixed> $body Raw body.
@@ -206,6 +353,16 @@ final class Map {
 
 			$value = $body[ $field ];
 
+			if ( 'items' === $field || 'settings' === $field ) {
+				$list = self::structured( $key, $field, $value );
+
+				if ( null !== $list ) {
+					$out['items' === $field ? 'mappings' : 'settings'] = $list;
+				}
+
+				continue;
+			}
+
 			if ( 'enabled' === $field ) {
 				$value = is_bool( $value ) ? $value : filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
 
@@ -213,7 +370,7 @@ final class Map {
 					continue;
 				}
 			} elseif ( is_string( $value ) ) {
-				$value = trim( $value );
+				$value = in_array( $field, array( 'consumer_secret', 'odoo_password' ), true ) ? $value : trim( $value );
 			} elseif ( ! is_scalar( $value ) ) {
 				continue;
 			}
@@ -259,5 +416,122 @@ final class Map {
 		}
 
 		return $body;
+	}
+
+	/**
+	 * A mapping list or settings object of the browser, cut to the row's allowed keys with plain
+	 * values only. Whether the values are right is Django's call, never ours.
+	 *
+	 * @param string $key   Row.
+	 * @param string $field items or settings.
+	 * @param mixed  $value Browser value.
+	 * @return array<mixed>|null Null when the shape is wrong (the key is then not sent).
+	 */
+	private static function structured( string $key, string $field, $value ): ?array {
+		if ( ! is_array( $value ) ) {
+			return null;
+		}
+
+		$row = self::ROUTES[ $key ];
+
+		if ( 'settings' === $field ) {
+			return self::pick( $value, $row['setting_fields'] ?? array() );
+		}
+
+		if ( ! array_is_list( $value ) ) {
+			return null;
+		}
+
+		$items = array();
+
+		foreach ( $value as $item ) {
+			if ( ! is_array( $item ) ) {
+				return null;
+			}
+
+			$items[] = self::pick( $item, $row['item_fields'] ?? array() );
+		}
+
+		return $items;
+	}
+
+	/**
+	 * Allowed keys with null, bool, number or string values; strings are trimmed.
+	 *
+	 * @param array<mixed>  $data    Data.
+	 * @param array<string> $allowed Keys.
+	 * @return array<string, mixed>
+	 */
+	private static function pick( array $data, array $allowed ): array {
+		$out = array();
+
+		foreach ( $allowed as $name ) {
+			if ( ! array_key_exists( $name, $data ) ) {
+				continue;
+			}
+
+			$v = $data[ $name ];
+
+			if ( null === $v || is_bool( $v ) || is_int( $v ) || is_float( $v ) ) {
+				$out[ $name ] = $v;
+			} elseif ( is_string( $v ) ) {
+				$out[ $name ] = trim( $v );
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The browser's data for a successful Django reply: lists become {items: [...]}, an empty or
+	 * odd body becomes an empty list, never a warning. Rows without a shape pass unchanged.
+	 *
+	 * @param string       $key    Row.
+	 * @param string       $method Browser method.
+	 * @param array<mixed> $data   Django data (secrets already removed).
+	 * @return array<mixed>
+	 */
+	public static function shape( string $key, string $method, array $data ): array {
+		$row   = self::ROUTES[ $key ] ?? array();
+		$shape = $row['shape'] ?? null;
+
+		if ( null === $shape || ! in_array( strtoupper( $method ), $row['shape_for'] ?? array( 'GET' ), true ) ) {
+			return $data;
+		}
+
+		if ( ! array_is_list( $data ) ) {
+			$data = $data['mappings'] ?? $data['items'] ?? $data['taxes'] ?? array();
+		}
+
+		$items = array();
+
+		foreach ( is_array( $data ) ? $data : array() as $item ) {
+			if ( is_array( $item ) ) {
+				$items[] = $item;
+			}
+		}
+
+		if ( 'price_rows' === $shape ) {
+			$items = array_map( array( __CLASS__, 'price_row' ), $items );
+		}
+
+		return array( 'items' => $items );
+	}
+
+	/**
+	 * A price row always carries the saved pricelist id and name, whether or not the pricelist is
+	 * in the list loaded from Odoo.
+	 *
+	 * @param array<string, mixed> $row Django row.
+	 * @return array<string, mixed>
+	 */
+	public static function price_row( array $row ): array {
+		$id   = $row['odoo_pricelist_id'] ?? null;
+		$name = $row['odoo_pricelist_name'] ?? '';
+
+		$row['odoo_pricelist_id']   = is_numeric( $id ) ? (int) $id : null;
+		$row['odoo_pricelist_name'] = is_scalar( $name ) ? (string) $name : '';
+
+		return $row;
 	}
 }

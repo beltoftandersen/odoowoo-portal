@@ -82,7 +82,7 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$this->as_user( (int) $l['user_id'] );
 		$this->fake_django( fn() => array( 200, array( 'message' => 'ok' ) ) );
 
-		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'consumer_secret' => '  ', 'woocommerce_url' => 'https://s.example' ) );
+		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'consumer_secret' => '', 'woocommerce_url' => 'https://s.example' ) );
 		$this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), array( 'odoo_url' => 'https://o.example', 'odoo_password' => '' ) );
 		$calls = $this->django_calls();
 
@@ -188,7 +188,7 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$this->assertCount( 2, $this->django_calls() );
 
 		foreach ( array( 'GET', 'PUT', 'DELETE' ) as $m ) {
-			$this->assertGreaterThanOrEqual( 400, $this->rest( $m, $this->url( $l, 'verify-odoo' ) )->get_status() );
+			$this->assertSame( 405, $this->rest( $m, $this->url( $l, 'verify-odoo' ) )->get_status() );
 		}
 		$this->assertCount( 2, $this->django_calls() );
 	}
@@ -202,5 +202,49 @@ final class ConnectionRoutesTest extends RestTestCase {
 		$this->assertSame( 403, $this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'a' ) )->get_status() );
 		$this->assertSame( 403, $this->rest( 'POST', $this->url( $l, 'generate-api-key' ), array() )->get_status() );
 		$this->assertSame( 200, $this->rest( 'GET', $this->url( $l, 'odoo-settings' ) )->get_status() );
+	}
+
+	public function test_secrets_are_sent_byte_exact_and_only_empty_means_keep(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, array( 'ok' => 1 ) ) );
+
+		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'consumer_secret' => ' cs ', 'woocommerce_url' => 'https://s.example' ) );
+		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'consumer_secret' => '  ', 'woocommerce_url' => 'https://s.example' ) );
+		$this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), array( 'odoo_password' => ' pw ' ) );
+		$this->rest( 'POST', $this->url( $l, 'verify-odoo' ), array( 'odoo_password' => ' pw ' ) );
+		$calls = $this->django_calls();
+
+		$this->assertSame( ' cs ', json_decode( $calls[0]['body'], true )['consumer_secret'] );
+		$this->assertSame( '  ', json_decode( $calls[1]['body'], true )['consumer_secret'] );
+		$this->assertSame( ' pw ', json_decode( $calls[2]['body'], true )['odoo_password'] );
+		$this->assertSame( ' pw ', json_decode( $calls[3]['body'], true )['odoo_password'] );
+	}
+
+	public function test_blank_secrets_are_left_out_on_the_verify_rows_too(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, array( 'success' => true ) ) );
+
+		$this->rest( 'POST', $this->url( $l, 'verify-woocommerce' ), array( 'consumer_key' => 'ck', 'consumer_secret' => '', 'woocommerce_url' => 'https://s.example/' ) );
+		$this->rest( 'POST', $this->url( $l, 'verify-odoo' ), array( 'odoo_url' => 'https://o.example', 'odoo_password' => '' ) );
+		$calls = $this->django_calls();
+
+		$this->assertSame( array( 'consumer_key' => 'ck', 'woocommerce_url' => 'https://s.example' ), json_decode( $calls[0]['body'], true ) );
+		$this->assertSame( array( 'odoo_url' => 'https://o.example' ), json_decode( $calls[1]['body'], true ) );
+	}
+
+	public function test_server_side_fields_sent_by_the_browser_are_dropped(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, array( 'ok' => 1 ) ) );
+		$extra = array( 'middleware_api_key' => 'k', 'webhook_secret' => 'w', 'webhook_secret_override' => 'o', 'has_webhook_secret' => true, 'has_odoo_password' => true, 'has_consumer_secret' => true, 'has_middleware_api_key' => true, 'used_prefixes' => array( 'A' ), 'brand_sync_allowed' => true );
+
+		$this->rest( 'PUT', $this->url( $l, 'woo-keys' ), array( 'consumer_key' => 'ck', 'woocommerce_url' => 'https://s.example' ) + $extra );
+		$this->rest( 'PUT', $this->url( $l, 'odoo-settings' ), array( 'odoo_url' => 'https://o.example' ) + $extra );
+		$calls = $this->django_calls();
+
+		$this->assertSame( array( 'consumer_key' => 'ck', 'woocommerce_url' => 'https://s.example' ), json_decode( $calls[0]['body'], true ) );
+		$this->assertSame( array( 'odoo_url' => 'https://o.example' ), json_decode( $calls[1]['body'], true ) );
 	}
 }
