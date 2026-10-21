@@ -337,3 +337,16 @@ test( 'test_not_configured_link_refuses_protocol_relative_and_foreign_urls', () 
 	assert.equal( link( '' ), undefined );
 	delete globalThis.document;
 } );
+
+test( 'dialog focus trap cycles through every focusable, fields included', () => {
+	const a = { id: 'select' }, b = { id: 'name' }, c = { id: 'cancel' }, d = { id: 'create' };
+	const all = [ a, b, c, d ];
+
+	assert.equal( typeof core.trapTarget, 'function' );
+	assert.equal( core.trapTarget( all, d, false, true ), a, 'Tab on the last wraps to the first field, not to Cancel.' );
+	assert.equal( core.trapTarget( all, a, true, true ), d, 'Shift+Tab on the first wraps to the last.' );
+	assert.equal( core.trapTarget( all, b, false, true ), null, 'In the middle the browser moves on its own.' );
+	assert.equal( core.trapTarget( all, c, true, true ), null );
+	assert.equal( core.trapTarget( all, { id: 'outside' }, false, false ), a, 'Focus outside the box is pulled back in.' );
+	assert.equal( core.trapTarget( [], d, false, true ), null );
+} );

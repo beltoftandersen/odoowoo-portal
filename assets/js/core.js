@@ -294,6 +294,30 @@
 	}
 
 	/**
+	 * Where a Tab press must send focus to keep it inside a dialog, or null when the browser's own
+	 * move stays inside. items: the focusable nodes in order.
+	 */
+	function trapTarget( items, active, shift, inside ) {
+		if ( ! items.length ) {
+			return null;
+		}
+
+		if ( ! inside ) {
+			return items[ 0 ];
+		}
+
+		if ( shift && active === items[ 0 ] ) {
+			return items[ items.length - 1 ];
+		}
+
+		if ( ! shift && active === items[ items.length - 1 ] ) {
+			return items[ 0 ];
+		}
+
+		return null;
+	}
+
+	/**
 	 * A modal dialog: role=dialog, focus trap, Esc, focus returns to the opener.
 	 * Resolves true on confirm, false on cancel or Esc. DOM glue. Options: title, body, confirm
 	 * (label), primary (a normal rather than a danger button), content (a node under the text,
@@ -368,18 +392,15 @@
 				}
 
 				if ( e.key === 'Tab' ) {
-					var first = cancel;
-					var last = confirm;
+					var items = Array.prototype.filter.call(
+						box.querySelectorAll( 'button, input, select, textarea, a[href], [tabindex]' ),
+						function ( n ) { return ! n.disabled && n.getAttribute( 'tabindex' ) !== '-1' && n.offsetParent !== null; }
+					);
+					var target = trapTarget( items, doc.activeElement, e.shiftKey, box.contains( doc.activeElement ) );
 
-					if ( e.shiftKey && doc.activeElement === first ) {
+					if ( target ) {
 						e.preventDefault();
-						last.focus();
-					} else if ( ! e.shiftKey && doc.activeElement === last ) {
-						e.preventDefault();
-						first.focus();
-					} else if ( ! box.contains( doc.activeElement ) ) {
-						e.preventDefault();
-						first.focus();
+						target.focus();
 					}
 				}
 			}
@@ -745,6 +766,7 @@
 		notLoadedReply: notLoadedReply,
 		wooKeysStore: wooKeysStore,
 		odooSettingsStore: odooSettingsStore,
+		trapTarget: trapTarget,
 	};
 
 	if ( typeof module !== 'undefined' && module.exports ) {

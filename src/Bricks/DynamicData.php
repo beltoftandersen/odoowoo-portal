@@ -132,7 +132,13 @@ final class DynamicData {
 			return array() !== $licenses ? '1' : '';
 		}
 
-		$ids        = Renderer::context_ids();
+		$ids = Renderer::context_ids();
+
+		// The list shows every license when the URL names none, so one license's numbers would mislead.
+		if ( $ids['license'] <= 0 && count( $licenses ) > 1 && in_array( $tag, array( 'odoowoo_plan_used', 'odoowoo_plan_dashboards' ), true ) ) {
+			return '';
+		}
+
 		$license_id = Context::page_license_id( $user, $ids['license'] );
 
 		$ctx = $license_id > 0 ? Context::for_user( $user, $license_id ) : null;

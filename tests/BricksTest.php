@@ -435,6 +435,28 @@ final class BricksTest extends RestTestCase {
 		$this->assertSame( '', $this->tag( 'odoowoo_dashboard_name' ), 'No dashboard in the URL, no name.' );
 	}
 
+	public function test_plan_tags_are_empty_with_two_licenses_and_no_license_in_the_url(): void {
+		$user = self::factory()->user->create();
+		$one  = $this->odoowoo_license( array( 'user_id' => $user ) );
+		$two  = $this->odoowoo_license( array( 'user_id' => $user ) );
+		$this->as_user( $user );
+		$this->fake_plan( $two );
+		$_GET = array();
+
+		// The list shows both licenses, so one license's numbers in the heading would mislead.
+		$this->assertSame( '', $this->tag( 'odoowoo_plan_used' ) );
+		$this->assertSame( '', $this->tag( 'odoowoo_plan_dashboards' ) );
+		$this->assertSame( '1', $this->tag( 'odoowoo_has_plan' ) );
+
+		// Naming the license brings them back.
+		$_GET = array( 'license' => (string) $two['id'] );
+		Context::reset();
+		Routes::reset();
+		$this->assertSame( '3', $this->tag( 'odoowoo_plan_dashboards' ) );
+		$this->assertSame( '1', $this->tag( 'odoowoo_plan_used' ) );
+		$this->assertNotSame( (int) $one['id'], (int) $two['id'] );
+	}
+
 	public function test_tags_leave_other_tags_and_values_alone(): void {
 		$license = $this->odoowoo_license();
 		$this->as_user( (int) $license['user_id'] );
