@@ -184,6 +184,46 @@ final class GuardTest extends RestTestCase {
 		$this->assertSame( $before, count( $this->django_calls() ) );
 	}
 
+	/**
+	 * GET loaders that store rows in Django (sync_app/views.py:809, 841-843, 885-887) are owner-only.
+	 */
+	public function test_support_cannot_trigger_cache_refreshing_loaders(): void {
+		$keys = array( 'woocommerce-payment-methods', 'odoo-journals', 'odoo-accounts' );
+
+		foreach ( $keys as $key ) {
+			$this->assertTrue( ! empty( Map::ROUTES[ $key ]['refreshes'] ), $key );
+		}
+
+		$ready   = $this->odoowoo_license();
+		$support = $this->factory()->user->create( array( 'role' => 'administrator' ) );
+		$this->as_user( $support );
+		$this->assertTrue( \OdooWooPortal\Support::arrived( array( 'license' => (string) $ready['id'], 'odoowoo_support' => '1', '_wpnonce' => wp_create_nonce( 'odoowoo_support_' . $ready['id'] ) ), $support ) );
+		$this->assertSame( 'support', \OdooWooPortal\Context::for_user( $support, (int) $ready['id'] )->mode() );
+		$this->fake_django( fn() => array( 200, array() ) );
+		$before = count( $this->django_calls() );
+
+		foreach ( $keys as $key ) {
+			$res = $this->rest( 'GET', '/licenses/' . $ready['id'] . '/dashboards/5/' . $key );
+			$this->assertSame( 403, $res->get_status(), $key );
+			$this->assertSame( 'odoowoo_portal_read_only', $res->get_data()['code'], $key );
+		}
+
+		$this->assertSame( $before, count( $this->django_calls() ), 'No Django call for support.' );
+
+		// The stored-list reads do not refresh anything: support may read them.
+		$this->assertSame( 200, $this->rest( 'GET', '/licenses/' . $ready['id'] . '/dashboards/5/saved-odoo-journals' )->get_status() );
+	}
+
+	public function test_paused_owner_may_use_cache_refreshing_loaders(): void {
+		$paused = $this->odoowoo_license( array(), 'paused' );
+		$this->fake_django( fn() => array( 200, array() ) );
+		$this->as_user( (int) $paused['user_id'] );
+
+		foreach ( array( 'woocommerce-payment-methods', 'odoo-journals', 'odoo-accounts' ) as $key ) {
+			$this->assertSame( 200, $this->rest( 'GET', '/licenses/' . $paused['id'] . '/dashboards/5/' . $key )->get_status(), $key );
+		}
+	}
+
 	public function test_rate_limit_returns_429_with_message(): void {
 		$l = $this->odoowoo_license();
 		$this->fake_django( fn() => array( 200, array( 'success' => true ) ) );

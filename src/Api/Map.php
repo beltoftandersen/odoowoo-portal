@@ -181,6 +181,8 @@ final class Map {
 			// Django reply: a bare list (sync_app/views.py:815 Response(enabled_methods), a bare list).
 			'unwrap'       => null,
 			'read_fields'  => array( 'id', 'title' ),
+			// This GET writes Django rows (sync_app/views.py: payment methods :809, journals :841-843, accounts :885-887), so support may not call it.
+			'refreshes'    => true,
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -201,6 +203,8 @@ final class Map {
 			// Django reply: a bare list (sync_app/views.py:849 Response(journals), a bare list).
 			'unwrap'       => null,
 			'read_fields'  => array( 'id', 'name' ),
+			// This GET writes Django rows (sync_app/views.py: payment methods :809, journals :841-843, accounts :885-887), so support may not call it.
+			'refreshes'    => true,
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -221,6 +225,8 @@ final class Map {
 			// Django reply: a bare list (sync_app/views.py:897 Response([...account_id, code, name...]), a bare list).
 			'unwrap'       => null,
 			'read_fields'  => array( 'account_id', 'code', 'name' ),
+			// This GET writes Django rows (sync_app/views.py: payment methods :809, journals :841-843, accounts :885-887), so support may not call it.
+			'refreshes'    => true,
 			'read_only_ok' => false,
 			'limit'        => null,
 		),

@@ -207,6 +207,11 @@ final class Routes {
 			return self::refusal( 403, 'odoowoo_portal_read_only', $ctx->notice() );
 		}
 
+		// A GET loader that writes Django rows (cache refresh): owner only, also while paused; never support.
+		if ( ! empty( $row['refreshes'] ) && 'owner' !== $ctx->mode() ) {
+			return self::refusal( 403, 'odoowoo_portal_read_only', $ctx->notice() );
+		}
+
 		if ( null !== $validate ) {
 			$refusal = $validate( $ctx );
 
