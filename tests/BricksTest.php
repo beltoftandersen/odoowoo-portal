@@ -729,4 +729,30 @@ final class BricksTest extends RestTestCase {
 		Context::reset();
 		$this->assertFalse( $this->condition( '==', true, true ) );
 	}
+
+	public function test_closed_tooltips_do_not_widen_the_page(): void {
+		// Task 18 walk: the clipped 280px tooltips still counted for the scroll width (478px: 685px wide).
+		$css = (string) file_get_contents( ODOOWOO_PORTAL_PATH . 'assets/css/odoowoo.css' );
+
+		preg_match( '/\n\.odoowoo-tip\s*\{([^}]*)\}/', $css, $closed );
+		preg_match( '/\.odoowoo-tipwrap\[data-open=\'1\'\] \.odoowoo-tip\s*\{([^}]*)\}/', $css, $open );
+
+		$this->assertNotEmpty( $closed );
+		$this->assertNotEmpty( $open );
+		$this->assertMatchesRegularExpression( '/(^|\s)width:\s*1px/', $closed[1] );
+		$this->assertMatchesRegularExpression( '/(^|\s)width:\s*min\(280px,\s*100%\)/', $open[1] );
+		$this->assertDoesNotMatchRegularExpression( '/280px/', $closed[1] );
+
+		// An open tooltip is placed against the whole field, not the 24px button: at 478px it ran 150px past the screen.
+		$this->assertMatchesRegularExpression( '/\.odoowoo-card \.odoowoo-field\s*\{[^}]*position:\s*relative/', $css );
+		$this->assertMatchesRegularExpression( '/\.odoowoo-tipwrap\s*\{[^}]*position:\s*static/', $css );
+	}
+
+	public function test_mapping_rows_clip_absolutely_positioned_screen_reader_text(): void {
+		// Task 18 walk: at 478px a visually hidden span inside the table (position: absolute) was not
+		// clipped by the scrolling wrapper and made the page 9px wider.
+		$css = (string) file_get_contents( ODOOWOO_PORTAL_PATH . 'assets/css/odoowoo.css' );
+
+		$this->assertMatchesRegularExpression( '/\.odoowoo-mapping__rows\s*\{[^}]*position:\s*relative[^}]*overflow-x:\s*auto/', $css );
+	}
 }

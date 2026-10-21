@@ -310,6 +310,7 @@ a.odoowoo-button,
 }
 
 .odoowoo-card .odoowoo-field {
+	position: relative;
 	display: grid;
 	gap: 4px;
 }
@@ -416,7 +417,7 @@ a.odoowoo-button,
 }
 
 .odoowoo-tipwrap {
-	position: relative;
+	position: static;
 	display: inline-block;
 }
 
@@ -441,13 +442,13 @@ a.odoowoo-button,
 	position: absolute;
 	z-index: 5;
 	left: 0;
-	top: 28px;
-	width: 280px;
+	top: 100%;
+	width: 1px;
 	max-width: 80vw;
-	padding: 8px 10px;
+	padding: 0;
 	font-size: 14px;
 	background: var(--odoowoo-bg, #fff);
-	border: 1px solid var(--odoowoo-border);
+	border: 0 solid var(--odoowoo-border);
 	border-radius: 6px;
 	clip: rect(0 0 0 0);
 	clip-path: inset(50%);
@@ -462,7 +463,10 @@ a.odoowoo-button,
 	clip: auto;
 	clip-path: none;
 	overflow: visible;
+	width: min(280px, 100%);
 	height: auto;
+	padding: 8px 10px;
+	border-width: 1px;
 }
 
 /* Mapping editors */
@@ -474,6 +478,7 @@ a.odoowoo-button,
 }
 
 .odoowoo-mapping__rows {
+	position: relative;
 	margin: 0 0 var(--odoowoo-gap);
 	overflow-x: auto;
 }
