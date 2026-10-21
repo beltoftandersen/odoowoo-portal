@@ -129,6 +129,10 @@ final class Map {
 				'GET' => array( 'GET', 'dashboards/{d}/odoo-pricelists/' ),
 			),
 			'fields'       => array(),
+			'shape'        => 'items',
+			// Django reply: the list is under the 'pricelists' key (sync_app/views.py:1068 Response({"pricelists": [...]})).
+			'unwrap'       => 'pricelists',
+			'read_fields'  => array( 'id', 'name', 'currency' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -137,6 +141,10 @@ final class Map {
 				'GET' => array( 'GET', 'dashboards/{d}/odoo-routes/' ),
 			),
 			'fields'       => array(),
+			'shape'        => 'items',
+			// Django reply: the list is under the 'routes' key (sync_app/views.py:1948 Response({"routes": [...]})).
+			'unwrap'       => 'routes',
+			'read_fields'  => array( 'id', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -145,6 +153,10 @@ final class Map {
 				'GET' => array( 'GET', 'dashboards/{d}/odoo-stock-locations/' ),
 			),
 			'fields'       => array(),
+			'shape'        => 'items',
+			// Django reply: the list is under the 'locations' key (sync_app/views.py:1976 Response({"locations": [...]})).
+			'unwrap'       => 'locations',
+			'read_fields'  => array( 'id', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -156,6 +168,8 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'woocommerce_payment_method', 'woocommerce_payment_method_name', 'odoo_journal_id', 'odoo_journal_name', 'payment_ref_meta_keys' ),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:2048 Response(mappings_data), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'id', 'woocommerce_payment_method', 'woocommerce_payment_method_name', 'odoo_journal_id', 'odoo_journal_name', 'payment_ref_meta_keys' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -164,6 +178,8 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/woocommerce-payment-methods/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:815 Response(enabled_methods), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'id', 'title' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -172,6 +188,8 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/saved-woocommerce-payment-methods/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:1996 Response(methods_data), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'method_id', 'title' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -180,6 +198,8 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/odoo-journals/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:849 Response(journals), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'id', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -188,6 +208,8 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/saved-odoo-journals/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:2016 Response(journals_data), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'journal_id', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -196,6 +218,8 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/odoo-accounts/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:897 Response([...account_id, code, name...]), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'account_id', 'code', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -204,6 +228,8 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/saved-odoo-accounts/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:934 Response(accounts_data), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'account_id', 'code', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -216,6 +242,8 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'woocommerce_tax_class', 'odoo_customer_tax_id', 'odoo_supplier_tax_id' ),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:2336 WooTaxMappingListCreateView.get Response(serializer.data), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'id', 'woocommerce_tax_class', 'odoo_customer_tax_id', 'odoo_supplier_tax_id' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -224,6 +252,8 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/woo-tax-classes/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:2411 WooTaxClassesView.get Response(classes), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'label', 'value' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -232,6 +262,8 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/odoo-taxes/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:2476 OdooTaxesView.get Response(sorted_records), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'id', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -240,6 +272,8 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/stored-odoo-taxes/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:2573 ListOdooTaxesView.get Response(data), a bare list).
+			'unwrap'       => null,
 			'read_fields'  => array( 'id', 'name', 'type_tax_use' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -248,6 +282,8 @@ final class Map {
 			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/fetch-and-store-odoo-taxes/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			// Django reply: a bare list (sync_app/views.py:2510 FetchAndStoreOdooTaxesView.post Response(serializer_data), a bare list (204 with a message when Odoo has no taxes)).
+			'unwrap'       => null,
 			'read_fields'  => array( 'id', 'name', 'rate', 'type_tax_use' ),
 			'shape_for'    => array( 'POST' ),
 			'read_only_ok' => false,
@@ -261,6 +297,8 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'source', 'odoo_pricelist_id', 'odoo_pricelist_name', 'target_field', 'target_meta_key', 'tax_treatment', 'require_explicit_rule' ),
 			'shape'        => 'price_rows',
+			// Django reply: the list is under the 'mappings' key (sync_app/views.py:954 Response({"mappings": [...]})).
+			'unwrap'       => 'mappings',
 			'read_fields'  => array( 'id', 'source', 'odoo_pricelist_id', 'odoo_pricelist_name', 'target_field', 'target_meta_key', 'tax_treatment', 'require_explicit_rule' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -273,6 +311,8 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'odoo_location_id', 'odoo_location_name', 'quantity_setting', 'target_field', 'target_meta_key' ),
 			'shape'        => 'items',
+			// Django reply: the list is under the 'mappings' key (sync_app/views.py:1861 Response({"mappings": [...]})).
+			'unwrap'       => 'mappings',
 			'read_fields'  => array( 'id', 'odoo_location_id', 'odoo_location_name', 'quantity_setting', 'target_field', 'target_meta_key' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -285,6 +325,8 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'meta_key', 'meta_value', 'odoo_route_id', 'odoo_route_name' ),
 			'shape'        => 'items',
+			// Django reply: the list is under the 'mappings' key (sync_app/views.py:1088 Response({"mappings": [...]})).
+			'unwrap'       => 'mappings',
 			'read_fields'  => array( 'id', 'meta_key', 'meta_value', 'odoo_route_id', 'odoo_route_name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -297,6 +339,8 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'meta_key', 'meta_value', 'odoo_pricelist_id', 'odoo_pricelist_name' ),
 			'shape'        => 'items',
+			// Django reply: the list is under the 'mappings' key (sync_app/views.py:1157 Response({"mappings": [...]})).
+			'unwrap'       => 'mappings',
 			'read_fields'  => array( 'id', 'meta_key', 'meta_value', 'odoo_pricelist_id', 'odoo_pricelist_name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
@@ -726,8 +770,13 @@ final class Map {
 			return array( 'items' => self::order_sync_rows( $data ) );
 		}
 
-		if ( ! array_is_list( $data ) ) {
-			$data = $data['mappings'] ?? array();
+		// The row says where Django put the list: under its unwrap key, or (null) as the bare body.
+		$unwrap = $row['unwrap'] ?? null;
+
+		if ( null !== $unwrap ) {
+			$data = is_array( $data[ $unwrap ] ?? null ) ? $data[ $unwrap ] : array();
+		} elseif ( ! array_is_list( $data ) ) {
+			$data = array();
 		}
 
 		$items = array();

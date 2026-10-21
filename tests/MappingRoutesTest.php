@@ -352,18 +352,96 @@ final class MappingRoutesTest extends RestTestCase {
 		$this->assertSame( 'invalid_request', $res->get_data()['code'] );
 	}
 
-	public function test_django_error_on_a_get_loader_passes_through(): void {
+	/**
+	 * Real Django error replies of the loaders (sync_app/views.py in odoowoo-tenants, Django 4a755dd).
+	 * Odoo taxes alone answer 400 for an unreachable Odoo (views.py:2487 and 2505); the others 500.
+	 *
+	 * @return array<string, array{0: string, 1: int, 2: string, 3: string}>
+	 */
+	public static function loader_errors(): array {
+		$gone = 'Could not fetch the data from Odoo. Check your Odoo connection and try again.'; // Views.py:1058, 1942, 1970, 852, 910.
+
+		return array(
+			'taxes: Odoo read fails'      => array( 'odoo-taxes', 400, 'odoo_unavailable', 'Could not read taxes from Odoo. Check the Odoo connection.' ), // Views.py:2505.
+			'taxes: Odoo not reachable'   => array( 'odoo-taxes', 400, 'odoo_unavailable', 'Could not connect to Odoo. Check your Odoo connection settings and try again.' ), // Views.py:125-133 with status 400 (2487).
+			'taxes: not configured'       => array( 'odoo-taxes', 400, 'odoo_not_configured', 'Save your Odoo connection settings first.' ), // Views.py:110, 125.
+			'pricelists: not configured'  => array( 'odoo-pricelists', 400, 'odoo_not_configured', 'Save your Odoo connection settings first.' ),
+			'pricelists: Odoo fails'      => array( 'odoo-pricelists', 500, 'odoo_unavailable', $gone ),
+			'routes: Odoo fails'          => array( 'odoo-routes', 500, 'odoo_unavailable', $gone ),
+			'locations: Odoo fails'       => array( 'odoo-stock-locations', 500, 'odoo_unavailable', $gone ),
+			'journals: not configured'    => array( 'odoo-journals', 400, 'odoo_not_configured', 'Save your Odoo connection settings first.' ),
+			'accounts: Odoo fails'        => array( 'odoo-accounts', 500, 'odoo_unavailable', $gone ),
+			'woo methods: not configured' => array( 'woocommerce-payment-methods', 400, 'woocommerce_not_configured', 'Save your WooCommerce connection settings first.' ), // Views.py:111, 139-146.
+		);
+	}
+
+	/**
+	 * @dataProvider loader_errors
+	 *
+	 * @param string $key     Route.
+	 * @param int    $status  Django status.
+	 * @param string $code    Django code.
+	 * @param string $message Django message.
+	 */
+	public function test_django_error_on_a_get_loader_reaches_the_browser_with_its_message( string $key, int $status, string $code, string $message ): void {
 		$l = $this->odoowoo_license();
 		$this->as_user( (int) $l['user_id'] );
-		$this->fake_django( fn() => array( 400, array( 'code' => 'odoo_unavailable', 'message' => 'Could not read taxes from Odoo. Check the Odoo connection.' ) ) );
+		$this->fake_django( fn() => array( $status, array( 'code' => $code, 'message' => $message ) ) );
 
-		$res = $this->rest( 'GET', $this->url( $l, 'odoo-taxes' ) );
+		$res = $this->rest( 'GET', $this->url( $l, $key ) );
 
-		$this->assertSame( 400, $res->get_status() );
+		$this->assertSame( $status, $res->get_status() );
 		$this->assertFalse( $res->get_data()['ok'] );
-		$this->assertSame( 'odoo_unavailable', $res->get_data()['code'] );
-		$this->assertSame( 'Could not read taxes from Odoo. Check the Odoo connection.', $res->get_data()['message'] );
+		$this->assertSame( $code, $res->get_data()['code'] );
+		$this->assertSame( $message, $res->get_data()['message'] );
 		$this->assertArrayNotHasKey( 'data', $res->get_data() );
+	}
+
+	/**
+	 * The replies of the loaders exactly as Django 9664ba9 sent them (captured 2026-10-21 against
+	 * the test Odoo); each cites the view in odoowoo-tenants/sync_app/views.py.
+	 *
+	 * @return array<string, array{0: string, 1: mixed, 2: array<mixed>}>
+	 */
+	public static function real_loader_replies(): array {
+		return array(
+			'pricelists'    => array( 'odoo-pricelists', array( 'pricelists' => array( array( 'id' => 5, 'name' => 'Public Pricelist (EUR)', 'currency' => 'EUR' ), array( 'id' => 6, 'name' => 'Retail DKK', 'currency' => 'DKK' ) ) ), array( array( 'id' => 5, 'name' => 'Public Pricelist (EUR)', 'currency' => 'EUR' ), array( 'id' => 6, 'name' => 'Retail DKK', 'currency' => 'DKK' ) ) ), // Views.py:1068.
+			'routes'        => array( 'odoo-routes', array( 'routes' => array( array( 'id' => 9, 'name' => 'Dropship' ) ) ), array( array( 'id' => 9, 'name' => 'Dropship' ) ) ), // Views.py:1948.
+			'locations'     => array( 'odoo-stock-locations', array( 'locations' => array( array( 'id' => 309, 'name' => 'WH/Stock' ) ) ), array( array( 'id' => 309, 'name' => 'WH/Stock' ) ) ), // Views.py:1976.
+			'journals'      => array( 'odoo-journals', array( array( 'id' => 8, 'name' => 'Bank' ) ), array( array( 'id' => 8, 'name' => 'Bank' ) ) ), // Views.py:849.
+			'accounts'      => array( 'odoo-accounts', array( array( 'account_id' => 11, 'code' => '1000', 'name' => 'Cash' ) ), array( array( 'account_id' => 11, 'code' => '1000', 'name' => 'Cash' ) ) ), // Views.py:897.
+			'taxes'         => array( 'odoo-taxes', array( array( 'id' => 3, 'name' => 'VAT 25' ) ), array( array( 'id' => 3, 'name' => 'VAT 25' ) ) ), // Views.py:2476.
+			'woo methods'   => array( 'woocommerce-payment-methods', array( array( 'id' => 'bacs', 'title' => 'Bank transfer' ) ), array( array( 'id' => 'bacs', 'title' => 'Bank transfer' ) ) ), // Views.py:815.
+			'woo classes'   => array( 'woo-tax-classes', array( array( 'label' => 'Standard rate', 'value' => 'standard' ) ), array( array( 'label' => 'Standard rate', 'value' => 'standard' ) ) ), // Views.py:2411.
+			'saved methods' => array( 'saved-woocommerce-payment-methods', array( array( 'method_id' => 'bacs', 'title' => 'Bank transfer' ) ), array( array( 'method_id' => 'bacs', 'title' => 'Bank transfer' ) ) ), // Views.py:1996.
+			'saved journals' => array( 'saved-odoo-journals', array( array( 'journal_id' => 8, 'name' => 'Bank' ) ), array( array( 'journal_id' => 8, 'name' => 'Bank' ) ) ), // Views.py:2016.
+			'saved accounts' => array( 'saved-odoo-accounts', array( array( 'account_id' => 11, 'code' => '1000', 'name' => 'Cash' ) ), array( array( 'account_id' => 11, 'code' => '1000', 'name' => 'Cash' ) ) ), // Views.py:934.
+			'stored taxes'  => array( 'stored-odoo-taxes', array( array( 'id' => 3, 'name' => 'VAT 25', 'type_tax_use' => 'sale' ) ), array( array( 'id' => 3, 'name' => 'VAT 25', 'type_tax_use' => 'sale' ) ) ), // Views.py:2573.
+		);
+	}
+
+	/**
+	 * @dataProvider real_loader_replies
+	 *
+	 * @param string       $key      Route.
+	 * @param mixed        $django   Django body.
+	 * @param array<mixed> $expected Items for the browser.
+	 */
+	public function test_loaders_unwrap_the_real_django_replies( string $key, $django, array $expected ): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, $django ) );
+
+		$res = $this->rest( 'GET', $this->url( $l, $key ) );
+
+		$this->assertSame( 200, $res->get_status() );
+		$this->assertSame( array( 'items' => $expected ), $res->get_data()['data'] );
+	}
+
+	public function test_a_bare_list_is_not_accepted_where_django_wraps_the_list(): void {
+		$this->assertSame( array( 'items' => array() ), Map::shape( 'odoo-pricelists', 'GET', array( array( 'id' => 5, 'name' => 'x', 'currency' => 'EUR' ) ) ) );
+		$this->assertSame( array( 'items' => array() ), Map::shape( 'stock-mappings', 'GET', array( array( 'id' => 1 ) ) ) );
+		$this->assertSame( array( 'items' => array() ), Map::shape( 'odoo-taxes', 'GET', array( 'mappings' => array( array( 'id' => 1, 'name' => 'x' ) ) ) ) );
 	}
 
 	/**
