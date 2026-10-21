@@ -75,6 +75,11 @@
 			return generic( res.status );
 		}
 
+		// Every success from the portal's REST routes is {ok: true, data: <reply>} (P Routes::respond).
+		if ( res.ok && isObject( data ) && data.ok === true && 'data' in data ) {
+			data = data.data;
+		}
+
 		if ( res.ok ) {
 			if ( data === null || typeof data !== 'object' ) {
 				return generic( res.status );
@@ -262,7 +267,10 @@
 
 	/**
 	 * A modal dialog: role=dialog, focus trap, Esc, focus returns to the opener.
-	 * Resolves true on confirm, false on cancel or Esc. DOM glue.
+	 * Resolves true on confirm, false on cancel or Esc. DOM glue. Options: title, body, confirm
+	 * (label), primary (a normal rather than a danger button), content (a node under the text,
+	 * e.g. a form), accept (called on confirm; returns false, or a promise of false, to stay
+	 * open), focus (the node to focus first; Cancel by default).
 	 */
 	function dialog( options ) {
 		var doc = G.document;
@@ -298,13 +306,18 @@
 
 			var confirm = doc.createElement( 'button' );
 			confirm.type = 'button';
-			confirm.className = 'odoowoo-button odoowoo-button--danger';
+			confirm.className = options.primary === true ? 'odoowoo-button' : 'odoowoo-button odoowoo-button--danger';
 			confirm.textContent = options.confirm || 'OK';
 
 			actions.appendChild( cancel );
 			actions.appendChild( confirm );
 			box.appendChild( title );
 			box.appendChild( body );
+
+			if ( options.content ) {
+				box.appendChild( options.content );
+			}
+
 			box.appendChild( actions );
 			overlay.appendChild( box );
 
@@ -344,7 +357,24 @@
 			}
 
 			cancel.addEventListener( 'click', function () { close( false ); } );
-			confirm.addEventListener( 'click', function () { close( true ); } );
+			confirm.addEventListener( 'click', function () {
+				if ( typeof options.accept !== 'function' ) {
+					close( true );
+					return;
+				}
+
+				// accept() may be async; false keeps the dialog open (it shows its own message).
+				confirm.disabled = true;
+				Promise.resolve( options.accept() ).then( function ( ok ) {
+					confirm.disabled = false;
+
+					if ( ok !== false ) {
+						close( true );
+					}
+				}, function () {
+					confirm.disabled = false;
+				} );
+			} );
 			overlay.addEventListener( 'mousedown', function ( e ) {
 				if ( e.target === overlay ) {
 					close( false );
@@ -352,7 +382,7 @@
 			} );
 			doc.addEventListener( 'keydown', onKey, true );
 			doc.body.appendChild( overlay );
-			cancel.focus();
+			( options.focus && typeof options.focus.focus === 'function' ? options.focus : cancel ).focus();
 		} );
 	}
 

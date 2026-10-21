@@ -255,3 +255,19 @@ test( 'test_secret_value_is_byte_exact_and_blank_keeps_the_saved_one', () => {
 	input.value = '';
 	assert.equal( core.secretValue( input, false ), '' );
 } );
+
+test( 'test_api_unwraps_the_browser_envelope', async () => {
+	// P Routes::respond: every success is {ok: true, data: <Django reply>}.
+	boot();
+	fakeFetch( [ res( 200, { ok: true, data: [ { id: 1 } ] } ) ] );
+	const r = await core.api( 'GET', 'licenses' );
+	assert.equal( r.ok, true );
+	assert.deepEqual( r.data, [ { id: 1 } ] );
+
+	fakeFetch( [ res( 200, { ok: true, data: {} } ) ] );
+	assert.deepEqual( ( await core.api( 'DELETE', 'licenses/1/dashboards/2' ) ).data, {} );
+
+	// Without the envelope the body is the data, as before.
+	fakeFetch( [ res( 200, { items: [] } ) ] );
+	assert.deepEqual( ( await core.api( 'GET', 'x' ) ).data, { items: [] } );
+} );

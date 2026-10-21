@@ -255,6 +255,8 @@ final class Renderer {
 			'data-rest'            => esc_url_raw( rest_url( Routes::NAMESPACE . '/' ) ),
 		);
 
+		$attrs += self::card_attrs( $card, $ctx );
+
 		$banner = $ctx->banner();
 		$notice = $ctx->notice();
 
@@ -273,6 +275,36 @@ final class Renderer {
 		$shell['body'] = self::template( $entry, $ctx, $ids, $args );
 
 		return self::shell( $shell, $attrs );
+	}
+
+	/**
+	 * Root attributes only some cards need. All values are escaped by the shell.
+	 *
+	 * dashboard-list: the dashboard page URL template (license and dashboard 0, filled in by the
+	 * script) and, for a support viewer only, the license summary: GET /licenses lists only the
+	 * viewer's own licenses, so support would see nothing. Ownership already holds (Context).
+	 * dashboard-header: whether the viewer may rename.
+	 *
+	 * @param string  $card Card name.
+	 * @param Context $ctx  Context (a usable one).
+	 * @return array<string, string>
+	 */
+	private static function card_attrs( string $card, Context $ctx ): array {
+		if ( 'dashboard-list' === $card ) {
+			$attrs = array( 'data-dashboard-url' => Urls::dashboard( 0, 0, 'connections' ) );
+
+			if ( 'support' === $ctx->mode() ) {
+				$attrs['data-summary'] = (string) wp_json_encode( Routes::license_summary( $ctx ) );
+			}
+
+			return $attrs;
+		}
+
+		if ( 'dashboard-header' === $card ) {
+			return array( 'data-can-write' => $ctx->can_write() ? '1' : '0' );
+		}
+
+		return array();
 	}
 
 	/**

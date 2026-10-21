@@ -54,6 +54,11 @@ final class Registry {
 			);
 		}
 
+		$cards['dashboard-list']['keys']      = array( 'dashboard-list', 'dashboard-create', 'dashboard-pause', 'dashboard-delete' );
+		$cards['dashboard-list']['strings']   = self::list_strings();
+		$cards['dashboard-header']['keys']    = array( 'dashboard-detail', 'dashboard-rename' );
+		$cards['dashboard-header']['strings'] = self::header_strings();
+
 		/**
 		 * Filters the cards (name => title, template, script, keys, strings).
 		 *
@@ -71,5 +76,72 @@ final class Registry {
 	 */
 	public static function has( string $name ): bool {
 		return '' !== $name && array_key_exists( $name, self::cards() );
+	}
+
+	/**
+	 * The dashboard list card's strings. %s and %1$s are filled in by the script.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function list_strings(): array {
+		return array(
+			'loading'         => __( 'Loading your dashboards…', 'odoowoo-portal' ),
+			'newDashboard'    => __( 'New dashboard', 'odoowoo-portal' ),
+			'newTitle'        => __( 'New dashboard', 'odoowoo-portal' ),
+			'nameLabel'       => __( 'Dashboard name', 'odoowoo-portal' ),
+			'planLabel'       => __( 'Plan', 'odoowoo-portal' ),
+			'create'          => __( 'Create', 'odoowoo-portal' ),
+			'creating'        => __( 'Creating…', 'odoowoo-portal' ),
+			'nameRequired'    => __( 'Give the dashboard a name.', 'odoowoo-portal' ),
+			'open'            => __( 'Open', 'odoowoo-portal' ),
+			'pause'           => __( 'Pause', 'odoowoo-portal' ),
+			'enable'          => __( 'Enable', 'odoowoo-portal' ),
+			'delete'          => __( 'Delete', 'odoowoo-portal' ),
+			/* translators: %s: dashboard name. */
+			'openNamed'       => __( 'Open %s', 'odoowoo-portal' ),
+			/* translators: %s: dashboard name. */
+			'pauseNamed'      => __( 'Pause %s', 'odoowoo-portal' ),
+			/* translators: %s: dashboard name. */
+			'enableNamed'     => __( 'Enable %s', 'odoowoo-portal' ),
+			/* translators: %s: dashboard name. */
+			'deleteNamed'     => __( 'Delete %s', 'odoowoo-portal' ),
+			'active'          => __( 'Active', 'odoowoo-portal' ),
+			'paused'          => __( 'Paused', 'odoowoo-portal' ),
+			/* translators: %s: date. */
+			'created'         => __( 'Created %s', 'odoowoo-portal' ),
+			'deleteTitle'     => __( 'Delete dashboard', 'odoowoo-portal' ),
+			/* translators: %s: dashboard name. */
+			'deleteBody'      => __( 'Delete %s? This removes its settings and logs. Stores already connected stop syncing.', 'odoowoo-portal' ),
+			'emptyList'       => __( 'You have no dashboards yet. Create one to connect a store.', 'odoowoo-portal' ),
+			'noPlan'          => __( 'You do not have an OdooWoo plan yet.', 'odoowoo-portal' ),
+			/* translators: %s: number of dashboards. */
+			'count'           => __( '%s dashboards', 'odoowoo-portal' ),
+			'countOne'        => __( '1 dashboard', 'odoowoo-portal' ),
+			/* translators: 1: dashboards used, 2: dashboards the plan allows. */
+			'countOf'         => __( '%1$s of %2$s dashboards', 'odoowoo-portal' ),
+			/* translators: %s: dashboards used. */
+			'countOfOne'      => __( '%s of 1 dashboard', 'odoowoo-portal' ),
+			/* translators: %s: number of dashboards. */
+			'limitReached'    => __( 'You have reached your plan limit of %s dashboards.', 'odoowoo-portal' ),
+			'limitReachedOne' => __( 'You have reached your plan limit of 1 dashboard.', 'odoowoo-portal' ),
+		);
+	}
+
+	/**
+	 * The dashboard header card's strings (Cancel comes with the core strings).
+	 *
+	 * @return array<string, string>
+	 */
+	private static function header_strings(): array {
+		return array(
+			'loading'      => __( 'Loading…', 'odoowoo-portal' ),
+			'rename'       => __( 'Rename', 'odoowoo-portal' ),
+			'save'         => __( 'Save', 'odoowoo-portal' ),
+			'nameLabel'    => __( 'Dashboard name', 'odoowoo-portal' ),
+			'nameRequired' => __( 'Give the dashboard a name.', 'odoowoo-portal' ),
+			'active'       => __( 'Active', 'odoowoo-portal' ),
+			'paused'       => __( 'Paused', 'odoowoo-portal' ),
+			'notFound'     => \OdooWooPortal\Django\Messages::not_found(),
+		);
 	}
 }
