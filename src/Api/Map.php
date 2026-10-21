@@ -156,6 +156,7 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'woocommerce_payment_method', 'woocommerce_payment_method_name', 'odoo_journal_id', 'odoo_journal_name', 'payment_ref_meta_keys' ),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'woocommerce_payment_method', 'woocommerce_payment_method_name', 'odoo_journal_id', 'odoo_journal_name', 'payment_ref_meta_keys' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -163,6 +164,7 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/woocommerce-payment-methods/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'title' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -170,6 +172,7 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/saved-woocommerce-payment-methods/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'method_id', 'title' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -177,6 +180,7 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/odoo-journals/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -184,6 +188,7 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/saved-odoo-journals/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'journal_id', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -191,6 +196,7 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/odoo-accounts/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'account_id', 'code', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -198,6 +204,7 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/saved-odoo-accounts/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'account_id', 'code', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -207,8 +214,9 @@ final class Map {
 				'PUT' => array( 'POST', 'dashboards/{d}/tax-mappings/' ),
 			),
 			'fields'       => array( 'items' ),
-			'item_fields'  => array( 'woocommerce_tax_class', 'odoo_customer_tax_id', 'odoo_supplier_tax_id', 'odoo_customer_tax_name', 'odoo_supplier_tax_name' ),
+			'item_fields'  => array( 'woocommerce_tax_class', 'odoo_customer_tax_id', 'odoo_supplier_tax_id' ),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'woocommerce_tax_class', 'odoo_customer_tax_id', 'odoo_supplier_tax_id' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -216,6 +224,7 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/woo-tax-classes/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'label', 'value' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -223,6 +232,7 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/odoo-taxes/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -230,6 +240,7 @@ final class Map {
 			'methods'      => array( 'GET' => array( 'GET', 'dashboards/{d}/stored-odoo-taxes/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'name', 'type_tax_use' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -237,6 +248,7 @@ final class Map {
 			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/fetch-and-store-odoo-taxes/' ) ),
 			'fields'       => array(),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'name', 'rate', 'type_tax_use' ),
 			'shape_for'    => array( 'POST' ),
 			'read_only_ok' => false,
 			'limit'        => 'verify',
@@ -249,6 +261,7 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'source', 'odoo_pricelist_id', 'odoo_pricelist_name', 'target_field', 'target_meta_key', 'tax_treatment', 'require_explicit_rule' ),
 			'shape'        => 'price_rows',
+			'read_fields'  => array( 'id', 'source', 'odoo_pricelist_id', 'odoo_pricelist_name', 'target_field', 'target_meta_key', 'tax_treatment', 'require_explicit_rule' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -260,6 +273,7 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'odoo_location_id', 'odoo_location_name', 'quantity_setting', 'target_field', 'target_meta_key' ),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'odoo_location_id', 'odoo_location_name', 'quantity_setting', 'target_field', 'target_meta_key' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -271,6 +285,7 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'meta_key', 'meta_value', 'odoo_route_id', 'odoo_route_name' ),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'meta_key', 'meta_value', 'odoo_route_id', 'odoo_route_name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -282,6 +297,7 @@ final class Map {
 			'fields'       => array( 'items' ),
 			'item_fields'  => array( 'meta_key', 'meta_value', 'odoo_pricelist_id', 'odoo_pricelist_name' ),
 			'shape'        => 'items',
+			'read_fields'  => array( 'id', 'meta_key', 'meta_value', 'odoo_pricelist_id', 'odoo_pricelist_name' ),
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
@@ -711,14 +727,14 @@ final class Map {
 		}
 
 		if ( ! array_is_list( $data ) ) {
-			$data = $data['mappings'] ?? $data['items'] ?? $data['taxes'] ?? array();
+			$data = $data['mappings'] ?? array();
 		}
 
 		$items = array();
 
 		foreach ( is_array( $data ) ? $data : array() as $item ) {
 			if ( is_array( $item ) ) {
-				$items[] = $item;
+				$items[] = self::pick_read( $item, $row['read_fields'] ?? array() );
 			}
 		}
 
@@ -768,6 +784,17 @@ final class Map {
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Only the fields a card needs: nothing internal (tenant, dashboard) reaches the browser.
+	 *
+	 * @param array<string, mixed> $item   Django row.
+	 * @param array<string>        $fields Allowed keys.
+	 * @return array<string, mixed>
+	 */
+	private static function pick_read( array $item, array $fields ): array {
+		return array_intersect_key( $item, array_flip( $fields ) );
 	}
 
 	/**

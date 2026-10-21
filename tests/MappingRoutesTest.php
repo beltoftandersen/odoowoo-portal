@@ -198,7 +198,7 @@ final class MappingRoutesTest extends RestTestCase {
 		$rows = array( array( 'id' => 1, 'odoo_location_id' => 4 ) );
 
 		$this->assertSame( array( 'items' => $rows ), Map::shape( 'stock-mappings', 'GET', array( 'mappings' => $rows ) ) );
-		$this->assertSame( array( 'items' => $rows ), Map::shape( 'payment-method-mappings', 'GET', $rows ), 'Django answers this one with a bare list.' );
+		$this->assertSame( array( 'items' => array( array( 'id' => 1, 'odoo_journal_id' => 4 ) ) ), Map::shape( 'payment-method-mappings', 'GET', array( array( 'id' => 1, 'odoo_journal_id' => 4, 'medusa_customer_id' => 'c' ) ) ), 'Django answers this one with a bare list.' );
 		$this->assertSame( array( 'message' => 'Saved 1 stock mapping(s).' ), Map::shape( 'stock-mappings', 'PUT', array( 'message' => 'Saved 1 stock mapping(s).' ) ) );
 		$this->assertSame( array( 'settings' => array( 'enabled' => true ) ), Map::shape( 'gift-card-settings', 'GET', array( 'settings' => array( 'enabled' => true ) ) ) );
 	}
@@ -249,15 +249,18 @@ final class MappingRoutesTest extends RestTestCase {
 	 */
 	public static function shaped(): array {
 		$rows = array( array( 'id' => 1, 'meta_key' => 'k' ) );
+		$pay  = array( array( 'id' => 1, 'woocommerce_payment_method' => 'bacs', 'odoo_journal_id' => 5 ) );
 
 		return array(
-			'bare list'        => array( 'payment-method-mappings', 'GET', 200, $rows, array( 'items' => $rows ) ),
+			'bare list'        => array( 'payment-method-mappings', 'GET', 200, $pay, array( 'items' => $pay ) ),
 			'mappings object'  => array( 'order-route-mappings', 'GET', 200, array( 'mappings' => $rows ), array( 'items' => $rows ) ),
+			'tax mappings'     => array( 'tax-mappings', 'GET', 200, array( array( 'id' => 2, 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3, 'odoo_supplier_tax_id' => 4 ) ), array( 'items' => array( array( 'id' => 2, 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3, 'odoo_supplier_tax_id' => 4 ) ) ) ),
 			'empty list'       => array( 'stock-mappings', 'GET', 200, array( 'mappings' => array() ), array( 'items' => array() ) ),
 			'empty body'       => array( 'odoo-journals', 'GET', 200, array(), array( 'items' => array() ) ),
 			'null taxes'       => array( 'odoo-taxes', 'GET', 200, array( 'taxes' => null ), array( 'items' => array() ) ),
 			'loader no rows'   => array( 'fetch-and-store-odoo-taxes', 'POST', 204, array(), array( 'items' => array() ) ),
-			'loader rows'      => array( 'fetch-and-store-odoo-taxes', 'POST', 200, $rows, array( 'items' => $rows ) ),
+			'loader rows'      => array( 'fetch-and-store-odoo-taxes', 'POST', 200, array( array( 'id' => 3, 'name' => 'VAT 25', 'rate' => '25.00', 'type_tax_use' => 'sale' ) ), array( 'items' => array( array( 'id' => 3, 'name' => 'VAT 25', 'rate' => '25.00', 'type_tax_use' => 'sale' ) ) ) ),
+			'prices'           => array( 'price-mappings', 'GET', 200, array( 'mappings' => array( array( 'id' => 1, 'source' => 'regular', 'odoo_pricelist_id' => 12, 'odoo_pricelist_name' => 'Retail', 'target_field' => 'regular_price', 'target_meta_key' => '', 'tax_treatment' => 'as_is', 'require_explicit_rule' => false ) ) ), array( 'items' => array( array( 'id' => 1, 'source' => 'regular', 'odoo_pricelist_id' => 12, 'odoo_pricelist_name' => 'Retail', 'target_field' => 'regular_price', 'target_meta_key' => '', 'tax_treatment' => 'as_is', 'require_explicit_rule' => false ) ) ) ),
 			'gift card'        => array( 'gift-card-settings', 'GET', 200, array( 'settings' => array( 'enabled' => true ) ), array( 'settings' => array( 'enabled' => true ) ) ),
 		);
 	}
@@ -291,5 +294,87 @@ final class MappingRoutesTest extends RestTestCase {
 		$res = $this->rest( 'PUT', $this->url( $l, 'stock-mappings' ), array( 'items' => array() ) );
 
 		$this->assertSame( array( 'message' => 'Saved 0 stock mapping(s).' ), $res->get_data()['data'] );
+	}
+
+	public function test_read_rows_carry_no_internal_fields(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, array( array( 'id' => 2, 'medusa_customer_id' => 'cust_1', 'dashboard' => 7, 'tenant' => 'u', 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3, 'odoo_supplier_tax_id' => 4 ) ) ) );
+
+		$res  = $this->rest( 'GET', $this->url( $l, 'tax-mappings' ) );
+		$row  = $res->get_data()['data']['items'][0];
+		$json = wp_json_encode( $res->get_data() );
+
+		$this->assertSame( array( 'id' => 2, 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3, 'odoo_supplier_tax_id' => 4 ), $row );
+		$this->assertStringNotContainsString( 'medusa_customer_id', $json );
+		$this->assertStringNotContainsString( 'cust_1', $json );
+		$this->assertStringNotContainsString( '"dashboard"', $json );
+	}
+
+	public function test_tax_items_carry_ids_only(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, array( 'message' => 'ok' ) ) );
+
+		$this->rest( 'PUT', $this->url( $l, 'tax-mappings' ), array( 'items' => array( array( 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3, 'odoo_supplier_tax_id' => 4, 'odoo_customer_tax_name' => 'x' ) ) ) );
+
+		$this->assertSame( array( 'mappings' => array( array( 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3, 'odoo_supplier_tax_id' => 4 ) ) ), json_decode( $this->django_calls()[0]['body'], true ) );
+	}
+
+	/**
+	 * Bodies whose items are not a list of rows are not forwarded as mappings.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public static function bad_items(): array {
+		return array(
+			'string'       => array( 'x' ),
+			'object'       => array( array( 'a' => array( 'meta_key' => 'k' ) ) ),
+			'scalar item'  => array( array( 'x' ) ),
+			'nested scalar' => array( array( array( 'meta_key' => 'k' ), 5 ) ),
+		);
+	}
+
+	/**
+	 * @dataProvider bad_items
+	 *
+	 * @param mixed $items Items.
+	 */
+	public function test_items_that_are_not_a_list_of_rows_are_not_sent( $items ): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_request', 'message' => "Expected a 'mappings' list.", 'field' => 'mappings' ) ) );
+
+		$res = $this->rest( 'PUT', $this->url( $l, 'order-route-mappings' ), array( 'items' => $items ) );
+
+		$this->assertSame( '{}', $this->django_calls()[0]['body'], 'No mappings key: Django refuses it.' );
+		$this->assertSame( 400, $res->get_status() );
+		$this->assertSame( 'invalid_request', $res->get_data()['code'] );
+	}
+
+	public function test_django_error_on_a_get_loader_passes_through(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'odoo_unavailable', 'message' => 'Could not read taxes from Odoo. Check the Odoo connection.' ) ) );
+
+		$res = $this->rest( 'GET', $this->url( $l, 'odoo-taxes' ) );
+
+		$this->assertSame( 400, $res->get_status() );
+		$this->assertFalse( $res->get_data()['ok'] );
+		$this->assertSame( 'odoo_unavailable', $res->get_data()['code'] );
+		$this->assertSame( 'Could not read taxes from Odoo. Check the Odoo connection.', $res->get_data()['message'] );
+		$this->assertArrayNotHasKey( 'data', $res->get_data() );
+	}
+
+	/**
+	 * @dataProvider routes
+	 *
+	 * @param string $key    Route.
+	 * @param string $method Browser method.
+	 * @param string $django Django method.
+	 */
+	public function test_row_names_the_exact_django_method( string $key, string $method, string $django ): void {
+		$this->assertSame( $django, Map::ROUTES[ $key ]['methods'][ $method ][0] );
+		$this->assertSame( array( $method ), array_keys( array_filter( Map::ROUTES[ $key ]['methods'], fn( $m ) => $m[0] === $django && ( 'PUT' !== $method || 'POST' === $django ) ) ) );
 	}
 }
