@@ -1,0 +1,20 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "id": 1,
+                    "source": "pricelist",
+                    "odoo_pricelist_id": 5,
+                    "odoo_pricelist_name": "Public",
+                    "target_field": "regular_price",
+                    "target_meta_key": "",
+                    "tax_treatment": "as_is",
+                    "require_explicit_rule": false
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "id": 5,
+                    "name": "Public Pricelist (EUR)",
+                    "currency": "EUR"
+                },
+                {
+                    "id": 6,
+                    "name": "Retail DKK",
+                    "currency": "DKK"
+                }
+            ]
+        }
+    }
+}

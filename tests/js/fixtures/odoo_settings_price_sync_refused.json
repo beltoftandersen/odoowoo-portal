@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "Add at least one price mapping before enabling the price sync.",
+        "field": "enable_price_sync"
+    }
+}

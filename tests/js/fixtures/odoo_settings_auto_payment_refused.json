@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "You cannot enable auto payments (invoices or credit notes) without any payment method mappings.",
+        "field": "enable_auto_payment"
+    }
+}

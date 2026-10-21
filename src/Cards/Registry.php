@@ -64,6 +64,9 @@ final class Registry {
 		$cards['woo-settings']['strings']     = self::woo_settings_strings();
 		$cards['odoo-connection']['keys']     = array( 'odoo-settings', 'verify-odoo', 'generate-api-key' );
 		$cards['odoo-connection']['strings']  = self::odoo_connection_strings();
+		$cards['odoo-settings']['keys']       = array( 'odoo-settings', 'odoo-pricelists', 'payment-method-mappings', 'tax-mappings', 'price-mappings' );
+		$cards['odoo-settings']['strings']    = self::odoo_settings_strings();
+		$cards['odoo-settings']['requires']   = array( 'odoowoo-deps' );
 
 		/**
 		 * Filters the cards (name => title, template, script, keys, strings).
@@ -234,6 +237,78 @@ final class Registry {
 			'verifiedOk'           => __( 'Connection verified.', 'odoowoo-portal' ),
 			'helperInstalled'      => __( 'Odoo connection verified. The OdooWoo Helper module is installed.', 'odoowoo-portal' ),
 			'helperMissing'        => __( 'Odoo connection verified, but the OdooWoo Helper module is not installed.', 'odoowoo-portal' ),
+		);
+	}
+
+	/**
+	 * The Odoo settings card's strings: one label and one help text per setting (the help text of
+	 * the old app where it had one), the dependency reasons and the picker's.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function odoo_settings_strings(): array {
+		return array(
+			'label_enable_auto_payment' => __( 'Enable auto payments on invoices', 'odoowoo-portal' ),
+			'label_enable_auto_payment_cn' => __( 'Enable auto payments on credit notes', 'odoowoo-portal' ),
+			'label_enable_set_invoice_status' => __( 'Set invoice status back to to_invoice', 'odoowoo-portal' ),
+			'label_enable_reset_all_deliveries' => __( 'Reset delivery back to draft', 'odoowoo-portal' ),
+			'label_enable_set_deliveries_to_waiting' => __( 'Set deliveries to waiting', 'odoowoo-portal' ),
+			'label_enable_auto_complete_deliveries' => __( 'Close deliveries when an order is paid', 'odoowoo-portal' ),
+			'label_confirm_pending_orders' => __( 'Confirm pending orders automatically', 'odoowoo-portal' ),
+			'label_price_includes_tax' => __( 'Add tax on product price during sync', 'odoowoo-portal' ),
+			'label_order_incl_tax' => __( 'Sync orders with prices incl. tax', 'odoowoo-portal' ),
+			'label_enable_brand_sync' => __( 'Sync brands to Odoo', 'odoowoo-portal' ),
+			'label_enable_category_sync' => __( 'Sync categories to Odoo', 'odoowoo-portal' ),
+			'label_enable_product_name_sync' => __( 'Sync product name to Odoo', 'odoowoo-portal' ),
+			'label_enable_tag_sync' => __( 'Sync tags to Odoo', 'odoowoo-portal' ),
+			'label_enable_image_sync' => __( 'Sync product images to Odoo', 'odoowoo-portal' ),
+			'label_enable_price_sync' => __( 'Let Odoo control prices in WooCommerce', 'odoowoo-portal' ),
+			'label_enable_barcode_sync' => __( 'Let Odoo control barcodes in WooCommerce', 'odoowoo-portal' ),
+			'label_capture_stage' => __( 'Capture order at status', 'odoowoo-portal' ),
+			'label_quantity_settings' => __( 'Quantity setting', 'odoowoo-portal' ),
+			'label_odoo_order_pricelist_id' => __( 'Pricelist for orders from this store', 'odoowoo-portal' ),
+			'label_stock_sku_meta_keys' => __( 'Line meta key naming the stock product', 'odoowoo-portal' ),
+			'label_stock_units_meta_keys' => __( 'Line meta key naming the units per item', 'odoowoo-portal' ),
+			'help_enable_auto_payment' => __( 'Registers a payment on the Odoo invoice of each paid order, using your payment method mappings. Needs payment method mappings.', 'odoowoo-portal' ),
+			'help_enable_auto_payment_cn' => __( 'Registers a payment on the Odoo credit note of each refund, using your payment method mappings. Needs payment method mappings.', 'odoowoo-portal' ),
+			'help_enable_set_invoice_status' => __( 'After issuing a refund/credit note, Odoo reopens the sale order\'s invoice state to \'To Invoice\', allowing a fresh invoice to be created.', 'odoowoo-portal' ),
+			'help_enable_reset_all_deliveries' => __( 'After processing a refund/credit note, Odoo moves related delivery orders back to draft so warehouse staff can reprocess them.', 'odoowoo-portal' ),
+			'help_enable_set_deliveries_to_waiting' => __( 'New Odoo orders from WooCommerce will immediately push their delivery orders to \'Waiting\' state during confirmation.', 'odoowoo-portal' ),
+			'help_enable_auto_complete_deliveries' => __( 'For a site that hands goods over at the till. Once payment is registered, Odoo validates the order\'s deliveries. A delivery that cannot be fully reserved is left open for someone to handle, and the WooCommerce order is not marked complete.', 'odoowoo-portal' ),
+			'help_confirm_pending_orders' => __( 'Applies when orders are captured at Pending. Confirms such orders in Odoo automatically.', 'odoowoo-portal' ),
+			'help_price_includes_tax' => __( 'Enable if WooCommerce prices exclude tax but your Odoo tax settings are \'Included in Price\', so synced product prices match what customers pay. Needs tax mappings.', 'odoowoo-portal' ),
+			'help_order_incl_tax' => __( 'Enable if your Odoo tax settings are set to \'Included in Price\'.', 'odoowoo-portal' ),
+			'help_enable_brand_sync' => __( 'Sends product brands from WooCommerce to Odoo when products sync. Brand sync is part of some plans only.', 'odoowoo-portal' ),
+			'help_enable_category_sync' => __( 'Sends product categories from WooCommerce to Odoo when products sync.', 'odoowoo-portal' ),
+			'help_enable_product_name_sync' => __( 'Sends the product name from WooCommerce to Odoo when products sync.', 'odoowoo-portal' ),
+			'help_enable_tag_sync' => __( 'Sends product tags from WooCommerce to Odoo when products sync.', 'odoowoo-portal' ),
+			'help_enable_image_sync' => __( 'Sends product images from WooCommerce to Odoo when products sync.', 'odoowoo-portal' ),
+			'help_enable_price_sync' => __( 'Odoo becomes the source of truth for price. WooCommerce prices are overwritten from the price mappings, and product syncs stop writing WooCommerce prices back into Odoo. Needs at least one price mapping.', 'odoowoo-portal' ),
+			'help_enable_barcode_sync' => __( 'Odoo becomes the source of truth for barcodes. Use Sync barcodes to fill WooCommerce from Odoo. Product syncs stop writing barcodes back into Odoo, which also stops them clearing a barcode that only exists in Odoo.', 'odoowoo-portal' ),
+			'help_capture_stage' => __( 'The WooCommerce order status at which an order is sent to Odoo.', 'odoowoo-portal' ),
+			'help_quantity_settings' => __( 'Which Odoo quantity is used when stock is written to WooCommerce: on hand, forecast or available.', 'odoowoo-portal' ),
+			'help_odoo_order_pricelist_id' => __( 'A pricelist belongs to the sale, not the customer. The same customer can buy retail on one store and wholesale on another, and Odoo can only hold one pricelist per customer. It does not change what is charged, since the prices come from WooCommerce.', 'odoowoo-portal' ),
+			'help_stock_sku_meta_keys' => __( 'For a line that carries no SKU of its own, such as a subscription. Leave empty and such lines are skipped as before. Several keys can be given, separated by commas, and are tried in order.', 'odoowoo-portal' ),
+			'help_stock_units_meta_keys' => __( 'How many of that product one ordered item consumes, so shared stock is reduced correctly. The money on the line is unchanged. Empty, or a value that cannot be read, books one per item.', 'odoowoo-portal' ),
+			'needsPayment' => __( 'Needs payment method mappings.', 'odoowoo-portal' ),
+			'needsTax' => __( 'Needs tax mappings.', 'odoowoo-portal' ),
+			'needsPrice' => __( 'Needs a price mapping.', 'odoowoo-portal' ),
+			'needsPlan' => __( 'Brand sync is not part of your plan.', 'odoowoo-portal' ),
+			'optPending' => __( 'Pending', 'odoowoo-portal' ),
+			'optOnHold' => __( 'On hold', 'odoowoo-portal' ),
+			'optProcessing' => __( 'Processing', 'odoowoo-portal' ),
+			'optOnHand' => __( 'On hand', 'odoowoo-portal' ),
+			'optForecast' => __( 'Forecast', 'odoowoo-portal' ),
+			'optAvailable' => __( 'Available', 'odoowoo-portal' ),
+			'letOdooDecide' => __( 'Let Odoo decide from the customer', 'odoowoo-portal' ),
+			'loadPricelists' => __( 'Load pricelists', 'odoowoo-portal' ),
+			'loadingPricelists' => __( 'Loading…', 'odoowoo-portal' ),
+			'pricelistsLoaded' => __( 'Pricelists loaded.', 'odoowoo-portal' ),
+			'stillLoading' => __( 'The settings are still loading. Try again in a moment.', 'odoowoo-portal' ),
+			'saveOdooFirst' => __( 'Save your Odoo connection first.', 'odoowoo-portal' ),
+			'save' => __( 'Save', 'odoowoo-portal' ),
+			/* translators: %s: the name of a setting. */
+			'helpFor' => __( 'Help: %s', 'odoowoo-portal' ),
 		);
 	}
 }

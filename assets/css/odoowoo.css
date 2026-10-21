@@ -371,3 +371,92 @@ a.odoowoo-button,
 	content: '✓ ';
 	color: var(--odoowoo-accent);
 }
+
+/* Odoo settings card */
+.odoowoo-card .odoowoo-group {
+	display: grid;
+	gap: 8px;
+}
+
+.odoowoo-field__head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.odoowoo-reason {
+	flex-basis: 100%;
+	font-size: 14px;
+	color: var(--odoowoo-muted);
+}
+
+.odoowoo-reason::before {
+	content: '⚠ ';
+}
+
+.odoowoo-field--check {
+	flex-wrap: wrap;
+}
+
+.odoowoo-field-error {
+	flex-basis: 100%;
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.odoowoo-field-error::before {
+	content: '✕ ';
+}
+
+.odoowoo-card [aria-invalid='true'] {
+	outline: 2px solid currentcolor;
+	outline-offset: 1px;
+}
+
+.odoowoo-tipwrap {
+	position: relative;
+	display: inline-block;
+}
+
+.odoowoo-tip-button {
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 1;
+	cursor: help;
+	background: transparent;
+	border: 1px solid currentcolor;
+	border-radius: 50%;
+	color: inherit;
+}
+
+.odoowoo-tip {
+	position: absolute;
+	z-index: 5;
+	left: 0;
+	top: 28px;
+	width: 280px;
+	max-width: 80vw;
+	padding: 8px 10px;
+	font-size: 14px;
+	background: var(--odoowoo-bg, #fff);
+	border: 1px solid var(--odoowoo-border);
+	border-radius: 6px;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	overflow: hidden;
+	height: 1px;
+	white-space: normal;
+}
+
+.odoowoo-tipwrap:hover .odoowoo-tip,
+.odoowoo-tipwrap:focus-within .odoowoo-tip,
+.odoowoo-tipwrap[data-open='1'] .odoowoo-tip {
+	clip: auto;
+	clip-path: none;
+	overflow: visible;
+	height: auto;
+}

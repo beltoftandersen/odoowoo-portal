@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "You cannot enable 'Add tax on product price during sync' without any tax mappings.",
+        "field": "price_includes_tax"
+    }
+}

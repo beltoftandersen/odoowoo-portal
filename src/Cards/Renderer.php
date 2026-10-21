@@ -68,6 +68,10 @@ final class Renderer {
 			wp_register_script( 'odoowoo-tasks', $url . 'assets/js/tasks.js', array( 'odoowoo-core' ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
 		}
 
+		if ( ! wp_script_is( 'odoowoo-deps', 'registered' ) ) {
+			wp_register_script( 'odoowoo-deps', $url . 'assets/js/deps.js', array( 'odoowoo-core' ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
+		}
+
 		if ( ! wp_style_is( 'odoowoo', 'registered' ) ) {
 			wp_register_style( 'odoowoo', $url . 'assets/css/odoowoo.css', array(), ODOOWOO_PORTAL_VERSION );
 		}
@@ -305,7 +309,7 @@ final class Renderer {
 			return array( 'data-can-write' => $ctx->can_write() ? '1' : '0' );
 		}
 
-		if ( in_array( $card, array( 'woo-connection', 'woo-settings', 'odoo-connection' ), true ) ) {
+		if ( in_array( $card, array( 'woo-connection', 'woo-settings', 'odoo-connection', 'odoo-settings' ), true ) ) {
 			// The two verifies are the only writes a read-only owner may still make (Routes::guard).
 			return array(
 				'data-can-write'  => $ctx->can_write() ? '1' : '0',
@@ -343,7 +347,16 @@ final class Renderer {
 			return;
 		}
 
-		wp_enqueue_script( 'odoowoo-card-' . $card, $src, array( 'odoowoo-core', 'odoowoo-tasks' ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
+		$requires = array();
+
+		foreach ( isset( $entry['requires'] ) && is_array( $entry['requires'] ) ? $entry['requires'] : array() as $handle ) {
+			if ( is_string( $handle ) && wp_script_is( $handle, 'registered' ) ) {
+				$requires[] = $handle;
+				wp_enqueue_script( $handle );
+			}
+		}
+
+		wp_enqueue_script( 'odoowoo-card-' . $card, $src, array_merge( array( 'odoowoo-core', 'odoowoo-tasks' ), $requires ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
 	}
 
 	/**

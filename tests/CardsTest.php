@@ -66,7 +66,8 @@ final class CardsTest extends TestCase {
 		$this->assertSame( $names, array_keys( $cards ) );
 
 		foreach ( $cards as $name => $card ) {
-			$this->assertSame( array( 'title', 'template', 'script', 'keys', 'strings' ), array_keys( $card ), $name );
+			// 'requires' (extra script handles) is optional: only the Odoo settings card has it.
+			$this->assertSame( array( 'title', 'template', 'script', 'keys', 'strings' ), array_values( array_diff( array_keys( $card ), array( 'requires' ) ) ), $name );
 			$this->assertIsString( $card['title'] );
 			$this->assertNotSame( '', $card['title'], $name );
 			$this->assertIsArray( $card['keys'], $name );

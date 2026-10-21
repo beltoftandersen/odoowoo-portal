@@ -1,0 +1,18 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "id": 1,
+                    "woocommerce_payment_method": "bacs",
+                    "woocommerce_payment_method_name": "Bank transfer",
+                    "odoo_journal_id": 8,
+                    "odoo_journal_name": "Bank",
+                    "payment_ref_meta_keys": ""
+                }
+            ]
+        }
+    }
+}

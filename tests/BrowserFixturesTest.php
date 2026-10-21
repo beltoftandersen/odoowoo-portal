@@ -170,6 +170,54 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->keep( 'callback_unavailable', $this->rest( 'POST', $u( $l, 'generate-api-key' ) ) );
 	}
 
+	/**
+	 * Task 11: the Odoo settings card. Django bodies copied from sync_app/views.py of the staging
+	 * Django (c2ae25d, /root/projects/beltoft/odoowoo-staging).
+	 */
+	private function odoo_settings_fixtures(): void {
+		$u = static fn( array $l, string $route ): string => '/licenses/' . $l['id'] . '/dashboards/' . self::D . '/' . $route;
+		$l = $this->fresh();
+
+		// GET with the plan: views.py:563-598 (brand_sync_allowed true, so enable_brand_sync is what is stored).
+		$allowed = array( 'odoo_url' => 'https://odoo.example', 'odoo_db' => 'prod', 'odoo_user' => 'api@example.com', 'odoo_password' => '', 'has_odoo_password' => true, 'has_middleware_api_key' => true, 'enable_auto_payment' => true, 'enable_auto_payment_cn' => false, 'enable_set_invoice_status' => false, 'enable_reset_all_deliveries' => false, 'enable_set_deliveries_to_waiting' => false, 'enable_auto_complete_deliveries' => true, 'odoo_order_pricelist_id' => 3, 'odoo_order_pricelist_name' => 'Public', 'capture_stage' => 'pending', 'confirm_pending_orders' => true, 'price_includes_tax' => false, 'order_incl_tax' => true, 'quantity_settings' => 'on_hand', 'enable_brand_sync' => true, 'brand_sync_allowed' => true, 'enable_category_sync' => true, 'enable_product_name_sync' => true, 'enable_tag_sync' => true, 'enable_image_sync' => true, 'enable_price_sync' => false, 'enable_barcode_sync' => false, 'stock_sku_meta_keys' => '_bss_stock_sku', 'stock_units_meta_keys' => '' );
+		$this->fake_django( fn() => array( 200, $allowed ) );
+		$this->keep( 'odoo_settings_brand_allowed', $this->rest( 'GET', $u( $l, 'odoo-settings' ) ) );
+
+		// The refusals of the POST: views.py:671 (BRANDS_NOT_IN_PLAN, api/triggers.py:35; Django 403 arrives as 409), 681-686, 693-698, 704.
+		$l    = $this->fresh();
+		$body = array_diff_key( $allowed, array( 'has_odoo_password' => 1, 'has_middleware_api_key' => 1, 'brand_sync_allowed' => 1, 'odoo_password' => 1 ) );
+		$this->fake_django( fn() => array( 403, array( 'code' => 'plan_feature_unavailable', 'message' => 'Brand sync is not included in your plan.', 'field' => 'enable_brand_sync' ) ) );
+		$this->keep( 'odoo_settings_brand_refused', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), $body ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'You cannot enable auto payments (invoices or credit notes) without any payment method mappings.', 'field' => 'enable_auto_payment' ) ) );
+		$this->keep( 'odoo_settings_auto_payment_refused', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), $body ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => "You cannot enable 'Add tax on product price during sync' without any tax mappings.", 'field' => 'price_includes_tax' ) ) );
+		$this->keep( 'odoo_settings_price_tax_refused', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), $body ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'Add at least one price mapping before enabling the price sync.', 'field' => 'enable_price_sync' ) ) );
+		$this->keep( 'odoo_settings_price_sync_refused', $this->rest( 'PUT', $u( $l, 'odoo-settings' ), $body ) );
+
+		// Pricelists: views.py:1068 {"pricelists": [...]} (shaped to items by Api\Map); not configured: views.py:110, 125.
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 200, array( 'pricelists' => array( array( 'id' => 5, 'name' => 'Public Pricelist (EUR)', 'currency' => 'EUR' ), array( 'id' => 6, 'name' => 'Retail DKK', 'currency' => 'DKK' ) ) ) ) );
+		$this->keep( 'odoo_pricelists', $this->rest( 'GET', $u( $l, 'odoo-pricelists' ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'odoo_not_configured', 'message' => 'Save your Odoo connection settings first.' ) ) );
+		$this->keep( 'odoo_pricelists_not_configured', $this->rest( 'GET', $u( $l, 'odoo-pricelists' ) ) );
+
+		// The three mapping lists: payment views.py:2037-2048 (bare list), tax views.py:2351 (serializer rows), price views.py:954-966 ({mappings}).
+		$l = $this->fresh();
+		$this->fake_django( fn() => array( 200, array( array( 'id' => 1, 'woocommerce_payment_method' => 'bacs', 'woocommerce_payment_method_name' => 'Bank transfer', 'odoo_journal_id' => 8, 'odoo_journal_name' => 'Bank', 'payment_ref_meta_keys' => '' ) ) ) );
+		$this->keep( 'payment_mappings_list', $this->rest( 'GET', $u( $l, 'payment-method-mappings' ) ) );
+		$this->fake_django( fn() => array( 200, array() ) );
+		$this->keep( 'payment_mappings_empty', $this->rest( 'GET', $u( $l, 'payment-method-mappings' ) ) );
+		$this->fake_django( fn() => array( 200, array( array( 'id' => 1, 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3, 'odoo_supplier_tax_id' => null ) ) ) );
+		$this->keep( 'tax_mappings_list', $this->rest( 'GET', $u( $l, 'tax-mappings' ) ) );
+		$this->fake_django( fn() => array( 200, array() ) );
+		$this->keep( 'tax_mappings_empty', $this->rest( 'GET', $u( $l, 'tax-mappings' ) ) );
+		$this->fake_django( fn() => array( 200, array( 'mappings' => array( array( 'id' => 1, 'source' => 'pricelist', 'odoo_pricelist_id' => 5, 'odoo_pricelist_name' => 'Public', 'target_field' => 'regular_price', 'target_meta_key' => '', 'tax_treatment' => 'as_is', 'require_explicit_rule' => false ) ) ) ) );
+		$this->keep( 'price_mappings_list', $this->rest( 'GET', $u( $l, 'price-mappings' ) ) );
+		$this->fake_django( fn() => array( 200, array( 'mappings' => array() ) ) );
+		$this->keep( 'price_mappings_empty', $this->rest( 'GET', $u( $l, 'price-mappings' ) ) );
+	}
+
 	public function test_browser_fixtures_match_the_real_routes(): void {
 		$l = $this->odoowoo_license();
 		$this->as_user( (int) $l['user_id'] );
@@ -239,6 +287,7 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->keep( 'tenant_paused', $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/' . self::D, array( 'name' => 'Outlet' ) ) );
 
 		$this->connection_fixtures();
+		$this->odoo_settings_fixtures();
 
 		// GET /licenses: the real summary of a ready, a paused and a getting-ready license (Routes::license_summary).
 		foreach ( array( 'ready' => 'ready', 'paused' => 'paused', 'getting_ready' => 'provisioning' ) as $label => $resource_state ) {

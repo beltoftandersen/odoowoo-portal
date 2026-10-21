@@ -1,0 +1,16 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "id": 1,
+                    "woocommerce_tax_class": "standard",
+                    "odoo_customer_tax_id": 3,
+                    "odoo_supplier_tax_id": null
+                }
+            ]
+        }
+    }
+}
