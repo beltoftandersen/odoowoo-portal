@@ -30,6 +30,29 @@
 		return G.odoowooPortal || {};
 	}
 
+	var TIMEOUT = 30000;
+
+	/** fetch() that gives up after 30 s (independent of any connection setting on the server). */
+	async function timedFetch( url, opts ) {
+		var controller = typeof G.AbortController === 'function' ? new G.AbortController() : null;
+		var timer = controller ? G.setTimeout( function () { controller.abort(); }, TIMEOUT ) : null;
+
+		if ( controller ) {
+			opts = Object.assign( {}, opts, { signal: controller.signal } );
+		}
+
+		try {
+			var res = await G.fetch( url, opts );
+			var raw = await res.text();
+
+			return { res: res, raw: raw };
+		} finally {
+			if ( timer !== null ) {
+				G.clearTimeout( timer );
+			}
+		}
+	}
+
 	function failure( code, message, status, field ) {
 		return { ok: false, data: undefined, code: code, message: message, field: field, status: status };
 	}
@@ -55,8 +78,10 @@
 		var res, raw;
 
 		try {
-			res = await G.fetch( String( cfg().rest || '' ) + String( path ).replace( /^\/+/, '' ), opts );
-			raw = await res.text();
+			var got = await timedFetch( String( cfg().rest || '' ) + String( path ).replace( /^\/+/, '' ), opts );
+
+			res = got.res;
+			raw = got.raw;
 		} catch ( e ) {
 			return generic( 0 );
 		}
@@ -98,8 +123,9 @@
 	/** Fetches a fresh REST nonce (WordPress' rest-nonce action). Returns '' when it will not give one. */
 	async function freshNonce() {
 		try {
-			var res = await G.fetch( String( cfg().nonceUrl || '' ), { credentials: 'same-origin' } );
-			var raw = ( await res.text() ).trim();
+			var got = await timedFetch( String( cfg().nonceUrl || '' ), { credentials: 'same-origin' } );
+			var res = got.res;
+			var raw = got.raw.trim();
 
 			return res.ok && /^[A-Za-z0-9]{6,}$/.test( raw ) ? raw : '';
 		} catch ( e ) {
@@ -257,7 +283,7 @@
 		p.textContent = reply.message + ' ';
 		container.appendChild( p );
 
-		if ( typeof url === 'string' && /^(https?:\/\/|\/)/.test( url ) ) {
+		if ( typeof url === 'string' && /^(https?:\/\/|\/(?!\/))/.test( url ) ) {
 			var a = G.document.createElement( 'a' );
 			a.setAttribute( 'href', url );
 			a.textContent = text( 'goToConnections' );

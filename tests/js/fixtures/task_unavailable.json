@@ -1,0 +1,8 @@
+{
+    "status": 500,
+    "body": {
+        "ok": false,
+        "code": "task_status_unavailable",
+        "message": "The sync status could not be read. Try again in a moment."
+    }
+}

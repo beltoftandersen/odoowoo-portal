@@ -1,0 +1,8 @@
+{
+    "status": 404,
+    "body": {
+        "ok": false,
+        "code": "odoowoo_portal_task_unknown",
+        "message": "This sync was not found. It may have finished more than a day ago."
+    }
+}

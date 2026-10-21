@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 		<p class="odoowoo-banner" role="note"><?php echo esc_html( $shell['banner'] ); ?></p>
 	<?php endif; ?>
 	<?php foreach ( $shell['notices'] as $odoowoo_notice ) : ?>
-		<p class="odoowoo-notice" role="status">
+		<p class="odoowoo-notice" role="status" aria-live="polite">
 			<?php echo esc_html( $odoowoo_notice['text'] ); ?>
 			<?php if ( '' !== $odoowoo_notice['link_url'] ) : ?>
 				<a href="<?php echo esc_url( $odoowoo_notice['link_url'] ); ?>"><?php echo esc_html( $odoowoo_notice['link_text'] ); ?></a>

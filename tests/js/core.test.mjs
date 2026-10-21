@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { fixture, fixtureRes } from './fixtures.mjs';
 
 const core = createRequire( import.meta.url )( '../../assets/js/core.js' );
 
@@ -61,7 +62,8 @@ function el() {
 	};
 }
 
-const wpRefusal = ( status, code ) => res( status, { code, message: 'wp text', data: { status } } );
+// Real WordPress / portal session refusals (fixtures from the routes).
+const wpRefusal = ( status, code ) => fixtureRes( code === 'odoowoo_portal_login' ? 'session_login' : 'session_nonce' );
 
 test( 'test_odoowoo_rest_auth_failure_is_not_saved', async () => {
 	boot();
@@ -132,20 +134,26 @@ test( 'test_api_updates_the_nonce_from_the_response_header', async () => {
 
 test( 'test_django_403_arriving_as_409_is_not_a_session_error', async () => {
 	boot();
-	for ( const [ status, code ] of [ [ 409, 'forbidden' ], [ 409, 'unauthorized' ], [ 403, 'odoowoo_portal_forbidden' ], [ 403, 'odoowoo_portal_read_only' ] ] ) {
-		const calls = fakeFetch( [ res( status, { code, message: 'Django says no' } ) ] );
+	for ( const name of [ 'django_401', 'django_403', 'refusal_read_only' ] ) {
+		const want = fixture( name );
+		const calls = fakeFetch( [ fixtureRes( name ) ] );
 		const r = await core.api( 'POST', 'licenses/1/dashboards', { name: 'x' } );
-		assert.equal( r.ok, false, code );
-		assert.equal( r.code, code );
-		assert.equal( r.message, 'Django says no' );
-		assert.equal( r.status, status );
-		assert.equal( calls.length, 1, code + ': no nonce fetch, no retry.' );
+		assert.equal( r.ok, false, name );
+		assert.equal( r.code, want.body.code, name );
+		assert.notEqual( r.code, 'session' );
+		assert.equal( r.message, want.body.message );
+		assert.equal( r.field, want.body.field );
+		assert.equal( r.status, want.status );
+		assert.equal( calls.length, 1, name + ': no nonce fetch, no retry.' );
 	}
+	assert.equal( fixture( 'django_401' ).status, 409, 'Django 401 arrives as 409.' );
+	assert.equal( fixture( 'django_403' ).status, 409, 'Django 403 arrives as 409.' );
 } );
 
 test( 'test_api_never_rejects', async () => {
 	boot();
 	const bad = [
+		fixtureRes( 'django_garbage' ),
 		new Error( 'network down' ),
 		res( 200, '' ),
 		res( 200, 'not json {' ),
@@ -167,10 +175,10 @@ test( 'test_api_never_rejects', async () => {
 		assert.ok( ! JSON.stringify( r ).includes( 'SECRET-RAW' ) );
 		assert.ok( ! JSON.stringify( r ).includes( 'raw ' ) );
 	}
-	// A shaped error passes, with its field.
-	fakeFetch( [ res( 409, { code: 'invalid_request', message: 'Bad prefix.', field: 'prefix' } ) ] );
+	// A real error with a field passes, with its field.
+	fakeFetch( [ fixtureRes( 'refusal_field' ) ] );
 	const r = await core.api( 'POST', 'x', {} );
-	assert.deepEqual( { ok: r.ok, code: r.code, message: r.message, field: r.field, status: r.status }, { ok: false, code: 'invalid_request', message: 'Bad prefix.', field: 'prefix', status: 409 } );
+	assert.deepEqual( { ok: r.ok, code: r.code, message: r.message, field: r.field, status: r.status }, { ok: false, code: 'invalid_request', message: "Expected a 'mappings' list.", field: 'mappings', status: 400 } );
 	// An empty object is a valid success, and so is an empty list.
 	fakeFetch( [ res( 200, '{}' ) ] );
 	assert.deepEqual( ( await core.api( 'GET', 'x' ) ).data, {} );
@@ -257,17 +265,75 @@ test( 'test_secret_value_is_byte_exact_and_blank_keeps_the_saved_one', () => {
 } );
 
 test( 'test_api_unwraps_the_browser_envelope', async () => {
-	// P Routes::respond: every success is {ok: true, data: <Django reply>}.
 	boot();
-	fakeFetch( [ res( 200, { ok: true, data: [ { id: 1 } ] } ) ] );
-	const r = await core.api( 'GET', 'licenses' );
-	assert.equal( r.ok, true );
-	assert.deepEqual( r.data, [ { id: 1 } ] );
+	fakeFetch( [ fixtureRes( 'list_success' ) ] );
+	const list = await core.api( 'GET', 'licenses/1/dashboards/7/odoo-journals' );
+	assert.equal( list.ok, true );
+	assert.deepEqual( list.data, fixture( 'list_success' ).body.data );
+	assert.deepEqual( core.listOf( list.data ), [ { id: 1, name: 'Bank' }, { id: 2, name: 'Cash' } ] );
 
+	fakeFetch( [ fixtureRes( 'settings_success' ) ] );
+	const settings = await core.api( 'GET', 'licenses/1/dashboards/7/woo-keys' );
+	assert.equal( settings.ok, true );
+	assert.equal( settings.data.consumer_key, 'ck_1' );
+	assert.equal( settings.data.has_consumer_secret, true );
+	assert.equal( settings.data.ok, undefined, 'The envelope is gone.' );
+
+	fakeFetch( [ fixtureRes( 'save_success' ) ] );
+	const saved = await core.api( 'PUT', 'licenses/1/dashboards/7/woo-keys', {} );
+	assert.equal( saved.ok, true );
+	assert.equal( saved.data.message, 'WooCommerce keys updated successfully.' );
+
+	// The same shape for an empty object (a 204 from Django): P Routes::respond.
 	fakeFetch( [ res( 200, { ok: true, data: {} } ) ] );
 	assert.deepEqual( ( await core.api( 'DELETE', 'licenses/1/dashboards/2' ) ).data, {} );
+} );
 
-	// Without the envelope the body is the data, as before.
-	fakeFetch( [ res( 200, { items: [] } ) ] );
-	assert.deepEqual( ( await core.api( 'GET', 'x' ) ).data, { items: [] } );
+test( 'test_not_configured_reply_from_the_real_route_gets_the_link', async () => {
+	boot();
+	fakeFetch( [ fixtureRes( 'not_configured' ) ] );
+	const r = await core.api( 'GET', 'licenses/1/dashboards/7/odoo-journals' );
+	assert.equal( r.ok, false );
+	assert.equal( core.notConfigured( r ), true );
+	assert.equal( r.message, 'Save your Odoo connection settings first.' );
+} );
+
+test( 'test_api_gives_up_after_30_seconds', async ( t ) => {
+	boot();
+	t.mock.timers.enable( { apis: [ 'setTimeout' ] } );
+	let seen;
+	globalThis.fetch = ( url, opts ) => {
+		seen = opts.signal;
+		return new Promise( ( resolve, reject ) => {
+			opts.signal.addEventListener( 'abort', () => reject( new Error( 'aborted' ) ) );
+		} );
+	};
+	const pending = core.api( 'GET', 'licenses' );
+	t.mock.timers.tick( 29999 );
+	assert.equal( seen.aborted, false );
+	t.mock.timers.tick( 1 );
+	const r = await pending;
+	assert.equal( seen.aborted, true );
+	assert.equal( r.code, 'server_error' );
+	assert.equal( r.message, GENERIC );
+} );
+
+test( 'test_not_configured_link_refuses_protocol_relative_and_foreign_urls', () => {
+	const made = [];
+	const node = () => ( { children: [], attrs: {}, textContent: '', appendChild( c ) { this.children.push( c ); }, setAttribute( k, v ) { this.attrs[ k ] = v; } } );
+	globalThis.document = { createElement: () => { const n = node(); made.push( n ); return n; } };
+	const reply = { ok: false, code: 'odoo_not_configured', message: 'Save first.' };
+	const link = ( url ) => {
+		made.length = 0;
+		const box = node();
+		core.showNotConfigured( box, reply, { getAttribute: () => url } );
+		return made.find( ( n ) => 'href' in n.attrs );
+	};
+
+	assert.equal( link( 'https://x.test/app/?tab=connections' ).attrs.href, 'https://x.test/app/?tab=connections' );
+	assert.equal( link( '/app/?tab=connections' ).attrs.href, '/app/?tab=connections' );
+	assert.equal( link( '//evil.test/x' ), undefined );
+	assert.equal( link( 'javascript:alert(1)' ), undefined );
+	assert.equal( link( '' ), undefined );
+	delete globalThis.document;
 } );

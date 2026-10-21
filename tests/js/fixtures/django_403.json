@@ -1,0 +1,9 @@
+{
+    "status": 409,
+    "body": {
+        "ok": false,
+        "code": "plan_feature_unavailable",
+        "message": "Brand sync is not included in your plan.",
+        "field": "enable_brand_sync"
+    }
+}

@@ -95,7 +95,8 @@
 		var sleep = o.sleep || function ( ms ) { return new Promise( function ( r ) { setTimeout( r, ms ); } ); };
 		var now = o.now || Date.now;
 		var hidden = o.hidden || function () { return typeof G.document !== 'undefined' && G.document.hidden === true; };
-		var cancelled = o.cancelled || function () { return false; };
+		// By default a poll ends by itself when its element has left the page.
+		var cancelled = o.cancelled || function () { return !! o.el && o.el.isConnected === false; };
 		var started = now();
 		var delay = START;
 		var failures = 0;
@@ -177,6 +178,11 @@
 	/** Shows a task's progress in a container (a <progress>, text, then the message of a finished task). DOM glue. */
 	function render( container, v ) {
 		var doc = G.document;
+
+		if ( container.isConnected === false ) {
+			return false;
+		}
+
 		var bar = container.querySelector( 'progress' );
 		var line = container.querySelector( '.odoowoo-progress__text' );
 
@@ -199,6 +205,8 @@
 		}
 
 		line.textContent = v.message !== '' ? v.text + ' ' + v.message : v.text;
+
+		return true;
 	}
 
 	var out = { poll: poll, label: label, percent: percent, view: view, render: render };

@@ -43,7 +43,8 @@
 		Array.prototype.forEach.call( roots, function ( root ) {
 			var titles = Array.prototype.slice.call( root.querySelectorAll( ':scope > .tab-menu > .tab-title' ) );
 
-			if ( titles.length === 0 ) {
+			// Only a Tabs element that holds one of our cards is ours to drive.
+			if ( titles.length === 0 || ! root.querySelector( '.odoowoo-card' ) ) {
 				return;
 			}
 
@@ -60,7 +61,7 @@
 			var d = e.detail || {};
 			var title = d.activeTitle;
 
-			if ( ! title || typeof title.getAttribute !== 'function' || ! title.closest( '.brxe-tabs-nested' ) ) {
+			if ( ! title || typeof title.getAttribute !== 'function' || ! title.closest( '.brxe-tabs-nested' ) || ! title.closest( '.brxe-tabs-nested' ).querySelector( '.odoowoo-card' ) ) {
 				return;
 			}
 

@@ -311,7 +311,27 @@ final class CardsTest extends TestCase {
 
 		$this->assertNotFalse( has_action( 'template_redirect', array( \OdooWooPortal\Plugin::class, 'template_redirect' ) ) );
 		$this->assertFalse( Support::has_session( $support, (int) $license['id'] ) );
+
+		// The arrival redirects (303) to the same page without the flag and the nonce, so a reload
+		// logs nothing. The filter stops the redirect from being sent (and from exiting).
+		$sent = array();
+		add_filter(
+			'wp_redirect',
+			static function ( $location, $status ) use ( &$sent ) {
+				$sent[] = array( $location, $status );
+
+				return false;
+			},
+			10,
+			2
+		);
 		do_action( 'template_redirect' );
+
+		$this->assertCount( 1, $sent );
+		$this->assertSame( 303, $sent[0][1] );
+		$this->assertStringContainsString( 'license=' . $license['id'], $sent[0][0] );
+		$this->assertStringNotContainsString( Support::FLAG, $sent[0][0] );
+		$this->assertStringNotContainsString( '_wpnonce', $sent[0][0] );
 
 		$this->assertTrue( Support::has_session( $support, (int) $license['id'] ) );
 		$visits = array_filter( Events::for_license( (int) $license['id'] ), static fn( $e ) => 'support_view' === $e['type'] );
@@ -329,7 +349,17 @@ final class CardsTest extends TestCase {
 		parse_str( (string) wp_parse_url( Support::url( (int) $license['id'] ), PHP_URL_QUERY ), $query );
 		$_GET = $query;
 		wp_set_current_user( 0 );
+		$sent = array();
+		add_filter(
+			'wp_redirect',
+			static function ( $location ) use ( &$sent ) {
+				$sent[] = $location;
+
+				return false;
+			}
+		);
 		do_action( 'template_redirect' );
+		$this->assertSame( array(), $sent, 'No redirect for a visitor who is logged out.' );
 		$this->assertFalse( Support::has_session( $support, (int) $license['id'] ) );
 		$this->assertSame( array(), array_filter( Events::for_license( (int) $license['id'] ), static fn( $e ) => 'support_view' === $e['type'] ) );
 	}
@@ -359,5 +389,49 @@ final class CardsTest extends TestCase {
 
 		$this->assertStringContainsString( 'Your OdooWoo plan is paused.', $html );
 		$this->assertStringContainsString( 'Probe body', $html );
+	}
+
+	public function test_boot_data_escapes_a_card_string_that_would_break_out_of_the_script(): void {
+		$evil = '</script><img onerror=1> <!-- & "q" \'s\'';
+		add_filter(
+			'odoowoo_portal_cards',
+			static function ( $cards ) use ( $evil ) {
+				$cards['probe'] = array(
+					'title'    => 'Probe card',
+					'template' => CardProbe::template(),
+					'script'   => '',
+					'keys'     => array(),
+					'strings'  => array( 'evil' => $evil ),
+				);
+
+				return $cards;
+			}
+		);
+		$license = $this->odoowoo_license();
+		$this->as_user( (int) $license['user_id'] );
+		$_GET = array( 'license' => (string) $license['id'] );
+
+		Renderer::render( 'probe' );
+		$this->footer();
+
+		$before = wp_scripts()->get_data( 'odoowoo-core', 'before' );
+		$js     = implode( "\n", array_filter( (array) $before ) );
+
+		foreach ( array( '</script', '<img', '<!--', '&', '<', '>' ) as $raw ) {
+			$this->assertStringNotContainsString( $raw, $js, $raw );
+		}
+
+		$json = substr( $js, strlen( 'window.odoowooPortal = ' ), -1 );
+		$data = json_decode( $json, true );
+
+		$this->assertSame( $evil, $data['i18n']['evil'], 'Decodes to the original.' );
+	}
+
+	public function test_notices_are_a_polite_live_region_in_the_markup(): void {
+		$this->as_user( self::factory()->user->create() );
+
+		$html = Renderer::render( 'woo-connection' );
+
+		$this->assertStringContainsString( 'role="status" aria-live="polite"', $html );
 	}
 }

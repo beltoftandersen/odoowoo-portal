@@ -2,7 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
-const tasks = createRequire( import.meta.url )( '../../assets/js/tasks.js' );
+import { fixtureRes } from './fixtures.mjs';
+
+const require = createRequire( import.meta.url );
+const tasks = require( '../../assets/js/tasks.js' );
+const core = require( '../../assets/js/core.js' );
+
+// Replies are what core.api() makes of the real routes' answers (fixtures), not hand-written objects.
+globalThis.odoowooPortal = { rest: 'https://x.test/v1/', nonce: 'n1', nonceUrl: 'https://x.test/n', i18n: {} };
+
+async function apiReply( name ) {
+	globalThis.fetch = () => Promise.resolve( fixtureRes( name ) );
+
+	return core.api( 'GET', 'licenses/1/dashboards/7/task-status/tk-1' );
+}
+
+const R = {};
+
+for ( const name of [ 'task_running_start', 'task_running_1_of_10', 'task_running_2_of_10', 'task_running_30_of_120', 'task_done', 'task_skipped', 'task_failed', 'task_django_not_found', 'task_unavailable', 'task_unknown', 'session_login' ] ) {
+	R[ name ] = await apiReply( name );
+}
 
 const MIN = 60 * 1000;
 
@@ -26,9 +45,15 @@ function answers( list ) {
 	return f;
 }
 
-const running = ( current, total ) => ( { ok: true, status: 200, data: { task_id: 't', state: 'running', label: 'Running', current, total, message: '', results: [] } } );
-const finished = ( state ) => ( { ok: true, status: 200, data: { task_id: 't', state, label: 'x', current: 5, total: 5, message: '', results: [] } } );
-const failure = ( status, code ) => ( { ok: false, status, code, message: 'm' } );
+const running = ( current, total ) => R[ current === 0 ? 'task_running_start' : `task_running_${ current }_of_${ total }` ];
+const finished = ( state ) => R[ 'task_' + state ];
+const failure = ( status, code ) => ( {
+	task_not_found: R.task_django_not_found,
+	task_status_unavailable: R.task_unavailable,
+	// The portal's code on a status Django would never send: the code decides, not the status.
+	odoowoo_portal_task_unknown: { ...R.task_unknown, status: 409 },
+	session: R.session_login,
+}[ code ] );
 
 async function run( list, extra = {} ) {
 	const c = clock();
@@ -57,7 +82,7 @@ test( 'test_odoowoo_mistake_polling_stops_on_unknown_and_finished', async () => 
 	}
 
 	// A state nobody knows is a failure, and it stops.
-	const odd = await run( [ { ok: true, status: 200, data: { state: 'weird', current: 0, total: 0 } } ] );
+	const odd = await run( [ { ...R.task_done, data: { ...R.task_done.data, state: 'weird' } } ] );
 	assert.equal( odd.f.calls(), 1 );
 	assert.equal( odd.result.reason, 'failed' );
 
@@ -81,7 +106,7 @@ test( 'test_odoowoo_mistake_polling_stops_on_unknown_and_finished', async () => 
 
 	// A success in between resets the count.
 	const bad = failure( 500, 'task_status_unavailable' );
-	const mixed = await run( [ bad, bad, bad, bad, running( 1, 5 ), bad, bad, bad, bad, finished( 'done' ) ] );
+	const mixed = await run( [ bad, bad, bad, bad, running( 1, 10 ), bad, bad, bad, bad, finished( 'done' ) ] );
 	assert.equal( mixed.f.calls(), 10 );
 	assert.equal( mixed.result.reason, 'done' );
 
@@ -95,6 +120,7 @@ test( 'test_odoowoo_mistake_polling_stops_on_unknown_and_finished', async () => 
 } );
 
 test( 'test_odoowoo_mistake_progress_reads_top_level_current_total', async () => {
+	assert.equal( R.task_running_30_of_120.data.current, 30, 'The route puts current/total at the top level.' );
 	const r = await run( [ running( 30, 120 ), finished( 'done' ) ] );
 	assert.equal( r.updates[ 0 ].current, 30 );
 	assert.equal( r.updates[ 0 ].total, 120 );
@@ -122,10 +148,10 @@ test( 'test_odoowoo_mistake_skipped_and_failed_not_completed', () => {
 } );
 
 test( 'test_running_with_no_total_is_indeterminate_and_says_starting', () => {
-	const v = tasks.view( running( 0, 0 ).data );
+	const v = tasks.view( R.task_running_start.data );
 	assert.equal( v.indeterminate, true );
 	assert.equal( v.text, 'Starting…' );
-	const w = tasks.view( running( 3, 12 ).data );
+	const w = tasks.view( { state: 'running', current: 3, total: 12 } );
 	assert.equal( w.indeterminate, false );
 	assert.equal( w.percent, 25 );
 	assert.equal( w.text, 'Running: 3 of 12' );
@@ -154,4 +180,28 @@ test( 'test_cancelled_poll_stops_without_calling_done_twice', async () => {
 	const r = await run( [ running( 1, 10 ) ], { cancelled: () => stop, onUpdate: () => { stop = true; } } );
 	assert.equal( r.f.calls(), 1 );
 	assert.equal( r.result.reason, 'cancelled' );
+} );
+
+test( 'test_poll_stops_by_itself_when_its_element_is_removed', async () => {
+	const el = { isConnected: true };
+	const r = await run( [ running( 1, 10 ) ], { el, onUpdate: () => { el.isConnected = false; } } );
+	assert.equal( r.f.calls(), 1 );
+	assert.equal( r.result.reason, 'cancelled' );
+	assert.deepEqual( r.c.sleeps, [] );
+
+	// Removed while it sleeps: no further request.
+	const el2 = { isConnected: true };
+	const c = clock();
+	const f = answers( [ running( 1, 10 ) ] );
+	const result = await tasks.poll( { fetch: f, el: el2, now: c.now, sleep: ( ms ) => { el2.isConnected = false; return c.sleep( ms ); } } );
+	assert.equal( f.calls(), 1 );
+	assert.equal( result.reason, 'cancelled' );
+
+	// Still on the page: it carries on to the end.
+	const el3 = { isConnected: true };
+	const done = await run( [ running( 1, 10 ), finished( 'done' ) ], { el: el3 } );
+	assert.equal( done.result.reason, 'done' );
+
+	// render() leaves a removed element alone.
+	assert.equal( tasks.render( { isConnected: false }, tasks.view( R.task_done.data ) ), false );
 } );

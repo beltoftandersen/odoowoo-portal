@@ -1,0 +1,15 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "task_id": "tk-1",
+            "state": "running",
+            "label": "Running",
+            "current": 30,
+            "total": 120,
+            "message": "Task is progress.",
+            "results": []
+        }
+    }
+}

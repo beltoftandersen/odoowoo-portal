@@ -1,0 +1,8 @@
+{
+    "status": 409,
+    "body": {
+        "ok": false,
+        "code": "unauthorized",
+        "message": "The request could not be authenticated."
+    }
+}

@@ -63,7 +63,22 @@ final class Plugin {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- the nonce is verified inside arrived().
-		Support::arrived( wp_unslash( $_GET ), $user_id );
+		$query = wp_unslash( $_GET );
+
+		if ( ! Support::arrived( $query, $user_id ) ) {
+			return;
+		}
+
+		// A reload must not log another visit: carry on without the flag and the nonce.
+		global $wp;
+
+		unset( $query[ Support::FLAG ], $query['_wpnonce'] );
+
+		$target = add_query_arg( urlencode_deep( $query ), home_url( isset( $wp->request ) ? (string) $wp->request : '' ) );
+
+		if ( wp_safe_redirect( $target, 303 ) ) {
+			exit;
+		}
 	}
 
 	/**

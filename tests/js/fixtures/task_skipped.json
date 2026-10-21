@@ -1,0 +1,15 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "task_id": "tk-1",
+            "state": "skipped",
+            "label": "Skipped",
+            "current": 0,
+            "total": 0,
+            "message": "Sync categories is deactivated.",
+            "results": []
+        }
+    }
+}
