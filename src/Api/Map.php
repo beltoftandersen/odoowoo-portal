@@ -70,17 +70,83 @@ final class Map {
 			'read_only_ok' => true,
 			'limit'        => null,
 		),
-		'verify-woocommerce'  => array(
-			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/verify-woocommerce/' ) ),
+		'woo-keys' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/woo-keys/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/woo-keys/' ),
+			),
+			'fields'       => array( 'consumer_key', 'consumer_secret', 'woocommerce_url', 'prefix', 'enable_stock_update', 'change_status_delivery' ),
+			'read_only_ok' => false,
+			'limit'        => null,
+			'clean'        => 'clean_woo_keys',
+		),
+		'verify-woocommerce' => array(
+			'methods'      => array(
+				'POST' => array( 'POST', 'dashboards/{d}/verify-woocommerce/' ),
+			),
 			'fields'       => array( 'consumer_key', 'consumer_secret', 'woocommerce_url' ),
 			'read_only_ok' => true,
 			'limit'        => 'verify',
+			'clean'        => 'clean_woo_keys',
 		),
-		'verify-odoo'         => array(
-			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/verify-odoo/' ) ),
+		'inject-woo-webhooks' => array(
+			'methods'      => array(
+				'POST' => array( 'POST', 'dashboards/{d}/inject-woo-webhooks/' ),
+			),
+			'fields'       => array(),
+			'read_only_ok' => false,
+			'limit'        => 'verify',
+		),
+		'odoo-settings' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/odoo-settings/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/odoo-settings/' ),
+			),
+			'fields'       => array( 'odoo_url', 'odoo_db', 'odoo_user', 'odoo_password', 'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'odoo_order_pricelist_id', 'odoo_order_pricelist_name', 'capture_stage', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax', 'quantity_settings', 'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync', 'stock_sku_meta_keys', 'stock_units_meta_keys' ),
+			'read_only_ok' => false,
+			'limit'        => null,
+			'clean'        => 'clean_odoo_settings',
+		),
+		'verify-odoo' => array(
+			'methods'      => array(
+				'POST' => array( 'POST', 'dashboards/{d}/verify-odoo/' ),
+			),
 			'fields'       => array( 'odoo_url', 'odoo_db', 'odoo_user', 'odoo_password' ),
 			'read_only_ok' => true,
 			'limit'        => 'verify',
+			'clean'        => 'clean_odoo_settings',
+		),
+		'generate-api-key' => array(
+			'methods'      => array(
+				'POST' => array( 'POST', 'dashboards/{d}/generate-api-key/' ),
+			),
+			'fields'       => array(),
+			'read_only_ok' => false,
+			'limit'        => 'verify',
+		),
+		'odoo-pricelists' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/odoo-pricelists/' ),
+			),
+			'fields'       => array(),
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'odoo-routes' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/odoo-routes/' ),
+			),
+			'fields'       => array(),
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
+		'odoo-stock-locations' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/odoo-stock-locations/' ),
+			),
+			'fields'       => array(),
+			'read_only_ok' => false,
+			'limit'        => null,
 		),
 	);
 
@@ -155,6 +221,43 @@ final class Map {
 			$out[ $field ] = $value;
 		}
 
-		return $out;
+		$clean = self::ROUTES[ $key ]['clean'] ?? null;
+
+		return null === $clean ? $out : self::$clean( $out );
+	}
+
+	/**
+	 * WooCommerce keys body: no trailing slash on the URL, a blank secret is left out (Django keeps
+	 * the stored one), and the webhook secret override never passes.
+	 *
+	 * @param array<string, mixed> $body Body.
+	 * @return array<string, mixed>
+	 */
+	public static function clean_woo_keys( array $body ): array {
+		unset( $body['webhook_secret_override'] );
+
+		if ( isset( $body['woocommerce_url'] ) && is_string( $body['woocommerce_url'] ) ) {
+			$body['woocommerce_url'] = rtrim( $body['woocommerce_url'], '/' );
+		}
+
+		if ( isset( $body['consumer_secret'] ) && '' === $body['consumer_secret'] ) {
+			unset( $body['consumer_secret'] );
+		}
+
+		return $body;
+	}
+
+	/**
+	 * Odoo settings body: a blank password is left out (Django keeps the stored one).
+	 *
+	 * @param array<string, mixed> $body Body.
+	 * @return array<string, mixed>
+	 */
+	public static function clean_odoo_settings( array $body ): array {
+		if ( isset( $body['odoo_password'] ) && '' === $body['odoo_password'] ) {
+			unset( $body['odoo_password'] );
+		}
+
+		return $body;
 	}
 }
