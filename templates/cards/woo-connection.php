@@ -43,6 +43,7 @@ $odoowoo_uid = wp_unique_id( 'odoowoo-woo-' );
 		<button type="submit" class="odoowoo-button"><?php echo $odoowoo_s( 'save' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
 		<button type="button" class="odoowoo-button odoowoo-button--secondary" data-action="transfer" disabled aria-describedby="<?php echo esc_attr( $odoowoo_uid ); ?>-transfer-help"><?php echo $odoowoo_s( 'transfer' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
 	</div>
+	<p class="odoowoo-help odoowoo-unsaved-note" role="status" aria-live="polite" hidden></p>
 	<p class="odoowoo-help" id="<?php echo esc_attr( $odoowoo_uid ); ?>-transfer-help"><?php echo $odoowoo_s( 'transferHelp' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
 	<div class="odoowoo-form-status" role="status" aria-live="polite"></div>
 </form>

@@ -425,3 +425,123 @@ test( 'test_store_dirty_commit_and_subscribers', () => {
 	assert.deepEqual( s.get(), { a: 2, has_pw: true } );
 	assert.ok( seen >= 3 );
 } );
+
+test( 'test_no_save_before_the_settings_were_read_or_after_a_failed_read', async () => {
+	boot();
+	const NOT_READ = 'We could not read your settings, so nothing was saved. Reload the page and try again.';
+
+	for ( const [ name, fresh, save, typed ] of [
+		[ 'woo', () => core.createStore( { fields: [ 'consumer_key', 'woocommerce_url', 'consumer_secret', 'prefix', 'enable_stock_update', 'change_status_delivery' ], secrets: [ 'consumer_secret' ] } ), ( s ) => wooConn.saveWoo( ctx, s ), { consumer_key: 'ck', woocommerce_url: 'https://s.example', consumer_secret: 's' } ],
+		[ 'odoo', () => core.createStore( { fields: [ 'odoo_url', 'odoo_db', 'odoo_user', 'odoo_password', 'capture_stage' ], secrets: [ 'odoo_password' ] } ), ( s ) => odooConn.saveOdoo( ctx, s ), { odoo_url: 'https://o.example', odoo_db: 'd', odoo_user: 'u', odoo_password: 'p' } ],
+	] ) {
+		const store = fresh();
+		const calls = fakeFetch( [ 'woo_save_created' ] );
+
+		// Before the GET answered: typed values only, nothing saved yet.
+		store.patch( typed );
+		let out = await save( store );
+		assert.equal( calls.length, 0, name + ': no request before the read' );
+		assert.equal( out.reply.ok, false );
+		assert.equal( out.reply.message, NOT_READ );
+
+		// After a failed read (502 HTML): the store stays unloaded, still no request.
+		fakeFetch( [ 'django_garbage' ] );
+		const failed = await store.ensure( () => core.api( 'GET', P + 'x' ) );
+		assert.equal( failed.ok, false );
+		assert.equal( store.isLoaded(), false );
+		const c2 = fakeFetch( [ 'woo_save_created' ] );
+		out = await save( store );
+		assert.equal( c2.length, 0, name + ': no request after a failed read' );
+		assert.equal( out.reply.message, NOT_READ );
+	}
+
+	// A loaded store that lacks a field (a partial reply) is refused too, with the real stores.
+	for ( const [ store, partial, save ] of [
+		[ core.wooKeysStore, { consumer_key: 'ck', woocommerce_url: 'https://s.example', has_consumer_secret: true }, () => wooConn.saveWoo( ctx, core.wooKeysStore ) ],
+		[ core.odooSettingsStore, { odoo_url: 'https://o.example', odoo_db: 'd', odoo_user: 'u', has_odoo_password: true }, () => odooConn.saveOdoo( ctx, core.odooSettingsStore ) ],
+	] ) {
+		store.commit( partial );
+		const calls = fakeFetch( [ 'woo_save_created' ] );
+		const out = await save();
+		assert.equal( calls.length, 0 );
+		assert.equal( out.reply.message, NOT_READ );
+	}
+
+	// The Woo settings card goes through the same guard.
+	core.wooKeysStore.commit( { consumer_key: 'ck', woocommerce_url: 'https://s.example', has_consumer_secret: true } );
+	const c3 = fakeFetch( [ 'woo_save_created' ] );
+	assert.equal( ( await wooSet.saveSettings( ctx, core.wooKeysStore ) ).reply.message, NOT_READ );
+	assert.equal( c3.length, 0 );
+
+	// Complete stores (real replies) still save.
+	core.wooKeysStore.commit( data( 'woo_keys_saved' ) );
+	const c4 = fakeFetch( [ 'woo_save_created', 'woo_keys_saved' ] );
+	assert.equal( ( await wooConn.saveWoo( ctx, core.wooKeysStore ) ).reply.ok, true );
+	assert.equal( c4.length, 2 );
+	core.odooSettingsStore.commit( data( 'odoo_settings_new' ) );
+	core.odooSettingsStore.patch( { odoo_url: 'https://o', odoo_db: 'd', odoo_user: 'u', odoo_password: 'p' } );
+	const c5 = fakeFetch( [ 'odoo_save_success', 'odoo_settings_saved' ] );
+	assert.equal( ( await odooConn.saveOdoo( ctx, core.odooSettingsStore ) ).reply.ok, true );
+	assert.equal( c5.length, 2 );
+} );
+
+test( 'test_transfer_and_callbacks_wait_for_saved_changes', async () => {
+	boot();
+	const SAVE_FIRST = 'Save your changes first.';
+	const store = core.wooKeysStore;
+	store.commit( data( 'woo_keys_new' ) );
+	store.patch( { consumer_key: 'ck_1', woocommerce_url: 'https://shop.example', consumer_secret: 'cs' } );
+
+	// Verify saves the keys server-side; the re-read leaves the store clean, so Transfer opens.
+	fakeFetch( [ 'woo_verify_success', 'woo_keys_saved' ] );
+	await wooConn.verifyWoo( ctx, store );
+	assert.equal( store.dirty(), false );
+	assert.deepEqual( wooConn.transferState( store.get(), store.dirty() ), { enabled: true, reason: '' } );
+
+	// An edit after the verify: Transfer is off, says why, and sends nothing.
+	store.patch( { woocommerce_url: 'https://other.example' } );
+	const off = wooConn.transferState( store.get(), store.dirty() );
+	assert.equal( off.enabled, false );
+	assert.equal( off.reason, SAVE_FIRST );
+	const calls = fakeFetch( [ 'woo_webhooks_success' ] );
+	const out = await wooConn.transferWebhooks( ctx, store );
+	assert.equal( calls.length, 0 );
+	assert.equal( out.transferred, false );
+	assert.equal( out.reply.message, SAVE_FIRST );
+
+	// Not saved and not dirty keeps the old reason (no saved keys).
+	assert.equal( wooConn.transferState( data( 'woo_keys_new' ), false ).reason, '' );
+
+	// Odoo callbacks: same rule, and the confirm is not even asked.
+	const odoo = core.odooSettingsStore;
+	odoo.commit( data( 'odoo_settings_saved' ) );
+	assert.deepEqual( odooConn.callbackState( odoo.get(), odoo.dirty(), true ), { enabled: true, reason: '' } );
+	odoo.patch( { odoo_db: 'other' } );
+	assert.deepEqual( odooConn.callbackState( odoo.get(), odoo.dirty(), true ), { enabled: false, reason: SAVE_FIRST } );
+	assert.equal( odooConn.callbackState( odoo.get(), false, false ).enabled, false, 'A viewer who cannot write.' );
+	const c2 = fakeFetch( [ 'callback_success' ] );
+	let asked = 0;
+	const r = await odooConn.setUpCallbacks( ctx, odoo, () => { asked++; return Promise.resolve( true ); } );
+	assert.equal( asked, 0 );
+	assert.equal( c2.length, 0 );
+	assert.equal( r.reply.message, SAVE_FIRST );
+
+	// After saving, it opens again.
+	fakeFetch( [ 'odoo_save_success', 'odoo_settings_saved' ] );
+	await odooConn.saveOdoo( ctx, odoo );
+	assert.equal( odooConn.callbackState( odoo.get(), odoo.dirty(), true ).enabled, true );
+} );
+
+test( 'test_prefix_note_only_when_the_check_was_partial', () => {
+	boot();
+	assert.equal( wooSet.prefixNote( { used_prefixes_partial: true } ), 'Other licenses could not be checked. A prefix that is already taken will be refused when you save.' );
+	for ( const v of [ false, undefined, null, 'true', 1 ] ) {
+		assert.equal( wooSet.prefixNote( { used_prefixes_partial: v } ), '', String( v ) );
+	}
+	assert.equal( wooSet.prefixNote( data( 'woo_keys_saved' ) ), '' );
+	assert.equal( data( 'woo_keys_saved' ).used_prefixes_partial, false );
+	const partial = data( 'woo_keys_partial' );
+	assert.equal( partial.used_prefixes_partial, true );
+	assert.deepEqual( partial.used_prefixes, [ 'AB' ] );
+	assert.equal( wooSet.prefixNote( partial ), 'Other licenses could not be checked. A prefix that is already taken will be refused when you save.' );
+} );

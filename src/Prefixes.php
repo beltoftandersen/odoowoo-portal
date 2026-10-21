@@ -28,8 +28,20 @@ final class Prefixes {
 	 * @return array<int, string>
 	 */
 	public static function in_use( int $user_id, int $dashboard_id ): array {
-		$all  = self::all( $user_id );
-		$used = array();
+		return self::status( $user_id, $dashboard_id )['used'];
+	}
+
+	/**
+	 * Like in_use(), and whether the read was partial (a failed read, or more dashboards than
+	 * MAX_READS allows): a prefix shown as free may then still be taken.
+	 *
+	 * @param int $user_id      User.
+	 * @param int $dashboard_id Dashboard being edited.
+	 * @return array{used: array<int, string>, partial: bool}
+	 */
+	public static function status( int $user_id, int $dashboard_id ): array {
+		list( $all, $complete ) = self::all( $user_id );
+		$used                   = array();
 
 		foreach ( $all as $id => $prefix ) {
 			if ( (int) $id !== $dashboard_id && '' !== $prefix ) {
@@ -41,7 +53,10 @@ final class Prefixes {
 
 		sort( $used );
 
-		return $used;
+		return array(
+			'used'    => $used,
+			'partial' => ! $complete,
+		);
 	}
 
 	/**
@@ -63,20 +78,20 @@ final class Prefixes {
 	}
 
 	/**
-	 * Dashboard id => prefix, cached.
+	 * Dashboard id => prefix, cached, and whether every dashboard was read (a cached map always was).
 	 *
 	 * @param int $user_id User.
-	 * @return array<int, string>
+	 * @return array{0: array<int, string>, 1: bool}
 	 */
 	private static function all( int $user_id ): array {
 		if ( $user_id <= 0 ) {
-			return array();
+			return array( array(), true );
 		}
 
 		$cached = get_transient( self::key( $user_id ) );
 
 		if ( is_array( $cached ) ) {
-			return $cached;
+			return array( $cached, true );
 		}
 
 		$map      = array();
@@ -91,6 +106,7 @@ final class Prefixes {
 			}
 
 			if ( $reads >= self::MAX_READS ) {
+				$complete = false;
 				break;
 			}
 
@@ -108,6 +124,7 @@ final class Prefixes {
 				}
 
 				if ( $reads >= self::MAX_READS ) {
+					$complete = false;
 					break;
 				}
 
@@ -128,6 +145,6 @@ final class Prefixes {
 			set_transient( self::key( $user_id ), $map, self::TTL );
 		}
 
-		return $map;
+		return array( $map, $complete );
 	}
 }

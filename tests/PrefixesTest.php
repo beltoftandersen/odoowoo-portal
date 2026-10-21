@@ -227,4 +227,48 @@ final class PrefixesTest extends RestTestCase {
 		Prefixes::in_use( (int) $a['user_id'], 99 );
 		$this->assertCount( $before, $this->django_calls(), 'A complete result is cached.' );
 	}
+
+	public function test_status_says_partial_for_a_cap_a_failed_read_and_never_for_a_complete_or_cached_one(): void {
+		// The cap: 30 dashboards, 20 reads.
+		$a    = $this->license();
+		$rows = array();
+
+		for ( $i = 1; $i <= 30; $i++ ) {
+			$rows[ $i ] = 'P' . $i;
+		}
+
+		$this->as_user( (int) $a['user_id'] );
+		$this->serve( array( $this->tenant( $a ) => $rows ) );
+		$status = Prefixes::status( (int) $a['user_id'], 1000 );
+		$this->assertTrue( $status['partial'], 'The cap leaves dashboards unread.' );
+		$this->assertCount( 19, $status['used'] );
+
+		// The cap hit between licenses (second license never read).
+		Prefixes::forget( (int) $a['user_id'] );
+		$b = $this->license( array( 'user_id' => (int) $a['user_id'] ) );
+		Context::reset();
+		$this->serve(
+			array(
+				$this->tenant( $a ) => array_slice( $rows, 0, 19, true ),
+				$this->tenant( $b ) => array( 99 => 'QQ' ),
+			)
+		);
+		$this->assertTrue( Prefixes::status( (int) $a['user_id'], 1000 )['partial'] );
+
+		// Complete, then cached: not partial.
+		Prefixes::forget( (int) $a['user_id'] );
+		$this->serve(
+			array(
+				$this->tenant( $a ) => array( 1 => 'AA' ),
+				$this->tenant( $b ) => array( 2 => 'BB' ),
+			)
+		);
+		$this->assertFalse( Prefixes::status( (int) $a['user_id'], 1 )['partial'] );
+		$this->assertFalse( Prefixes::status( (int) $a['user_id'], 1 )['partial'], 'Cached results are complete ones.' );
+
+		// A failed read.
+		Prefixes::forget( (int) $a['user_id'] );
+		$this->serve( array( $this->tenant( $b ) => array( 2 => 'BB' ) ) );
+		$this->assertTrue( Prefixes::status( (int) $a['user_id'], 1 )['partial'] );
+	}
 }

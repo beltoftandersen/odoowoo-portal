@@ -22,7 +22,8 @@
 		setup: 'Set up Odoo callbacks',
 		settingUp: 'Setting up…',
 		callbackConfirmTitle: 'Set up Odoo callbacks',
-		callbackConfirmBody: 'This replaces the current callback key.',
+		callbackConfirmBody: 'This replaces the current callback key. Changes you have not saved are not used.',
+		saveFirst: 'Save your changes first.',
 		callbackConfirm: 'Replace key',
 		callbackDone: 'Odoo callbacks are set up.',
 		show: 'Show',
@@ -67,6 +68,20 @@
 		return { isSet: isSet, text: isSet ? t( 'callbackSet' ) : t( 'callbackNone' ), buttonLabel: t( 'setup' ) };
 	}
 
+	/**
+	 * Whether Set up Odoo callbacks may run: the viewer may write, the connection is saved and
+	 * nothing typed is waiting (Django uses its stored copy). `reason` is for the unsaved case.
+	 */
+	function callbackState( state, dirty, canWrite ) {
+		if ( dirty === true ) {
+			return { enabled: false, reason: t( 'saveFirst' ) };
+		}
+
+		var s = state || {};
+
+		return { enabled: canWrite === true && filled( s.odoo_url ) && s.has_odoo_password === true, reason: '' };
+	}
+
 	/** Verify stores nothing. A blank password falls back to the stored one on the server. */
 	async function verifyOdoo( ctx, store_ ) {
 		var state = store_.get();
@@ -89,6 +104,10 @@
 
 	/** Saves the complete settings object (the Odoo settings card's edits go with it). */
 	async function saveOdoo( ctx, store_ ) {
+		if ( ! store_.complete() ) {
+			return { reply: core.notLoadedReply() };
+		}
+
 		var refused = missing( store_.get() );
 
 		if ( refused ) {
@@ -103,6 +122,10 @@
 	 * confirmFn resolves true to go on. The key is never returned; the flag is re-read.
 	 */
 	async function setUpCallbacks( ctx, store_, confirmFn ) {
+		if ( store_.dirty() ) {
+			return { cancelled: false, reply: { ok: false, data: undefined, code: 'unsaved_changes', message: t( 'saveFirst' ), field: undefined, status: 0 } };
+		}
+
 		var ok = await confirmFn();
 
 		if ( ok !== true ) {
@@ -138,6 +161,7 @@
 		var statusEl = form.querySelector( '.odoowoo-form-status' );
 		var helperEl = form.querySelector( '.odoowoo-helper-status' );
 		var box = root.querySelector( '.odoowoo-callback-box' );
+		var unsavedNote = root.querySelector( '.odoowoo-unsaved-note' );
 
 		function render() {
 			var s = store.get();
@@ -159,7 +183,11 @@
 			box.textContent = store.isLoaded() ? cb.text : '';
 			box.setAttribute( 'data-key', cb.isSet ? 'set' : 'none' );
 			callbackBtn.textContent = cb.buttonLabel;
-			callbackBtn.disabled = ! canWrite || ! ( filled( s.odoo_url ) && s.has_odoo_password === true );
+			var cs = callbackState( s, store.dirty(), canWrite );
+
+			callbackBtn.disabled = ! cs.enabled;
+			unsavedNote.textContent = cs.reason;
+			unsavedNote.hidden = cs.reason === '';
 		}
 
 		[ urlIn, dbIn, userIn, passIn ].forEach( function ( input ) {
@@ -260,7 +288,7 @@
 		} );
 	}
 
-	var api_ = { callbackBox: callbackBox, verifyOdoo: verifyOdoo, saveOdoo: saveOdoo, setUpCallbacks: setUpCallbacks, store: store, missing: missing };
+	var api_ = { callbackBox: callbackBox, callbackState: callbackState, verifyOdoo: verifyOdoo, saveOdoo: saveOdoo, setUpCallbacks: setUpCallbacks, store: store, missing: missing };
 
 	if ( typeof module !== 'undefined' && module.exports ) {
 		module.exports = api_;

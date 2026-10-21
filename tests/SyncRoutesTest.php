@@ -586,8 +586,25 @@ final class SyncRoutesTest extends RestTestCase {
 
 		$this->assertSame( 200, $res->get_status() );
 		$this->assertSame( 'AA', $d['prefix'] );
-		$this->assertSame( array( 'BB' ), $d['used_prefixes'], 'Own prefix excluded; Django\'s own list is replaced.' );
+		$this->assertSame( array( 'BB', 'ZZ' ), $d['used_prefixes'], 'Own prefix excluded; the portal\'s read is united with Django\'s own list for this tenant (ZZ comes only from Django).' );
+		$this->assertFalse( $d['used_prefixes_partial'] );
 		$this->assertNotEmpty( $t );
+	}
+
+	public function test_woo_settings_reply_says_when_the_prefix_check_was_partial(): void {
+		$l = $this->owner();
+		$this->django_map(
+			array(
+				'GET dashboards/'            => array( 200, array( array( 'id' => 7, 'name' => 'A' ), array( 'id' => 8, 'name' => 'B' ) ) ),
+				'GET dashboards/7/woo-keys/' => array( 200, array( 'prefix' => 'AA', 'consumer_key' => 'ck', 'used_prefixes' => array( 'AA', 'BB' ) ) ),
+				// Dashboard 8's read fails (500): the portal's own list is incomplete.
+			)
+		);
+
+		$d = $this->rest( 'GET', $this->url( $l, 'woo-keys' ) )->get_data()['data'];
+
+		$this->assertTrue( $d['used_prefixes_partial'] );
+		$this->assertSame( array( 'BB' ), $d['used_prefixes'], 'Django\'s own list still covers this tenant\'s other dashboards.' );
 	}
 
 	public function test_woo_settings_read_survives_a_failed_prefix_read(): void {
@@ -598,6 +615,7 @@ final class SyncRoutesTest extends RestTestCase {
 
 		$this->assertSame( 'AA', $d['prefix'] );
 		$this->assertSame( array(), $d['used_prefixes'] );
+		$this->assertTrue( $d['used_prefixes_partial'], 'The dashboards list failed, so the check is partial.' );
 	}
 
 	public function test_refused_input_does_not_consume_a_rate_limit_slot(): void {

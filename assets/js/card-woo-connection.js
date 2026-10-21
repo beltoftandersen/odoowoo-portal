@@ -23,6 +23,7 @@
 		show: 'Show',
 		hide: 'Hide',
 		loadFailed: 'The connection could not be read.',
+		saveFirst: 'Save your changes first.',
 	} );
 
 	var store = core.wooKeysStore;
@@ -88,6 +89,10 @@
 
 	/** Saves the whole woo-keys object (connection and settings together). */
 	async function saveWoo( ctx, store_ ) {
+		if ( ! store_.complete() ) {
+			return { reply: core.notLoadedReply() };
+		}
+
 		var refused = missing( store_.get() );
 
 		if ( refused ) {
@@ -97,11 +102,18 @@
 		return { reply: await core.saveObject( core.dashboardPath( ctx, 'woo-keys' ), store_ ) };
 	}
 
-	/** Transfer webhooks needs saved keys (Django reads its own copy). */
-	function transferState( state ) {
+	/**
+	 * Transfer webhooks needs saved keys (Django reads its own copy), and no unsaved changes: what
+	 * is typed is not what Django would use. `reason` is shown only for the unsaved case.
+	 */
+	function transferState( state, dirty ) {
 		var s = state || {};
 
-		return { enabled: filled( s.consumer_key ) && filled( s.woocommerce_url ) && s.has_consumer_secret === true };
+		if ( dirty === true ) {
+			return { enabled: false, reason: t( 'saveFirst' ) };
+		}
+
+		return { enabled: filled( s.consumer_key ) && filled( s.woocommerce_url ) && s.has_consumer_secret === true, reason: '' };
 	}
 
 	/** Django keeps no "webhooks transferred" flag: the badge exists only after this page's own success. */
@@ -110,8 +122,10 @@
 	}
 
 	async function transferWebhooks( ctx, store_ ) {
-		if ( ! transferState( store_.get() ).enabled ) {
-			return { transferred: false, reply: null };
+		var allowed = transferState( store_.get(), store_.dirty() );
+
+		if ( ! allowed.enabled ) {
+			return { transferred: false, reply: allowed.reason === '' ? null : { ok: false, data: undefined, code: 'unsaved_changes', message: allowed.reason, field: undefined, status: 0 } };
 		}
 
 		var reply = await core.api( 'POST', core.dashboardPath( ctx, 'inject-woo-webhooks' ) );
@@ -137,6 +151,7 @@
 			verified: form.querySelector( '[data-badge="verified"]' ),
 			webhooks: form.querySelector( '[data-badge="webhooks"]' ),
 		};
+		var unsavedNote = form.querySelector( '.odoowoo-unsaved-note' );
 		var transferred = false;
 		var verified = false;
 
@@ -165,7 +180,11 @@
 			badges.saved.hidden = ! ( s.has_consumer_secret === true && filled( s.consumer_key ) );
 			badges.verified.hidden = ! verified;
 			badges.webhooks.hidden = ! webhookBadge( transferred );
-			transferBtn.disabled = ! canWrite || ! transferState( s ).enabled;
+			var tr = transferState( s, store.dirty() );
+
+			transferBtn.disabled = ! canWrite || ! tr.enabled;
+			unsavedNote.textContent = tr.reason;
+			unsavedNote.hidden = tr.reason === '';
 		}
 
 		[ urlIn, keyIn, secretIn ].forEach( function ( input ) {

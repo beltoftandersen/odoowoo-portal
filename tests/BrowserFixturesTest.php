@@ -99,6 +99,16 @@ final class BrowserFixturesTest extends RestTestCase {
 		);
 		$this->keep( 'woo_keys_saved', $this->rest( 'GET', $u( $l, 'woo-keys' ) ) );
 
+		// Woo keys GET when the other dashboard's read failed (500, not in the map): the portal's list is partial; Django's own list (views.py:272-283) still names AB.
+		$l = $this->fresh();
+		$this->django_map(
+			array(
+				'GET dashboards/'            => array( 200, $rows ),
+				'GET dashboards/7/woo-keys/' => array( 200, $own ),
+			)
+		);
+		$this->keep( 'woo_keys_partial', $this->rest( 'GET', $u( $l, 'woo-keys' ) ) );
+
 		// Woo keys GET, nothing saved yet: views.py:285-295 (no has_consumer_secret key at all).
 		$l = $this->fresh();
 		$new = array( 'consumer_key' => '', 'consumer_secret' => '', 'woocommerce_url' => '', 'prefix' => '', 'enable_stock_update' => true, 'change_status_delivery' => true, 'has_webhook_secret' => false, 'require_webhook_signature' => false, 'used_prefixes' => array() );

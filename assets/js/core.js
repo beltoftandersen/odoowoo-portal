@@ -14,6 +14,7 @@
 	var DEFAULTS = {
 		generic: 'Something went wrong on our side. Please try again in a moment.',
 		session: 'Please log in again. What you typed is still here.',
+		notLoaded: 'We could not read your settings, so nothing was saved. Reload the page and try again.',
 		saving: 'Saving…',
 		saved: 'Saved',
 		secretSaved: 'Saved. Leave blank to keep it.',
@@ -593,6 +594,14 @@
 			isLoaded: function () {
 				return loaded;
 			},
+			/** Read, and every non-secret field present: only then is a whole-object save safe. */
+			complete: function () {
+				var all = store.get();
+
+				return loaded && fields.every( function ( f ) {
+					return secrets.indexOf( f ) !== -1 || all[ f ] !== undefined;
+				} );
+			},
 			/** Reads once for every card of the page: the loader is called only by the first. */
 			ensure: function ( loader ) {
 				if ( loaded ) {
@@ -622,10 +631,22 @@
 	}
 
 	/**
+	 * The refusal for a save before the object was read (or after its read failed): Django resets
+	 * what a save omits, so a partial body would wipe the other card's values.
+	 */
+	function notLoadedReply() {
+		return failure( 'settings_not_loaded', text( 'notLoaded' ), 0 );
+	}
+
+	/**
 	 * Saves a whole object: PUT its complete body, then re-read it so the flags are Django's.
 	 * Resolves the PUT's reply. A failed save changes nothing in the store.
 	 */
 	async function saveObject( path, store ) {
+		if ( ! store.complete() ) {
+			return notLoadedReply();
+		}
+
 		var reply = await api( 'PUT', path, store.body() );
 
 		if ( ! reply.ok ) {
@@ -671,6 +692,7 @@
 		secretState: secretState,
 		createStore: createStore,
 		saveObject: saveObject,
+		notLoadedReply: notLoadedReply,
 		wooKeysStore: wooKeysStore,
 		odooSettingsStore: odooSettingsStore,
 	};

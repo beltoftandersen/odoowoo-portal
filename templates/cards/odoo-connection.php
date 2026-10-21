@@ -45,6 +45,7 @@ $odoowoo_uid = wp_unique_id( 'odoowoo-odoo-' );
 	<div class="odoowoo-callbacks">
 		<p class="odoowoo-callback-box" role="status" aria-live="polite"></p>
 		<button type="button" class="odoowoo-button odoowoo-button--secondary" data-action="callbacks" aria-describedby="<?php echo esc_attr( $odoowoo_uid ); ?>-callback-help"><?php echo $odoowoo_s( 'setup' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></button>
+		<p class="odoowoo-help odoowoo-unsaved-note" role="status" aria-live="polite" hidden></p>
 		<p class="odoowoo-help" id="<?php echo esc_attr( $odoowoo_uid ); ?>-callback-help"><?php echo $odoowoo_s( 'callbackHelp' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
 	</div>
 	<div class="odoowoo-form-status" role="status" aria-live="polite"></div>

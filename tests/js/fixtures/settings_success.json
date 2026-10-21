@@ -10,7 +10,8 @@
             "prefix": "WS",
             "enable_stock_update": true,
             "change_status_delivery": false,
-            "used_prefixes": []
+            "used_prefixes": [],
+            "used_prefixes_partial": false
         }
     }
 }

@@ -167,7 +167,10 @@ final class CardConnectionTest extends RestTestCase {
 	public function test_callback_confirm_text_is_in_the_strings(): void {
 		$odoo = Registry::cards()['odoo-connection']['strings'];
 
-		$this->assertSame( 'This replaces the current callback key.', $odoo['callbackConfirmBody'] );
+		$this->assertSame( 'This replaces the current callback key. Changes you have not saved are not used.', $odoo['callbackConfirmBody'] );
+		$this->assertSame( 'Save your changes first.', $odoo['saveFirst'] );
+		$this->assertSame( 'Save your changes first.', Registry::cards()['woo-connection']['strings']['saveFirst'] );
+		$this->assertSame( 'We could not read your settings, so nothing was saved. Reload the page and try again.', Renderer::core_strings()['notLoaded'] );
 		$this->assertSame( 'Set up Odoo callbacks', $odoo['callbackConfirmTitle'] );
 		$this->assertNotSame( '', $odoo['callbackConfirm'] );
 
@@ -175,6 +178,17 @@ final class CardConnectionTest extends RestTestCase {
 		$boot = Renderer::boot_data();
 		$this->assertSame( $odoo['callbackConfirmBody'], $boot['i18n']['callbackConfirmBody'] );
 		$this->assertStringNotContainsString( 'callbackConfirmBody', $html );
+	}
+
+	public function test_prefix_note_and_unsaved_notes_are_in_the_templates(): void {
+		$settings = $this->render_as_owner( 'woo-settings' );
+		$this->assertMatchesRegularExpression( '#<p[^>]*class="[^"]*odoowoo-prefix-note[^"]*"[^>]*role="status"[^>]*hidden#', $settings );
+		$this->assertSame( 'Other licenses could not be checked. A prefix that is already taken will be refused when you save.', Registry::cards()['woo-settings']['strings']['prefixesPartial'] );
+
+		Renderer::reset();
+		$this->assertMatchesRegularExpression( '#<p[^>]*class="[^"]*odoowoo-unsaved-note[^"]*"[^>]*role="status"[^>]*hidden#', $this->render_as_owner( 'woo-connection' ) );
+		Renderer::reset();
+		$this->assertMatchesRegularExpression( '#<p[^>]*class="[^"]*odoowoo-unsaved-note[^"]*"[^>]*role="status"[^>]*hidden#', $this->render_as_owner( 'odoo-connection' ) );
 	}
 
 	public function test_registry_routes_of_the_three_cards(): void {

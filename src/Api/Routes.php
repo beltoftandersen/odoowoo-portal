@@ -386,7 +386,23 @@ final class Routes {
 		if ( 'woo-keys' === $key && 'GET' === $r->get_method() && $reply->ok() ) {
 			$data = $response->get_data();
 
-			$data['data']['used_prefixes'] = Prefixes::in_use( get_current_user_id(), $dashboard );
+			$status = Prefixes::status( get_current_user_id(), $dashboard );
+			$own    = isset( $data['data']['prefix'] ) && is_string( $data['data']['prefix'] ) ? strtoupper( $data['data']['prefix'] ) : '';
+			$used   = $status['used'];
+
+			// Django's own list covers every dashboard of this tenant, also when the portal's read was partial.
+			foreach ( isset( $data['data']['used_prefixes'] ) && is_array( $data['data']['used_prefixes'] ) ? $data['data']['used_prefixes'] : array() as $prefix ) {
+				if ( is_string( $prefix ) && '' !== $prefix && strtoupper( $prefix ) !== $own ) {
+					$used[] = $prefix;
+				}
+			}
+
+			$used = array_values( array_unique( $used ) );
+
+			sort( $used );
+
+			$data['data']['used_prefixes']         = $used;
+			$data['data']['used_prefixes_partial'] = $status['partial'];
 			$response->set_data( $data );
 		}
 

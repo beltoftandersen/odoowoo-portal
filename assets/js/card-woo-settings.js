@@ -12,6 +12,7 @@
 
 	var t = core.translator( {
 		selectPrefix: 'Select an order prefix',
+		prefixesPartial: 'Other licenses could not be checked. A prefix that is already taken will be refused when you save.',
 		prefixTaken: '%s (already used by another of your dashboards)',
 		saveWooFirst: 'Save your WooCommerce connection first.',
 	} );
@@ -59,11 +60,20 @@
 		return options;
 	}
 
+	/** The note under the select when some dashboards could not be checked, else ''. */
+	function prefixNote( state ) {
+		return state && state.used_prefixes_partial === true ? t( 'prefixesPartial' ) : '';
+	}
+
 	/**
 	 * Saves the whole object, but only once the connection is saved: Django needs the key, URL
 	 * and secret in every save.
 	 */
 	async function saveSettings( ctx, store_ ) {
+		if ( ! store_.complete() ) {
+			return { reply: core.notLoadedReply() };
+		}
+
 		var s = store_.get();
 
 		if ( typeof s.consumer_key !== 'string' || s.consumer_key === '' || typeof s.woocommerce_url !== 'string' || s.woocommerce_url === '' || s.has_consumer_secret !== true ) {
@@ -82,12 +92,13 @@
 		var select = form.elements.prefix;
 		var saveBtn = form.querySelector( '[type="submit"]' );
 		var statusEl = form.querySelector( '.odoowoo-form-status' );
+		var note = form.querySelector( '.odoowoo-prefix-note' );
 		var built = '';
 
 		function render() {
 			var s = store.get();
-			var own = typeof s.prefix === 'string' && /^[A-Za-z]{2}$/.test( s.prefix ) ? '' : s.prefix;
-			var key = JSON.stringify( [ s.used_prefixes, own ] );
+			var odd = typeof s.prefix === 'string' && ! /^[A-Za-z]{2}$/.test( s.prefix ) ? s.prefix : '';
+			var key = JSON.stringify( [ s.used_prefixes, odd ] );
 
 			if ( key !== built ) {
 				built = key;
@@ -102,6 +113,8 @@
 				} );
 			}
 
+			note.textContent = prefixNote( s );
+			note.hidden = note.textContent === '';
 			select.value = typeof s.prefix === 'string' ? s.prefix.toUpperCase() : '';
 			stock.checked = s.enable_stock_update !== false;
 			close.checked = s.change_status_delivery !== false;
@@ -153,7 +166,7 @@
 		} );
 	}
 
-	var api_ = { prefixOptions: prefixOptions, saveSettings: saveSettings, store: store };
+	var api_ = { prefixOptions: prefixOptions, prefixNote: prefixNote, saveSettings: saveSettings, store: store };
 
 	if ( typeof module !== 'undefined' && module.exports ) {
 		module.exports = api_;

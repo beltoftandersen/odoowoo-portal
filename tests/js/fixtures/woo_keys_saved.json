@@ -13,7 +13,8 @@
             "require_webhook_signature": true,
             "used_prefixes": [
                 "AB"
-            ]
+            ],
+            "used_prefixes_partial": false
         }
     }
 }

@@ -28,6 +28,7 @@ $odoowoo_uid = wp_unique_id( 'odoowoo-woo-settings-' );
 	<div class="odoowoo-field">
 		<label for="<?php echo esc_attr( $odoowoo_uid ); ?>-prefix"><?php echo $odoowoo_s( 'orderPrefix' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></label>
 		<select id="<?php echo esc_attr( $odoowoo_uid ); ?>-prefix" name="prefix" aria-describedby="<?php echo esc_attr( $odoowoo_uid ); ?>-prefix-help"></select>
+		<p class="odoowoo-help odoowoo-prefix-note" role="status" aria-live="polite" hidden></p>
 		<p class="odoowoo-help" id="<?php echo esc_attr( $odoowoo_uid ); ?>-prefix-help"><?php echo $odoowoo_s( 'prefixHelp' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
 	</div>
 	<div class="odoowoo-actions">

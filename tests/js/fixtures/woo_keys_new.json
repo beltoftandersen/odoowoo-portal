@@ -10,7 +10,8 @@
             "change_status_delivery": true,
             "has_webhook_secret": false,
             "require_webhook_signature": false,
-            "used_prefixes": []
+            "used_prefixes": [],
+            "used_prefixes_partial": false
         }
     }
 }

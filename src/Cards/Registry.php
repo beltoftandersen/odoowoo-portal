@@ -174,6 +174,7 @@ final class Registry {
 			'save'           => __( 'Save', 'odoowoo-portal' ),
 			'transfer'       => __( 'Transfer webhooks', 'odoowoo-portal' ),
 			'transferring'   => __( 'Transferring…', 'odoowoo-portal' ),
+			'saveFirst'      => __( 'Save your changes first.', 'odoowoo-portal' ),
 			'transferHelp'   => __( 'Creates the order webhooks in your store. Save the keys first.', 'odoowoo-portal' ),
 			'badgeSaved'     => __( 'Saved', 'odoowoo-portal' ),
 			'badgeVerified'  => __( 'Verified', 'odoowoo-portal' ),
@@ -200,6 +201,7 @@ final class Registry {
 			/* translators: %s: the two-letter prefix. */
 			'prefixTaken'  => __( '%s (already used by another of your dashboards)', 'odoowoo-portal' ),
 			'save'         => __( 'Save', 'odoowoo-portal' ),
+			'prefixesPartial' => __( 'Other licenses could not be checked. A prefix that is already taken will be refused when you save.', 'odoowoo-portal' ),
 			'saveWooFirst' => __( 'Save your WooCommerce connection first.', 'odoowoo-portal' ),
 		);
 	}
@@ -227,7 +229,8 @@ final class Registry {
 			'callbackSet'          => __( 'Callback key is set', 'odoowoo-portal' ),
 			'callbackNone'         => __( 'No callback key yet', 'odoowoo-portal' ),
 			'callbackConfirmTitle' => __( 'Set up Odoo callbacks', 'odoowoo-portal' ),
-			'callbackConfirmBody'  => __( 'This replaces the current callback key.', 'odoowoo-portal' ),
+			'callbackConfirmBody'  => __( 'This replaces the current callback key. Changes you have not saved are not used.', 'odoowoo-portal' ),
+			'saveFirst'            => __( 'Save your changes first.', 'odoowoo-portal' ),
 			'callbackConfirm'      => __( 'Replace key', 'odoowoo-portal' ),
 			'callbackDone'         => __( 'Odoo callbacks are set up.', 'odoowoo-portal' ),
 			'urlRequired'          => __( 'Enter the Odoo URL.', 'odoowoo-portal' ),

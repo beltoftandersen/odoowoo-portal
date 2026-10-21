@@ -140,6 +140,7 @@ final class Renderer {
 		return array(
 			'generic'         => \OdooWooPortal\Django\Messages::generic(),
 			'session'         => __( 'Please log in again. What you typed is still here.', 'odoowoo-portal' ),
+			'notLoaded'       => __( 'We could not read your settings, so nothing was saved. Reload the page and try again.', 'odoowoo-portal' ),
 			'saving'          => __( 'Saving…', 'odoowoo-portal' ),
 			'saved'           => __( 'Saved', 'odoowoo-portal' ),
 			'secretSaved'     => __( 'Saved. Leave blank to keep it.', 'odoowoo-portal' ),
