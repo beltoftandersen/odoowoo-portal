@@ -104,6 +104,40 @@ final class CardsTest extends TestCase {
 		$this->assertFalse( wp_script_is( 'odoowoo-card-woo-connection', 'enqueued' ), 'Another card\'s script stays off the page.' );
 	}
 
+	/**
+	 * A deploy that changes a file changes its ?ver, whatever the server's cache lifetime for static
+	 * files: the plugin version plus the file's modification time, for every script and style.
+	 */
+	public function test_every_asset_version_carries_the_file_modification_time(): void {
+		$license = $this->odoowoo_license();
+		$this->as_user( (int) $license['user_id'] );
+		$_GET = array( 'license' => (string) $license['id'] );
+		do_action( 'wp_enqueue_scripts' );
+		Renderer::render( 'sync-logs' );
+		Renderer::render( 'odoo-settings' );
+
+		$base    = plugin_dir_url( ODOOWOO_PORTAL_FILE );
+		$checked = array();
+
+		foreach ( array( wp_scripts(), wp_styles() ) as $deps ) {
+			foreach ( $deps->registered as $handle => $dep ) {
+				if ( 0 !== strpos( (string) $dep->src, $base ) ) {
+					continue;
+				}
+
+				$file = ODOOWOO_PORTAL_PATH . substr( $dep->src, strlen( $base ) );
+
+				$this->assertFileExists( $file, $handle );
+				$this->assertSame( ODOOWOO_PORTAL_VERSION . '.' . filemtime( $file ), $dep->ver, $handle );
+				$checked[] = $handle;
+			}
+		}
+
+		foreach ( array( 'odoowoo-core', 'odoowoo-tasks', 'odoowoo-deps', 'odoowoo-mapping-editor', 'odoowoo-tabs', 'odoowoo', 'odoowoo-card-sync-logs', 'odoowoo-card-odoo-settings' ) as $handle ) {
+			$this->assertContains( $handle, $checked, $handle . ' is checked.' );
+		}
+	}
+
 	public function test_shortcode_renders_same_markup_as_renderer(): void {
 		CardProbe::register();
 		$license = $this->odoowoo_license();

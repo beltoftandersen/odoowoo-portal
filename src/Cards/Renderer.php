@@ -55,29 +55,41 @@ final class Renderer {
 	}
 
 	/**
+	 * The ?ver of a script or style of the plugin: the plugin version and the file's modification
+	 * time, so a deploy that changes the file changes the URL (static files are cached for years).
+	 *
+	 * @param string $relative Path inside the plugin.
+	 */
+	public static function asset_version( string $relative ): string {
+		$mtime = @filemtime( ODOOWOO_PORTAL_PATH . $relative ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a missing file only means no mtime.
+
+		return ODOOWOO_PORTAL_VERSION . ( false === $mtime ? '' : '.' . $mtime );
+	}
+
+	/**
 	 * Registers the shared script and style handles (nothing is enqueued here).
 	 */
 	public static function register_assets(): void {
 		$url = plugin_dir_url( ODOOWOO_PORTAL_FILE );
 
 		if ( ! wp_script_is( 'odoowoo-core', 'registered' ) ) {
-			wp_register_script( 'odoowoo-core', $url . 'assets/js/core.js', array(), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
+			wp_register_script( 'odoowoo-core', $url . 'assets/js/core.js', array(), self::asset_version( 'assets/js/core.js' ), array( 'in_footer' => true ) );
 		}
 
 		if ( ! wp_script_is( 'odoowoo-tasks', 'registered' ) ) {
-			wp_register_script( 'odoowoo-tasks', $url . 'assets/js/tasks.js', array( 'odoowoo-core' ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
+			wp_register_script( 'odoowoo-tasks', $url . 'assets/js/tasks.js', array( 'odoowoo-core' ), self::asset_version( 'assets/js/tasks.js' ), array( 'in_footer' => true ) );
 		}
 
 		if ( ! wp_script_is( 'odoowoo-deps', 'registered' ) ) {
-			wp_register_script( 'odoowoo-deps', $url . 'assets/js/deps.js', array( 'odoowoo-core' ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
+			wp_register_script( 'odoowoo-deps', $url . 'assets/js/deps.js', array( 'odoowoo-core' ), self::asset_version( 'assets/js/deps.js' ), array( 'in_footer' => true ) );
 		}
 
 		if ( ! wp_script_is( 'odoowoo-mapping-editor', 'registered' ) ) {
-			wp_register_script( 'odoowoo-mapping-editor', $url . 'assets/js/mapping-editor.js', array( 'odoowoo-core' ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
+			wp_register_script( 'odoowoo-mapping-editor', $url . 'assets/js/mapping-editor.js', array( 'odoowoo-core' ), self::asset_version( 'assets/js/mapping-editor.js' ), array( 'in_footer' => true ) );
 		}
 
 		if ( ! wp_style_is( 'odoowoo', 'registered' ) ) {
-			wp_register_style( 'odoowoo', $url . 'assets/css/odoowoo.css', array(), ODOOWOO_PORTAL_VERSION );
+			wp_register_style( 'odoowoo', $url . 'assets/css/odoowoo.css', array(), self::asset_version( 'assets/css/odoowoo.css' ) );
 		}
 	}
 
@@ -95,7 +107,7 @@ final class Renderer {
 			'odoowoo-tabs',
 			plugin_dir_url( ODOOWOO_PORTAL_FILE ) . 'assets/js/tabs.js',
 			wp_script_is( 'bricks-scripts', 'registered' ) ? array( 'bricks-scripts' ) : array(),
-			ODOOWOO_PORTAL_VERSION,
+			self::asset_version( 'assets/js/tabs.js' ),
 			array( 'in_footer' => true )
 		);
 	}
@@ -366,8 +378,10 @@ final class Renderer {
 
 		if ( preg_match( '#^https?://#', $script ) ) {
 			$src = $script;
+			$ver = ODOOWOO_PORTAL_VERSION;
 		} elseif ( is_readable( ODOOWOO_PORTAL_PATH . ltrim( $script, '/' ) ) ) {
 			$src = plugin_dir_url( ODOOWOO_PORTAL_FILE ) . ltrim( $script, '/' );
+			$ver = self::asset_version( ltrim( $script, '/' ) );
 		} else {
 			return;
 		}
@@ -381,7 +395,7 @@ final class Renderer {
 			}
 		}
 
-		wp_enqueue_script( 'odoowoo-card-' . $card, $src, array_merge( array( 'odoowoo-core', 'odoowoo-tasks' ), $requires ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
+		wp_enqueue_script( 'odoowoo-card-' . $card, $src, array_merge( array( 'odoowoo-core', 'odoowoo-tasks' ), $requires ), $ver, array( 'in_footer' => true ) );
 	}
 
 	/**
