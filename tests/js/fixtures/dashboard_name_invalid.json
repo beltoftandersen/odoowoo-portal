@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "Give the dashboard a name.",
+        "field": "name"
+    }
+}

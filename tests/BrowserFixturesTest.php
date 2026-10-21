@@ -114,6 +114,44 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->fake_django( fn() => array( 403, array( 'code' => 'plan_feature_unavailable', 'message' => 'Brand sync is not included in your plan.', 'field' => 'enable_brand_sync' ) ) );
 		$this->keep( 'django_403', $this->rest( 'GET', $this->url( $l, 'odoo-journals' ) ) );
 
+		// Dashboards (Task 9). Objects: serializers.py:9-35 {id, name, enabled, created_at}.
+		$dash = array( 'id' => self::D, 'name' => 'Shop', 'enabled' => true, 'created_at' => '2026-10-21T12:00:00Z' );
+		$this->fake_django( fn() => array( 200, $dash ) ); // Views.py DashboardDetailView.get.
+		$this->keep( 'dashboard_detail_success', $this->rest( 'GET', '/licenses/' . $l['id'] . '/dashboards/' . self::D ) );
+		$this->fake_django( fn() => array( 200, array_merge( $dash, array( 'name' => 'Outlet' ) ) ) ); // DashboardDetailView.patch.
+		$this->keep( 'dashboard_rename_success', $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/' . self::D, array( 'name' => 'Outlet' ) ) );
+		$this->fake_django( fn() => array( 200, array( 'id' => self::D, 'enabled' => false ) ) ); // A patch reply that carries no name.
+		$this->keep( 'dashboard_rename_no_name', $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/' . self::D, array( 'name' => 'Outlet' ) ) );
+		$this->fake_django( fn() => array( 404, array( 'code' => 'dashboard_not_found', 'message' => 'This dashboard was not found.' ) ) ); // Api/errors.py:46, middleware.py:78.
+		$this->keep( 'dashboard_not_found', $this->rest( 'GET', '/licenses/' . $l['id'] . '/dashboards/' . self::D ) );
+		$this->fake_django( fn() => array( 403, array( 'code' => 'dashboard_limit_reached', 'message' => 'You have reached your plan limit of 1 dashboard.', 'limit' => 1 ) ) ); // Views.py:160-166, 2619.
+		$this->keep( 'dashboard_limit_reached', $this->rest( 'POST', '/licenses/' . $l['id'] . '/dashboards', array( 'name' => 'Again' ) ) );
+		$this->fake_django( fn() => array( 400, array( 'code' => 'invalid_value', 'message' => 'Give the dashboard a name.', 'field' => 'name' ) ) ); // Views.py:151-157, serializers.py:5.
+		$this->keep( 'dashboard_name_invalid', $this->rest( 'POST', '/licenses/' . $l['id'] . '/dashboards', array( 'name' => 'x' ) ) );
+		$this->fake_django( fn() => array( 409, array( 'code' => 'tenant_paused', 'message' => 'Your OdooWoo plan is paused. Renew it to make changes or run syncs.' ) ) ); // Middleware.py:57-58, 81.
+		$this->keep( 'tenant_paused', $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/' . self::D, array( 'name' => 'Outlet' ) ) );
+
+		// GET /licenses: the real summary of a ready, a paused and a getting-ready license (Routes::license_summary).
+		foreach ( array( 'ready' => 'ready', 'paused' => 'paused', 'getting_ready' => 'provisioning' ) as $label => $resource_state ) {
+			$lic = $this->odoowoo_license( array(), $resource_state );
+			$this->as_user( (int) $lic['user_id'] );
+			\OdooWooPortal\Context::reset();
+			\OdooWooPortal\Api\Routes::reset();
+			$tenant = $this->tenant( $lic );
+			$this->django_map(
+				array(
+					'GET tenants/' . $tenant . '/' => array( 200, array( 'limit' => 3, 'used' => 1, 'attributes' => array() ) ), // Tenant detail, as in RoutesTest.
+					'GET dashboards/'              => array( 200, array( $dash ) ),
+				)
+			);
+			$res  = $this->rest( 'GET', '/licenses' );
+			$data = $res->get_data();
+			$this->assertSame( (int) $lic['id'], $data['data'][0]['id'] );
+			$data['data'][0]['id'] = 1; // The license id changes on every run; the fixture pins it.
+			$res->set_data( $data );
+			$this->keep( 'licenses_' . $label, $res );
+		}
+
 		// Read-only: a paused owner tries to save.
 		$p = $this->odoowoo_license( array(), 'paused' );
 		$this->as_user( (int) $p['user_id'] );

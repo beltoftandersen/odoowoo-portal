@@ -1,0 +1,8 @@
+{
+    "status": 409,
+    "body": {
+        "ok": false,
+        "code": "dashboard_limit_reached",
+        "message": "You have reached your plan limit of 1 dashboard."
+    }
+}

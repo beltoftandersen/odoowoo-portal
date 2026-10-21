@@ -1,0 +1,20 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": [
+            {
+                "id": 1,
+                "plan": "",
+                "state": "getting-ready",
+                "mode": "owner",
+                "notice": "Getting ready…",
+                "limit": null,
+                "used": null,
+                "brand_sync": false,
+                "can_write": false,
+                "dashboards": []
+            }
+        ]
+    }
+}

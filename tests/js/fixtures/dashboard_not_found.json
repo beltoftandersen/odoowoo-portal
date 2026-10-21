@@ -1,0 +1,8 @@
+{
+    "status": 404,
+    "body": {
+        "ok": false,
+        "code": "dashboard_not_found",
+        "message": "This dashboard was not found."
+    }
+}

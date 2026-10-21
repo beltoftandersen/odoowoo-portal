@@ -6,22 +6,26 @@ const require = createRequire( import.meta.url );
 const list = require( '../../assets/js/card-dashboard-list.js' );
 const header = require( '../../assets/js/card-dashboard-header.js' );
 
+import { fixture, fixtureRes } from './fixtures.mjs';
+
 const REST = 'https://x.test/wp-json/odoowoo-portal/v1/';
 
-// Entry shape: P Routes::license_summary (src/Api/Routes.php); dashboards: Django DashboardSerializer
-// (sync_app/serializers.py:9-35): {id, name, enabled, created_at}.
+// Entries are the real GET /licenses summaries (tests/js/fixtures/licenses_*.json, made by
+// tests/BrowserFixturesTest.php from Routes::license_summary); tests vary numbers on a copy.
+// Dashboard objects: Django DashboardSerializer (sync_app/serializers.py:9-35).
 const dash = ( id, name, enabled = true ) => ( { id, name, enabled, created_at: '2026-10-21T12:00:00Z' } );
 const entry = ( o = {} ) => ( {
-	id: 1, plan: 'Starter', state: 'ready', mode: 'owner', notice: '', limit: 3, used: 2,
-	brand_sync: false, can_write: true, dashboards: [ dash( 11, 'Shop' ), dash( 12, 'Outlet', false ) ], ...o,
+	...fixture( 'licenses_ready' ).body.data[ 0 ], plan: 'Starter', limit: 3, used: 2,
+	dashboards: [ dash( 11, 'Shop' ), dash( 12, 'Outlet', false ) ], ...o,
 } );
 
 function boot() {
 	globalThis.odoowooPortal = { rest: REST, nonce: 'n1', nonceUrl: 'https://x.test/n', i18n: {} };
 }
 
-function res( status, body ) {
-	return { ok: status >= 200 && status < 300, status, headers: { get: () => null }, text: () => Promise.resolve( JSON.stringify( body ) ) };
+/** A success the way the routes answer it: {ok:true, data}. For values no fixture covers (a Django list of N). */
+function okRes( data ) {
+	return { ok: true, status: 200, headers: { get: () => null }, text: () => Promise.resolve( JSON.stringify( { ok: true, data } ) ) };
 }
 
 function fakeFetch( answers ) {
@@ -88,8 +92,12 @@ test( 'test_empty_state_limit_note_and_upsell', () => {
 } );
 
 test( 'test_paused_license_keeps_delete_only', () => {
-	const notice = 'Your account is paused. You can look and delete, not change.';
-	const owner = list.viewModel( [ entry( { state: 'paused', can_write: false, notice } ) ] ).groups[ 0 ];
+	// The real paused summary (Context::state()/notice(), Context.php:221-232).
+	const paused = fixture( 'licenses_paused' ).body.data[ 0 ];
+	const notice = 'Your OdooWoo plan is paused. Renew in My Account → Subscriptions';
+	assert.equal( paused.notice, notice );
+	assert.equal( paused.can_write, false );
+	const owner = list.viewModel( [ paused ] ).groups[ 0 ];
 
 	assert.equal( owner.notice, notice );
 	assert.equal( owner.newState, 'disabled' );
@@ -98,7 +106,7 @@ test( 'test_paused_license_keeps_delete_only', () => {
 		assert.equal( d.canPause, false );
 		assert.equal( d.canOpen, true );
 	}
-	assert.equal( list.viewModel( [ entry( { state: 'paused', can_write: false, notice } ) ] ).showNew, false, 'A disabled New is not one the dialog can use.' );
+	assert.equal( list.viewModel( [ paused ] ).showNew, false, 'A disabled New is not one the dialog can use.' );
 
 	// Support: nothing that changes anything is enabled.
 	const support = list.viewModel( [ entry( { mode: 'support', can_write: false, notice: 'Viewing as support (read-only)' } ) ] ).groups[ 0 ];
@@ -120,7 +128,11 @@ test( 'test_paused_license_keeps_delete_only', () => {
 } );
 
 test( 'test_list_error_and_unready_license_show_no_actions', () => {
-	const g = list.viewModel( [ entry( { state: 'provisioning', limit: null, used: null, dashboards: [], notice: 'Getting ready…', can_write: false } ) ] ).groups[ 0 ];
+	// Real states are ready, paused, getting-ready and unavailable (Context::state()).
+	const ready = fixture( 'licenses_getting_ready' ).body.data[ 0 ];
+	assert.equal( ready.state, 'getting-ready' );
+	const g = list.viewModel( [ ready ] ).groups[ 0 ];
+	assert.equal( g.notice, 'Getting ready…' );
 	assert.equal( g.newState, 'disabled' );
 	assert.equal( g.countText, '' );
 	assert.equal( g.emptyText, '', 'No "no dashboards yet" while the license is getting ready.' );
@@ -139,7 +151,7 @@ test( 'test_odoowoo_mistake_dashboard_name_shown_and_rename', async () => {
 	const nameEl = { textContent: 'Old' };
 
 	// D serializers.py:5 NAME_REQUIRED, refused before any request.
-	let calls = fakeFetch( [ res( 200, { ok: true, data: dash( 9, 'x' ) } ) ] );
+	let calls = fakeFetch( [ fixtureRes( 'dashboard_rename_success' ) ] );
 	const refused = await header.rename( 1, 9, '  ', nameEl );
 	assert.equal( refused.ok, false );
 	assert.equal( refused.code, 'invalid_value' );
@@ -148,27 +160,32 @@ test( 'test_odoowoo_mistake_dashboard_name_shown_and_rename', async () => {
 	assert.equal( nameEl.textContent, 'Old' );
 
 	// The heading comes from the PATCH reply (D views.py DashboardDetailView.patch).
-	calls = fakeFetch( [ res( 200, { ok: true, data: dash( 9, 'Shop' ) } ) ] );
+	calls = fakeFetch( [ fixtureRes( 'dashboard_rename_success' ) ] );
 	const ok = await header.rename( 1, 9, ' Shop ', nameEl );
 	assert.equal( ok.ok, true );
-	assert.equal( nameEl.textContent, 'Shop' );
+	assert.equal( nameEl.textContent, 'Outlet', 'What Django kept, from the reply.' );
 	assert.equal( calls[ 0 ].opts.method, 'PATCH' );
 	assert.equal( calls[ 0 ].url, REST + 'licenses/1/dashboards/9' );
 	assert.deepEqual( JSON.parse( calls[ 0 ].opts.body ), { name: 'Shop' } );
 
-	// A refusal leaves the heading alone; HTML in a name is text, never markup.
-	fakeFetch( [ res( 400, { ok: false, code: 'invalid_value', message: 'Keep the dashboard name to 255 characters or fewer.', field: 'name' } ) ] );
+	// A refusal leaves the heading alone (D views.py:151-157 invalid_value with field name).
+	fakeFetch( [ fixtureRes( 'dashboard_name_invalid' ) ] );
 	const bad = await header.rename( 1, 9, 'x'.repeat( 300 ), nameEl );
 	assert.equal( bad.ok, false );
-	assert.equal( nameEl.textContent, 'Shop' );
-	fakeFetch( [ res( 200, { ok: true, data: dash( 9, '<img src=x onerror=alert(1)>' ) } ) ] );
+	assert.equal( bad.field, 'name' );
+	assert.equal( nameEl.textContent, 'Outlet' );
+
+	// HTML in a name is text, never markup (a made-up name in an otherwise real reply).
+	fakeFetch( [ okRes( dash( 9, '<img src=x onerror=alert(1)>' ) ) ] );
 	await header.rename( 1, 9, 'whatever', nameEl );
 	assert.equal( nameEl.textContent, '<img src=x onerror=alert(1)>' );
 
-	// A reply without a name in it does not blank the heading.
-	fakeFetch( [ res( 200, { ok: true, data: {} } ) ] );
-	await header.rename( 1, 9, 'Shop', nameEl );
-	assert.equal( nameEl.textContent, '<img src=x onerror=alert(1)>' );
+	// A success reply without a name is not "Saved" with a stale heading: it is the generic failure.
+	fakeFetch( [ fixtureRes( 'dashboard_rename_no_name' ) ] );
+	const stale = await header.rename( 1, 9, 'Shop', nameEl );
+	assert.equal( stale.ok, false );
+	assert.equal( stale.message, 'Something went wrong on our side. Please try again in a moment.' );
+	assert.equal( nameEl.textContent, '<img src=x onerror=alert(1)>', 'The heading is not blanked.' );
 } );
 
 test( 'test_header_view_from_dashboard', () => {
@@ -185,7 +202,7 @@ test( 'test_pause_enable_patches_enabled_only', async () => {
 	assert.equal( list.pauseBody( undefined ), null );
 
 	boot();
-	const calls = fakeFetch( [ res( 200, { ok: true, data: dash( 11, 'Shop', false ) } ) ] );
+	const calls = fakeFetch( [ okRes( dash( 11, 'Shop', false ) ) ] );
 	const r = await list.setEnabled( 1, 11, false );
 	assert.equal( r.ok, true );
 	assert.equal( calls[ 0 ].opts.method, 'PATCH' );
@@ -217,15 +234,16 @@ test( 'test_dashboard_url_fills_license_and_dashboard', () => {
 
 test( 'test_format_created_uses_the_page_language', () => {
 	assert.equal( list.formatCreated( '2026-10-21T12:00:00Z', 'en' ), 'Oct 21, 2026' );
-	assert.equal( list.formatCreated( '2026-10-21T12:00:00Z', 'da' ), '21. okt. 2026' );
+	const da = list.formatCreated( '2026-10-21T12:00:00Z', 'da' );
+	assert.ok( da.includes( '2026' ) && da.includes( '21' ), 'Any ICU: the date is there.' );
 	assert.equal( list.formatCreated( 'garbage', 'en' ), '' );
 	assert.equal( list.formatCreated( undefined, 'en' ), '' );
-	assert.equal( list.formatCreated( '2026-10-21T12:00:00Z', 'not a language!!' ), 'Oct 21, 2026', 'A bad language tag falls back to the default.' );
+	assert.ok( list.formatCreated( '2026-10-21T12:00:00Z', 'not a language!!' ).includes( '2026' ), 'A bad language tag falls back to the default.' );
 } );
 
 test( 'test_create_posts_name_only_and_returns_the_new_id', async () => {
 	boot();
-	const calls = fakeFetch( [ res( 200, { ok: true, data: dash( 31, 'New' ) } ) ] );
+	const calls = fakeFetch( [ okRes( dash( 31, 'New' ) ) ] );
 	const r = await list.create( 1, '  New ' );
 
 	assert.equal( r.ok, true );
@@ -234,14 +252,14 @@ test( 'test_create_posts_name_only_and_returns_the_new_id', async () => {
 	assert.equal( calls[ 0 ].url, REST + 'licenses/1/dashboards' );
 	assert.deepEqual( JSON.parse( calls[ 0 ].opts.body ), { name: 'New' } );
 
-	const none = fakeFetch( [ res( 200, { ok: true, data: dash( 1, 'x' ) } ) ] );
+	const none = fakeFetch( [ okRes( dash( 1, 'x' ) ) ] );
 	const empty = await list.create( 1, '   ' );
 	assert.equal( empty.ok, false );
 	assert.equal( empty.message, 'Give the dashboard a name.' );
 	assert.equal( none.length, 0 );
 
 	// D views.py:2619 is 403 at Django; the browser gets 409 and the card keys on the code.
-	fakeFetch( [ res( 409, { ok: false, code: 'dashboard_limit_reached', message: 'You have reached your plan limit of 1 dashboard.' } ) ] );
+	fakeFetch( [ fixtureRes( 'dashboard_limit_reached' ) ] );
 	const limit = await list.create( 1, 'Again' );
 	assert.equal( limit.ok, false );
 	assert.equal( limit.code, 'dashboard_limit_reached' );
@@ -250,7 +268,7 @@ test( 'test_create_posts_name_only_and_returns_the_new_id', async () => {
 
 test( 'test_delete_sends_delete_and_accepts_the_empty_reply', async () => {
 	boot();
-	const calls = fakeFetch( [ res( 200, { ok: true, data: {} } ) ] );
+	const calls = fakeFetch( [ okRes( {} ) ] );
 	const r = await list.remove( 1, 11 );
 
 	assert.equal( r.ok, true );
@@ -263,7 +281,7 @@ test( 'test_delete_sends_delete_and_accepts_the_empty_reply', async () => {
 
 test( 'test_list_loader_uses_the_support_summary_and_rest_for_owners', async () => {
 	boot();
-	const calls = fakeFetch( [ res( 200, { ok: true, data: [ entry() ] } ) ] );
+	const calls = fakeFetch( [ okRes( [ entry() ] ) ] );
 
 	const owner = await list.loadLicenses( { getAttribute: () => null } );
 	assert.equal( owner.ok, true );
@@ -272,21 +290,74 @@ test( 'test_list_loader_uses_the_support_summary_and_rest_for_owners', async () 
 	assert.equal( calls[ 0 ].url, REST + 'licenses' );
 
 	const summary = JSON.stringify( entry( { mode: 'support', can_write: false } ) );
-	const c2 = fakeFetch( [ res( 200, { ok: true, data: [] } ) ] );
+	const c2 = fakeFetch( [ okRes( [] ) ] );
 	const support = await list.loadLicenses( { getAttribute: ( k ) => ( k === 'data-summary' ? summary : null ) } );
 	assert.equal( support.ok, true );
 	assert.equal( support.licenses[ 0 ].mode, 'support' );
 	assert.equal( c2.length, 0, 'No request: the server embedded it.' );
 
 	// A bad summary falls back to REST rather than showing nothing.
-	const c3 = fakeFetch( [ res( 200, { ok: true, data: [ entry() ] } ) ] );
+	const c3 = fakeFetch( [ okRes( [ entry() ] ) ] );
 	const bad = await list.loadLicenses( { getAttribute: ( k ) => ( k === 'data-summary' ? '{not json' : null ) } );
 	assert.equal( bad.licenses.length, 1 );
 	assert.equal( c3.length, 1 );
 
 	// A failed read gives the message, no licenses.
-	fakeFetch( [ res( 502, '<html>' ) ] );
+	fakeFetch( [ fixtureRes( 'django_garbage' ) ] );
 	const down = await list.loadLicenses( { getAttribute: () => null } );
 	assert.equal( down.ok, false );
 	assert.equal( down.message, 'Something went wrong on our side. Please try again in a moment.' );
+} );
+
+test( 'test_header_failure_only_404_is_not_found', () => {
+	// Real replies: dashboard_not_found (D errors.py:46, middleware.py:78), Django down, a refusal.
+	const missing = header.headerFailure( { ok: false, ...fixture( 'dashboard_not_found' ).body, status: 404 } );
+	assert.equal( missing.notFound, true );
+	assert.equal( missing.heading, 'This dashboard was not found.' );
+	assert.equal( missing.retry, false );
+
+	// A bare 404 (no code) is also not found; the code alone is enough too.
+	assert.equal( header.headerFailure( { ok: false, code: 'x', status: 404 } ).notFound, true );
+	assert.equal( header.headerFailure( { ok: false, code: 'dashboard_not_found', status: 200 } ).notFound, true );
+
+	for ( const name of [ 'django_garbage', 'django_401', 'django_403', 'tenant_paused', 'task_unavailable', 'session_nonce' ] ) {
+		const f = fixture( name );
+		const reply = { ok: false, code: f.body.code, message: f.body.message, field: undefined, status: f.status };
+		const r = header.headerFailure( reply );
+
+		assert.equal( r.notFound, false, name );
+		assert.equal( r.heading, 'Dashboard', name );
+		assert.equal( r.message, f.body.message, name );
+		assert.equal( r.retry, true, name );
+	}
+} );
+
+test( 'test_tenant_paused_409_is_shown_for_pause_and_rename', async () => {
+	// Django middleware.py:57-58, 81: a paused tenant refuses writes with 409 tenant_paused.
+	const want = fixture( 'tenant_paused' );
+	assert.equal( want.status, 409 );
+	assert.equal( want.body.code, 'tenant_paused' );
+
+	boot();
+	fakeFetch( [ fixtureRes( 'tenant_paused' ) ] );
+	const p = await list.setEnabled( 1, 11, false );
+	assert.equal( p.ok, false );
+	assert.equal( p.code, 'tenant_paused' );
+	assert.equal( p.message, want.body.message );
+
+	const nameEl = { textContent: 'Shop' };
+	fakeFetch( [ fixtureRes( 'tenant_paused' ) ] );
+	const r = await header.rename( 1, 9, 'Outlet', nameEl );
+	assert.equal( r.ok, false );
+	assert.equal( r.code, 'tenant_paused' );
+	assert.equal( r.message, want.body.message );
+	assert.equal( nameEl.textContent, 'Shop' );
+} );
+
+test( 'test_real_ready_summary_through_the_view_model', () => {
+	const g = list.viewModel( fixture( 'licenses_ready' ).body.data ).groups[ 0 ];
+	assert.equal( g.countText, '1 of 3 dashboards' );
+	assert.equal( g.newState, 'enabled' );
+	assert.equal( g.dashboards[ 0 ].name, 'Shop' );
+	assert.equal( g.dashboards[ 0 ].canPause, true );
 } );

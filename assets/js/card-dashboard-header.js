@@ -17,6 +17,8 @@
 		active: 'Active',
 		paused: 'Paused',
 		notFound: 'This dashboard was not found.',
+		headerError: 'Dashboard',
+		retry: 'Try again',
 	};
 
 	function t( key ) {
@@ -40,6 +42,21 @@
 		return { name: d.name, stateText: d.enabled === false ? t( 'paused' ) : t( 'active' ) };
 	}
 
+	/**
+	 * What to show when the dashboard cannot be read. Only dashboard_not_found (or a 404) is "not
+	 * found"; anything else (Django down, a paused-plan refusal...) keeps a neutral heading, its own
+	 * message and a retry.
+	 */
+	function headerFailure( reply ) {
+		var r = reply || {};
+
+		if ( r.code === 'dashboard_not_found' || r.status === 404 ) {
+			return { notFound: true, heading: t( 'notFound' ), message: '', retry: false };
+		}
+
+		return { notFound: false, heading: t( 'headerError' ), message: core.errorText( r ), retry: true };
+	}
+
 	function path( licenseId, dashboardId ) {
 		return 'licenses/' + encodeURIComponent( String( licenseId ) ) + '/dashboards/' + encodeURIComponent( String( dashboardId ) );
 	}
@@ -57,9 +74,16 @@
 
 		var reply = await core.api( 'PATCH', path( licenseId, dashboardId ), body );
 
-		if ( reply.ok && reply.data && typeof reply.data.name === 'string' && reply.data.name !== '' ) {
-			nameEl.textContent = reply.data.name;
+		if ( ! reply.ok ) {
+			return reply;
 		}
+
+		if ( ! reply.data || typeof reply.data.name !== 'string' || reply.data.name === '' ) {
+			// Django said yes but not what it kept: never "Saved" next to a stale heading.
+			return { ok: false, code: 'server_error', message: core.text( 'generic' ), field: undefined, status: reply.status, data: undefined };
+		}
+
+		nameEl.textContent = reply.data.name;
 
 		return reply;
 	}
@@ -150,21 +174,43 @@
 			return;
 		}
 
-		core.whenVisible( root, async function () {
+		var retryBtn = null;
+
+		async function load() {
 			var reply = await core.api( 'GET', path( licenseId, dashboardId ) );
 
+			if ( retryBtn ) {
+				retryBtn.remove();
+				retryBtn = null;
+			}
+
 			if ( ! reply.ok ) {
-				// Includes 404 dashboard_not_found: the message is shown, never an empty form.
-				nameEl.textContent = t( 'notFound' );
-				core.status( statusEl, 'error', core.errorText( reply ) );
+				var f = headerFailure( reply );
+
+				nameEl.textContent = f.heading;
+				stateEl.textContent = '';
+				renameBtn.hidden = true;
+				core.status( statusEl, 'error', f.message );
+
+				if ( f.retry ) {
+					retryBtn = el( 'button', 'odoowoo-button odoowoo-button--secondary odoowoo-retry', t( 'retry' ) );
+					retryBtn.type = 'button';
+					retryBtn.addEventListener( 'click', load );
+					statusEl.parentNode.insertBefore( retryBtn, statusEl.nextSibling );
+				}
+
 				return;
 			}
 
+			core.status( statusEl, 'saved', '' );
+			statusEl.removeAttribute( 'data-state' );
 			show( reply.data );
-		} );
+		}
+
+		core.whenVisible( root, load );
 	}
 
-	var api_ = { renameBody: renameBody, headerView: headerView, rename: rename };
+	var api_ = { renameBody: renameBody, headerView: headerView, headerFailure: headerFailure, rename: rename };
 
 	if ( typeof module !== 'undefined' && module.exports ) {
 		module.exports = api_;

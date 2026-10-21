@@ -142,6 +142,8 @@ final class Registry {
 			'active'       => __( 'Active', 'odoowoo-portal' ),
 			'paused'       => __( 'Paused', 'odoowoo-portal' ),
 			'notFound'     => \OdooWooPortal\Django\Messages::not_found(),
+			'headerError'  => __( 'Dashboard', 'odoowoo-portal' ),
+			'retry'        => __( 'Try again', 'odoowoo-portal' ),
 		);
 	}
 }
