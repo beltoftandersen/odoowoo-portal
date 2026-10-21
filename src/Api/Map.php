@@ -483,6 +483,18 @@ final class Map {
 	}
 
 	/**
+	 * Does a reply of this row and browser method get shaped?
+	 *
+	 * @param string $key    Row.
+	 * @param string $method Browser method.
+	 */
+	public static function shapes( string $key, string $method ): bool {
+		$row = self::ROUTES[ $key ] ?? array();
+
+		return isset( $row['shape'] ) && in_array( strtoupper( $method ), $row['shape_for'] ?? array( 'GET' ), true );
+	}
+
+	/**
 	 * The browser's data for a successful Django reply: lists become {items: [...]}, an empty or
 	 * odd body becomes an empty list, never a warning. Rows without a shape pass unchanged.
 	 *

@@ -241,4 +241,55 @@ final class MappingRoutesTest extends RestTestCase {
 		$this->assertTrue( Map::is_write( 'gift-card-settings', 'PUT' ) );
 		$this->assertFalse( Map::is_write( 'gift-card-settings', 'GET' ) );
 	}
+
+	/**
+	 * Route-level shapes for each row family.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: int, 3: array<mixed>, 4: array<mixed>}>
+	 */
+	public static function shaped(): array {
+		$rows = array( array( 'id' => 1, 'meta_key' => 'k' ) );
+
+		return array(
+			'bare list'        => array( 'payment-method-mappings', 'GET', 200, $rows, array( 'items' => $rows ) ),
+			'mappings object'  => array( 'order-route-mappings', 'GET', 200, array( 'mappings' => $rows ), array( 'items' => $rows ) ),
+			'empty list'       => array( 'stock-mappings', 'GET', 200, array( 'mappings' => array() ), array( 'items' => array() ) ),
+			'empty body'       => array( 'odoo-journals', 'GET', 200, array(), array( 'items' => array() ) ),
+			'null taxes'       => array( 'odoo-taxes', 'GET', 200, array( 'taxes' => null ), array( 'items' => array() ) ),
+			'loader no rows'   => array( 'fetch-and-store-odoo-taxes', 'POST', 204, array(), array( 'items' => array() ) ),
+			'loader rows'      => array( 'fetch-and-store-odoo-taxes', 'POST', 200, $rows, array( 'items' => $rows ) ),
+			'gift card'        => array( 'gift-card-settings', 'GET', 200, array( 'settings' => array( 'enabled' => true ) ), array( 'settings' => array( 'enabled' => true ) ) ),
+		);
+	}
+
+	/**
+	 * @dataProvider shaped
+	 *
+	 * @param string       $key    Route.
+	 * @param string       $method Browser method.
+	 * @param int          $status Django status.
+	 * @param array<mixed> $body   Django body.
+	 * @param array<mixed> $expect Browser data.
+	 */
+	public function test_browser_gets_items_or_settings( string $key, string $method, int $status, array $body, array $expect ): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( $status, $body ) );
+
+		$res = $this->rest( $method, $this->url( $l, $key ) );
+
+		$this->assertSame( 200, $res->get_status() );
+		$this->assertTrue( $res->get_data()['ok'] );
+		$this->assertSame( $expect, $res->get_data()['data'] );
+	}
+
+	public function test_save_reply_is_not_shaped(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, array( 'message' => 'Saved 0 stock mapping(s).' ) ) );
+
+		$res = $this->rest( 'PUT', $this->url( $l, 'stock-mappings' ), array( 'items' => array() ) );
+
+		$this->assertSame( array( 'message' => 'Saved 0 stock mapping(s).' ), $res->get_data()['data'] );
+	}
 }

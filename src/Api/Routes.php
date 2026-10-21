@@ -228,10 +228,22 @@ final class Routes {
 	/**
 	 * A Django reply in the browser shape. Failed replies never carry Django's data.
 	 *
-	 * @param Reply $r Reply.
+	 * @param Reply  $r      Reply.
+	 * @param string $key    Map row, when its replies are shaped.
+	 * @param string $method Browser method.
 	 */
-	public static function respond( Reply $r ): \WP_REST_Response {
+	public static function respond( Reply $r, string $key = '', string $method = '' ): \WP_REST_Response {
 		if ( $r->ok() ) {
+			if ( '' !== $key && Map::shapes( $key, $method ) ) {
+				return new \WP_REST_Response(
+					array(
+						'ok'   => true,
+						'data' => Map::shape( $key, $method, $r->data() ),
+					),
+					200
+				);
+			}
+
 			return new \WP_REST_Response(
 				array(
 					'ok'   => true,
@@ -311,7 +323,7 @@ final class Routes {
 			unset( self::$summaries[ self::summary_key( $ctx ) ] );
 		}
 
-		return self::respond( $reply );
+		return self::respond( $reply, $key, $r->get_method() );
 	}
 
 	/**
