@@ -4,7 +4,7 @@ Tags: odoo, woocommerce, licenses, portal, bricks
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.0.1
+Stable tag: 0.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,5 +46,8 @@ Settings and the saved task memory are deleted only if "Delete the data when the
 
 == Changelog ==
 
-= 0.0.1 =
-* First version.
+= 0.1.0 =
+* First release: dashboards, WooCommerce and Odoo connections, settings, six mapping editors, gift cards, manual syncs with progress, sync logs, My Account link, Bricks elements, dynamic data and the shortcode.
+* Sync log text is decided on the server: only successful, informational and warning rows show their text, and only when it carries no engine detail.
+* Saves that would replace a whole list or object in OdooWoo are refused unless they carry all of it.
+* Scripts and styles are versioned by file time, so a new release is never served from an old cache.

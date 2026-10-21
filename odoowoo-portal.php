@@ -3,7 +3,7 @@
  * Plugin Name:          OdooWoo Portal
  * Plugin URI:           https://beltoft.net/
  * Description:          The OdooWoo customer app: dashboards, connections, mappings and syncs for licensed OdooWoo customers, built on Beltoft Licenses and Beltoft Services.
- * Version:              0.0.1
+ * Version:              0.1.0
  * Requires at least:    6.5
  * Requires PHP:         8.1
  * Requires Plugins:     woocommerce, beltoft-licenses, beltoft-services
@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
 
 define( 'ODOOWOO_PORTAL_FILE', __FILE__ );
 define( 'ODOOWOO_PORTAL_PATH', plugin_dir_path( __FILE__ ) );
-define( 'ODOOWOO_PORTAL_VERSION', '0.0.1' );
+define( 'ODOOWOO_PORTAL_VERSION', '0.1.0' );
 
 spl_autoload_register(
 	static function ( $class_name ) {
