@@ -59,7 +59,8 @@ final class MappingRoutesTest extends RestTestCase {
 	public function test_each_route_sends_one_signed_call_to_the_mapped_path( string $key, string $method, string $django, string $path ): void {
 		$l = $this->odoowoo_license();
 		$this->as_user( (int) $l['user_id'] );
-		$this->fake_django( fn() => array( 200, array() ) );
+		$unwrap = Map::ROUTES[ $key ]['unwrap'] ?? null; // A shaped reply needs its list, or the route answers 502.
+		$this->fake_django( fn() => array( 200, null === $unwrap ? array() : array( $unwrap => array() ) ) );
 
 		$body = in_array( $method, array( 'PUT' ), true ) ? ( 'gift-card-settings' === $key ? array( 'settings' => array() ) : array( 'items' => array() ) ) : null;
 		$res  = $this->rest( $method, $this->url( $l, $key ), $body );
@@ -170,15 +171,13 @@ final class MappingRoutesTest extends RestTestCase {
 	}
 
 	/**
-	 * Replies that are empty or odd shape to an empty list, never a warning.
+	 * Replies that are an empty list, or a list of odd rows, shape to an empty list, never a warning.
 	 *
 	 * @return array<string, array{0: mixed}>
 	 */
 	public static function empty_replies(): array {
 		return array(
 			'empty body'  => array( array() ),
-			'null taxes'  => array( array( 'taxes' => null ) ),
-			'null mappings' => array( array( 'mappings' => null ) ),
 			'scalar rows' => array( array( 1, 'x', null ) ),
 		);
 	}
@@ -257,7 +256,6 @@ final class MappingRoutesTest extends RestTestCase {
 			'tax mappings'     => array( 'tax-mappings', 'GET', 200, array( array( 'id' => 2, 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3, 'odoo_supplier_tax_id' => 4 ) ), array( 'items' => array( array( 'id' => 2, 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3, 'odoo_supplier_tax_id' => 4 ) ) ) ),
 			'empty list'       => array( 'stock-mappings', 'GET', 200, array( 'mappings' => array() ), array( 'items' => array() ) ),
 			'empty body'       => array( 'odoo-journals', 'GET', 200, array(), array( 'items' => array() ) ),
-			'null taxes'       => array( 'odoo-taxes', 'GET', 200, array( 'taxes' => null ), array( 'items' => array() ) ),
 			'loader no rows'   => array( 'fetch-and-store-odoo-taxes', 'POST', 204, array(), array( 'items' => array() ) ),
 			'loader rows'      => array( 'fetch-and-store-odoo-taxes', 'POST', 200, array( array( 'id' => 3, 'name' => 'VAT 25', 'rate' => '25.00', 'type_tax_use' => 'sale' ) ), array( 'items' => array( array( 'id' => 3, 'name' => 'VAT 25', 'rate' => '25.00', 'type_tax_use' => 'sale' ) ) ) ),
 			'prices'           => array( 'price-mappings', 'GET', 200, array( 'mappings' => array( array( 'id' => 1, 'source' => 'regular', 'odoo_pricelist_id' => 12, 'odoo_pricelist_name' => 'Retail', 'target_field' => 'regular_price', 'target_meta_key' => '', 'tax_treatment' => 'as_is', 'require_explicit_rule' => false ) ) ), array( 'items' => array( array( 'id' => 1, 'source' => 'regular', 'odoo_pricelist_id' => 12, 'odoo_pricelist_name' => 'Retail', 'target_field' => 'regular_price', 'target_meta_key' => '', 'tax_treatment' => 'as_is', 'require_explicit_rule' => false ) ) ) ),
@@ -284,6 +282,45 @@ final class MappingRoutesTest extends RestTestCase {
 		$this->assertSame( 200, $res->get_status() );
 		$this->assertTrue( $res->get_data()['ok'] );
 		$this->assertSame( $expect, $res->get_data()['data'] );
+	}
+
+	/**
+	 * A 200 whose body is not the list Django sends is unreadable, not "no rows": the editor must
+	 * not take it for the stored list (Save would then replace the real rows with nothing).
+	 *
+	 * @return array<string, array{0: string, 1: array<mixed>}>
+	 */
+	public static function odd_replies(): array {
+		return array(
+			'null taxes'       => array( 'odoo-taxes', array( 'taxes' => null ) ),
+			'object for list'  => array( 'stored-odoo-taxes', array( 'mappings' => array() ) ),
+			'null mappings'    => array( 'stock-mappings', array( 'mappings' => null ) ),
+			'no mappings key'  => array( 'order-route-mappings', array( 'routes' => array() ) ),
+			'empty for object' => array( 'price-mappings', array() ),
+		);
+	}
+
+	/**
+	 * @dataProvider odd_replies
+	 *
+	 * @param string       $key  Route.
+	 * @param array<mixed> $body Django body.
+	 */
+	public function test_a_200_without_the_expected_list_is_the_generic_refusal( string $key, array $body ): void {
+		$this->assertNull( Map::shape( $key, 'GET', $body ) );
+
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, $body ) );
+
+		$res = $this->rest( 'GET', $this->url( $l, $key ) );
+		$out = $res->get_data();
+
+		$this->assertSame( 502, $res->get_status() );
+		$this->assertFalse( $out['ok'] );
+		$this->assertSame( 'server_error', $out['code'] );
+		$this->assertSame( \OdooWooPortal\Django\Messages::generic(), $out['message'] );
+		$this->assertArrayNotHasKey( 'data', $out );
 	}
 
 	public function test_save_reply_is_not_shaped(): void {
@@ -452,16 +489,16 @@ final class MappingRoutesTest extends RestTestCase {
 		foreach ( $cases as $key => list( $wrap, $row, $shown ) ) {
 			$this->assertSame( array( 'items' => array( $shown ) ), Map::shape( $key, 'GET', array( $wrap => array( $row ) ) ), $key );
 			$this->assertSame( array( 'items' => array() ), Map::shape( $key, 'GET', array( $wrap => array() ) ), $key . ' empty' );
-			$this->assertSame( array( 'items' => array() ), Map::shape( $key, 'GET', array() ), $key . ' no body' );
-			$this->assertSame( array( 'items' => array() ), Map::shape( $key, 'GET', array( $wrap => 'x' ) ), $key . ' odd' );
-			$this->assertSame( array( 'items' => array() ), Map::shape( $key, 'GET', array( 'mappings' => array( $row ) ) ), $key . ' wrong key' );
+			$this->assertNull( Map::shape( $key, 'GET', array() ), $key . ' no body is not an empty list' );
+			$this->assertNull( Map::shape( $key, 'GET', array( $wrap => 'x' ) ), $key . ' odd' );
+			$this->assertNull( Map::shape( $key, 'GET', array( 'mappings' => array( $row ) ) ), $key . ' wrong key' );
 		}
 	}
 
 	public function test_a_bare_list_is_not_accepted_where_django_wraps_the_list(): void {
-		$this->assertSame( array( 'items' => array() ), Map::shape( 'odoo-pricelists', 'GET', array( array( 'id' => 5, 'name' => 'x', 'currency' => 'EUR' ) ) ) );
-		$this->assertSame( array( 'items' => array() ), Map::shape( 'stock-mappings', 'GET', array( array( 'id' => 1 ) ) ) );
-		$this->assertSame( array( 'items' => array() ), Map::shape( 'odoo-taxes', 'GET', array( 'mappings' => array( array( 'id' => 1, 'name' => 'x' ) ) ) ) );
+		$this->assertNull( Map::shape( 'odoo-pricelists', 'GET', array( array( 'id' => 5, 'name' => 'x', 'currency' => 'EUR' ) ) ) );
+		$this->assertNull( Map::shape( 'stock-mappings', 'GET', array( array( 'id' => 1 ) ) ) );
+		$this->assertNull( Map::shape( 'odoo-taxes', 'GET', array( 'mappings' => array( array( 'id' => 1, 'name' => 'x' ) ) ) ) );
 	}
 
 	/**

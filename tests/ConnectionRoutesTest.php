@@ -156,7 +156,8 @@ final class ConnectionRoutesTest extends RestTestCase {
 	public function test_each_route_sends_one_signed_call_to_the_mapped_path( string $method, string $route, ?array $body, string $dj_meth, string $dj_path, ?array $expected ): void {
 		$l = $this->odoowoo_license();
 		$this->as_user( (int) $l['user_id'] );
-		$this->fake_django( fn() => array( 200, array( 'ok' => 1 ) ) );
+		$unwrap = \OdooWooPortal\Api\Map::ROUTES[ $route ]['unwrap'] ?? null; // A shaped reply needs its list, or the route answers 502.
+		$this->fake_django( fn() => array( 200, null === $unwrap ? array( 'ok' => 1 ) : array( $unwrap => array() ) ) );
 
 		$res   = $this->rest( $method, $this->url( $l, $route ), $body );
 		$calls = $this->django_calls();

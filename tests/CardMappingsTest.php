@@ -226,6 +226,16 @@ final class CardMappingsTest extends RestTestCase {
 		$this->assertSame( $payment, $this->printed_config( $this->render( 'payment-mappings' ) ) );
 	}
 
+	public function test_tax_classes_have_no_unique_rule_and_pricelists_show_their_currency(): void {
+		// Django has no unique constraint on the tax class (models.py:247).
+		$this->assertSame( array(), Mappings::config( 'tax-mappings' )['unique'] );
+
+		foreach ( array( 'price-mappings', 'order-pricelist-mappings' ) as $card ) {
+			$column = array_column( Mappings::config( $card )['columns'], null, 'key' )['odoo_pricelist_id'];
+			$this->assertSame( 'currency', $column['source']['suffixKey'], $card );
+		}
+	}
+
 	public function test_conditional_columns_are_in_the_config(): void {
 		$price = array_column( Mappings::config( 'price-mappings' )['columns'], null, 'key' );
 

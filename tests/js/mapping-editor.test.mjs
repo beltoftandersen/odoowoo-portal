@@ -169,7 +169,7 @@ test( 'test_odoowoo_mistake_price_rows_keep_saved_pricelist', () => {
 	const gone = editor.createModel( config( 'price-mappings' ) );
 	gone.loadRows( [ { id: 3, source: 'pricelist', odoo_pricelist_id: 99, odoo_pricelist_name: 'Old wholesale', target_field: 'regular_price', target_meta_key: '', tax_treatment: 'as_is', require_explicit_rule: false } ] );
 	gone.applyLoader( 0, reply( 'odoo_pricelists' ) );
-	assert.deepEqual( gone.options( 0, 'odoo_pricelist_id' ).map( ( o ) => [ o.value, o.label ] ), [ [ '99', 'Old wholesale' ], [ '5', 'Public Pricelist (EUR)' ], [ '6', 'Retail DKK' ] ] );
+	assert.deepEqual( gone.options( 0, 'odoo_pricelist_id' ).map( ( o ) => [ o.value, o.label ] ), [ [ '99', 'Old wholesale' ], [ '5', 'Public Pricelist (EUR)' ], [ '6', 'Retail DKK (DKK)' ] ] );
 	assert.deepEqual( gone.body().items[ 0 ], { source: 'pricelist', odoo_pricelist_id: 99, odoo_pricelist_name: 'Old wholesale', target_field: 'regular_price', target_meta_key: '', tax_treatment: 'as_is', require_explicit_rule: false } );
 } );
 
@@ -295,7 +295,9 @@ test( 'test_loader_reads_items_for_every_route', () => {
 			const expected = raw.data.items.filter( ( i ) => ! col.source.filter || Object.entries( col.source.filter ).every( ( [ k, v ] ) => i[ k ] === v ) );
 
 			assert.deepEqual( options.map( ( o ) => o.value ), expected.map( ( i ) => String( i[ col.source.idKey ] ) ), card + ' ' + loader.route + ' options (ids)' );
-			assert.deepEqual( options.map( ( o ) => o.label ), expected.map( ( i ) => i[ col.source.nameKey ] ), card + ' ' + loader.route + ' options (names)' );
+			const label = ( i ) => i[ col.source.nameKey ] + ( col.source.suffixKey && ! i[ col.source.nameKey ].includes( '(' + i[ col.source.suffixKey ] + ')' ) ? ' (' + i[ col.source.suffixKey ] + ')' : '' );
+
+			assert.deepEqual( options.map( ( o ) => o.label ), expected.map( label ), card + ' ' + loader.route + ' options (names)' );
 			assert.ok( options.length > 0, card + ' ' + loader.route );
 		} );
 	} );
@@ -530,4 +532,65 @@ test( 'test_every_row_input_gets_a_label_and_the_texts_are_translatable', () => 
 	assert.equal( editor.rowLabel( 'Odoo journal', 0 ), 'Odoo journal, rij 1' );
 	globalThis.odoowooPortal.i18n = {};
 	assert.equal( editor.rowLabel( 'Odoo journal', 0 ), 'Odoo journal, row 1' );
+} );
+
+test( 'test_pricelist_options_show_the_currency_but_store_the_plain_name', () => {
+	const m = modelOf( 'price-mappings' );
+
+	m.loadRows( [] );
+	m.applyLoader( 0, reply( 'odoo_pricelists' ) );
+	m.addRow();
+	m.setValue( 0, 'source', 'pricelist' );
+	assert.deepEqual( m.options( 0, 'odoo_pricelist_id' ).map( ( o ) => o.label ), [ 'Public Pricelist (EUR)', 'Retail DKK (DKK)' ], 'A name that already says its currency is not repeated.' );
+
+	m.setValue( 0, 'odoo_pricelist_id', '6' );
+	assert.equal( m.rows()[ 0 ].odoo_pricelist_name, 'Retail DKK', 'The stored name has no currency suffix.' );
+	assert.equal( m.options( 0, 'odoo_pricelist_id' ).find( ( o ) => o.value === '6' ).label, 'Retail DKK (DKK)' );
+} );
+
+test( 'test_tax_class_may_repeat', () => {
+	const m = modelOf( 'tax-mappings' );
+
+	m.loadRows( [] );
+	m.feedSaved( { route: 'stored-odoo-taxes', idKey: 'id', nameKey: 'name', into: 'stored-odoo-taxes' }, items( 'stored_odoo_taxes' ) );
+	m.applyLoader( 0, reply( 'woo_tax_classes' ) );
+	[ 0, 1 ].forEach( ( i ) => {
+		m.addRow();
+		m.setValue( i, 'woocommerce_tax_class', 'standard' );
+		m.setValue( i, 'odoo_customer_tax_id', i === 0 ? '3' : '5' );
+		m.setValue( i, 'odoo_supplier_tax_id', '4' );
+	} );
+	assert.deepEqual( m.validate(), [], 'Django has no unique constraint on the class (models.py:247).' );
+} );
+
+test( 'test_rows_cannot_be_added_or_removed_before_the_list_has_loaded', () => {
+	const m = modelOf( 'stock-mappings' );
+
+	assert.equal( editor.canEdit( m, { canWrite: true } ), false, 'A row added now would vanish when the list arrives.' );
+	m.loadRows( [] );
+	assert.equal( editor.canEdit( m, { canWrite: true } ), true );
+	assert.equal( editor.canEdit( m, { canWrite: false } ), false );
+} );
+
+test( 'test_a_200_that_is_not_the_list_leaves_the_editor_unloaded', async () => {
+	boot();
+	fakeFetch( [ 'stock_mappings_unreadable' ] ); // The portal's refusal of a 200 without {mappings: [...]}.
+	const m = editor.createModel( config( 'stock-mappings' ) );
+	const out = await editor.readAll( ctx, m );
+
+	assert.equal( out.ok, false );
+	assert.equal( out.reply.message, 'Something went wrong on our side. Please try again in a moment.' );
+	assert.equal( m.isLoaded(), false );
+	assert.equal( editor.canSave( m, { canWrite: true } ), false );
+	assert.equal( editor.canEdit( m, { canWrite: true } ), false );
+} );
+
+test( 'test_error_ids_link_each_input_to_its_message', () => {
+	const marks = [ { row: 1, key: 'odoo_journal_id', message: 'Row 2: choose a journal.' }, { row: -1, key: 'target_field', message: 'Two mappings both write x.' } ];
+	const ids = editor.describedBy( marks, 'u', 1, 'odoo_journal_id' );
+
+	assert.deepEqual( ids, [ 'u-err-0' ] );
+	assert.deepEqual( editor.describedBy( marks, 'u', 0, 'odoo_journal_id' ), [] );
+	assert.deepEqual( editor.describedBy( marks, 'u', 3, 'target_field' ), [ 'u-err-1' ], 'A refusal of a column is linked from every row of it.' );
+	assert.deepEqual( editor.describedBy( marks, 'u', 0, 'source' ), [] );
 } );

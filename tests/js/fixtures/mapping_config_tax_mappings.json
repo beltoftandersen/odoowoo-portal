@@ -74,10 +74,6 @@
                 "into": "stored-odoo-taxes"
             }
         ],
-        "unique": [
-            [
-                "woocommerce_tax_class"
-            ]
-        ]
+        "unique": []
     }
 }

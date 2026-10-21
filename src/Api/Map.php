@@ -762,9 +762,10 @@ final class Map {
 	 * @param string       $key    Row.
 	 * @param string       $method Browser method.
 	 * @param array<mixed> $data   Django data (secrets already removed).
-	 * @return array<mixed>
+	 * @return array<mixed>|null Null when the body is not the list Django sends (a missing or odd
+	 *                            list key, a bare object): unreadable, which is not "no rows".
 	 */
-	public static function shape( string $key, string $method, array $data ): array {
+	public static function shape( string $key, string $method, array $data ): ?array {
 		$row   = self::ROUTES[ $key ] ?? array();
 		$shape = $row['shape'] ?? null;
 
@@ -780,9 +781,13 @@ final class Map {
 		$unwrap = $row['unwrap'] ?? null;
 
 		if ( null !== $unwrap ) {
-			$data = is_array( $data[ $unwrap ] ?? null ) ? $data[ $unwrap ] : array();
+			if ( ! is_array( $data[ $unwrap ] ?? null ) || ! array_is_list( $data[ $unwrap ] ) ) {
+				return null;
+			}
+
+			$data = $data[ $unwrap ];
 		} elseif ( ! array_is_list( $data ) ) {
-			$data = array();
+			return null;
 		}
 
 		$items = array();

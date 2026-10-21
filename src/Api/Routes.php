@@ -261,10 +261,16 @@ final class Routes {
 	public static function respond( Reply $r, string $key = '', string $method = '' ): \WP_REST_Response {
 		if ( $r->ok() ) {
 			if ( '' !== $key && Map::shapes( $key, $method ) ) {
+				$shaped = Map::shape( $key, $method, $r->data() );
+
+				if ( null === $shaped ) {
+					return self::refusal( 502, 'server_error', Messages::generic() );
+				}
+
 				return new \WP_REST_Response(
 					array(
 						'ok'   => true,
-						'data' => Map::shape( $key, $method, $r->data() ),
+						'data' => $shaped,
 					),
 					200
 				);

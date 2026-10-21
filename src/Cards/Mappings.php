@@ -174,9 +174,10 @@ final class Mappings {
 	 */
 	public static function config( string $card ): array {
 		$pricelists = array(
-			'route'   => 'odoo-pricelists',
-			'idKey'   => 'id',
-			'nameKey' => 'name',
+			'route'     => 'odoo-pricelists',
+			'idKey'     => 'id',
+			'nameKey'   => 'name',
+			'suffixKey' => 'currency',
 		);
 		$meta_when  = array(
 			'key' => 'target_field',
@@ -297,7 +298,7 @@ final class Mappings {
 					'saved'   => array(
 						array_merge( $taxes, array( 'into' => 'stored-odoo-taxes' ) ),
 					),
-					'unique'  => array( array( 'woocommerce_tax_class' ) ),
+					'unique'  => array(),
 				);
 				break;
 

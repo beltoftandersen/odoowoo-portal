@@ -195,8 +195,19 @@
 			return typeof stored === 'string' && stored !== '' ? stored : ( col.numeric === true ? '#' + String( value ) : String( value ) );
 		}
 
+		/** What a choice shows: the name, with its currency when the list gives one and the name does not already say it. */
+		function shownName( col, item ) {
+			var extra = col.source.suffixKey ? item.raw[ col.source.suffixKey ] : '';
+
+			if ( typeof extra !== 'string' || extra === '' || item.name.indexOf( '(' + extra + ')' ) !== -1 ) {
+				return item.name;
+			}
+
+			return item.name + ' (' + extra + ')';
+		}
+
 		/** The choices of a select cell: the row's own value first when the list does not offer it. */
-		function options( index, key ) {
+		function choices( index, key ) {
 			var col = column( key );
 			var row = rows[ index ];
 
@@ -205,25 +216,32 @@
 			}
 
 			if ( Array.isArray( col.options ) ) {
-				var fixed = col.options.map( function ( o ) { return { value: o.value, label: o.label }; } );
+				var fixed = col.options.map( function ( o ) { return { value: o.value, label: o.label, name: o.label }; } );
 
 				if ( row && typeof row[ key ] === 'string' && row[ key ] !== '' && ! fixed.some( function ( o ) { return o.value === row[ key ]; } ) ) {
-					fixed.unshift( { value: row[ key ], label: row[ key ] } );
+					fixed.unshift( { value: row[ key ], label: row[ key ], name: row[ key ] } );
 				}
 
 				return fixed;
 			}
 
 			var list = poolItems( col.source.route ).filter( function ( i ) { return passes( i, col.source.filter ); } ).map( function ( i ) {
-				return { value: String( i.id ), label: i.name };
+				return { value: String( i.id ), label: shownName( col, i ), name: i.name };
 			} );
 			var current = row ? row[ key ] : null;
 
 			if ( row && present( col, current ) && ! list.some( function ( o ) { return o.value === String( current ); } ) ) {
-				list.unshift( { value: String( current ), label: nameOf( col, row, current ) } );
+				var own = nameOf( col, row, current );
+
+				list.unshift( { value: String( current ), label: own, name: own } );
 			}
 
 			return list;
+		}
+
+		/** The choices as the page shows them: value and label. */
+		function options( index, key ) {
+			return choices( index, key ).map( function ( o ) { return { value: o.value, label: o.label }; } );
 		}
 
 		/** What a row sends: hidden columns are cleared, text is stripped as Django strips it. */
@@ -360,7 +378,7 @@
 						return;
 					}
 
-					var choice = options( index, key ).filter( function ( o ) { return o.value === String( raw ); } )[ 0 ];
+					var choice = choices( index, key ).filter( function ( o ) { return o.value === String( raw ); } )[ 0 ];
 
 					if ( ! choice ) {
 						return;
@@ -369,7 +387,7 @@
 					row[ key ] = col.numeric === true ? Number( choice.value ) : choice.value;
 
 					if ( col.nameField ) {
-						row[ col.nameField ] = choice.label;
+						row[ col.nameField ] = choice.name;
 					}
 				} else if ( col.type === 'number' ) {
 					row[ key ] = raw === '' || raw === null ? null : Number( raw );
@@ -431,6 +449,24 @@
 	/** Whether a loader button may be on: reads need a ready tenant, writing ones need the owner of an active plan. */
 	function loaderEnabled( loader, perms ) {
 		return perms.canRead === true && ( loader.writes !== true || perms.canWrite === true );
+	}
+
+	/** Rows may be added and removed by a viewer who may write, once the stored rows were read (rows added earlier would vanish when they arrive). */
+	function canEdit( model, perms ) {
+		return perms.canWrite === true && model.isLoaded();
+	}
+
+	/** Ids of the error messages (the same order as the list drawn from the marks) that concern one input. */
+	function describedBy( marks, uid, row, key ) {
+		var ids = [];
+
+		marks.filter( function ( m ) { return m.message; } ).forEach( function ( m, n ) {
+			if ( m.key === key && ( m.row === row || m.row === -1 ) ) {
+				ids.push( uid + '-err-' + n );
+			}
+		} );
+
+		return ids;
 	}
 
 	/** Save is on for a viewer who may write and only once the stored rows were read (else it would wipe them). */
@@ -536,7 +572,7 @@
 
 		function buttons() {
 			saveBtn.disabled = ! canSave( model, perms );
-			addBtn.disabled = ! perms.canWrite;
+			addBtn.disabled = ! canEdit( model, perms );
 			loaderBtns.forEach( function ( b ) {
 				var i = Number( b.getAttribute( 'data-loader' ) );
 
@@ -570,6 +606,12 @@
 
 			if ( marks.some( function ( m ) { return m.key === col.key && ( m.row === i || m.row === -1 ); } ) ) {
 				input.setAttribute( 'aria-invalid', 'true' );
+
+				var linked = describedBy( marks, uid, i, col.key );
+
+				if ( linked.length > 0 ) {
+					input.setAttribute( 'aria-describedby', linked.join( ' ' ) );
+				}
 			}
 
 			var td = el( 'td', { 'data-column': col.key }, [ input ] );
@@ -608,7 +650,7 @@
 
 					head.appendChild( th );
 				} );
-				head.appendChild( el( 'td', {}, [ el( 'span', { class: 'odoowoo-sr' }, [ t( 'removeRow' ) ] ) ] ) );
+				head.appendChild( el( 'th', { scope: 'col' }, [ el( 'span', { class: 'odoowoo-sr' }, [ t( 'removeRow' ) ] ) ] ) );
 
 				var body = el( 'tbody' );
 
@@ -621,7 +663,7 @@
 
 					var remove = el( 'button', { type: 'button', class: 'odoowoo-button odoowoo-button--secondary', 'data-action': 'remove-row', 'data-row': i, 'aria-label': fmt( t( 'removeRowN' ), i + 1 ) }, [ t( 'removeRow' ) ] );
 
-					remove.disabled = ! perms.canWrite;
+					remove.disabled = ! canEdit( model, perms );
 					tr.appendChild( el( 'td', {}, [ remove ] ) );
 					body.appendChild( tr );
 				} );
@@ -633,8 +675,8 @@
 			if ( list.length > 0 ) {
 				var ul = el( 'ul', { class: 'odoowoo-field-error', role: 'alert' } );
 
-				list.forEach( function ( m ) {
-					ul.appendChild( el( 'li', {}, [ m.message ] ) );
+				list.forEach( function ( m, n ) {
+					ul.appendChild( el( 'li', { id: uid + '-err-' + n }, [ m.message ] ) );
 				} );
 				rowsEl.appendChild( ul );
 			}
@@ -753,13 +795,16 @@
 				} else if ( replyObj.ok !== true ) {
 					var target = refusalTarget( config, replyObj );
 
-					setMarks( [ { row: -1, key: target.key, message: '' } ] );
-
 					if ( core.notConfigured( replyObj ) ) {
+						setMarks( [] );
 						core.status( statusEl, 'error', '' );
 						core.showNotConfigured( statusEl, replyObj, holder );
+					} else if ( target.key !== '' ) {
+						// The column is marked and linked to Django's message, shown once under the rows.
+						setMarks( [ { row: -1, key: target.key, message: target.message } ] );
+						core.status( statusEl, 'error', '' );
 					} else {
-						// The column is marked; the message is Django's, without the raw field name.
+						setMarks( [] );
 						core.status( statusEl, 'error', target.message !== '' ? target.message : core.errorText( replyObj ) );
 					}
 				} else {
@@ -797,6 +842,8 @@
 		createModel: createModel,
 		loaderEnabled: loaderEnabled,
 		canSave: canSave,
+		canEdit: canEdit,
+		describedBy: describedBy,
 		refusalTarget: refusalTarget,
 		readAll: readAll,
 		saveList: saveList,

@@ -29,7 +29,8 @@
                 "source": {
                     "route": "odoo-pricelists",
                     "idKey": "id",
-                    "nameKey": "name"
+                    "nameKey": "name",
+                    "suffixKey": "currency"
                 },
                 "required": true,
                 "missing": "choose a pricelist.",
