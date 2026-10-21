@@ -1,0 +1,14 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "method_id": "bacs",
+                    "title": "Direct bank transfer"
+                }
+            ]
+        }
+    }
+}

@@ -228,6 +228,88 @@ final class BrowserFixturesTest extends RestTestCase {
 		$this->keep( 'price_mappings_empty', $this->rest( 'GET', $u( $l, 'price-mappings' ) ) );
 	}
 
+	/**
+	 * Task 12: the six mapping editors. The configs are what the cards print; every Django body
+	 * is copied from sync_app/views.py of the Django branch at 5ab091e (line numbers below; the
+	 * file is the same as at 4a755dd apart from two lines far from these).
+	 */
+	private function mapping_fixtures(): void {
+		$u = static fn( array $l, string $route ): string => '/licenses/' . $l['id'] . '/dashboards/' . self::D . '/' . $route;
+
+		foreach ( \OdooWooPortal\Cards\Mappings::CARDS as $card ) {
+			$this->made[ 'mapping_config_' . str_replace( '-', '_', $card ) ] = array(
+				'status' => 200,
+				'body'   => json_decode( (string) wp_json_encode( \OdooWooPortal\Cards\Mappings::config( $card ) ), false ),
+			);
+		}
+
+		$reads = array(
+			// Payment: views.py:803-815 (bare list), 1992-1996, 2012-2016, 2037-2048.
+			'woo_payment_methods'        => array( 'woocommerce-payment-methods', 200, array( array( 'id' => 'bacs', 'title' => 'Direct bank transfer' ), array( 'id' => 'cod', 'title' => 'Cash on delivery' ) ) ),
+			'odoo_journals'              => array( 'odoo-journals', 200, array( array( 'id' => 8, 'name' => 'Bank' ), array( 'id' => 9, 'name' => 'Cash' ) ) ), // 849.
+			'odoo_journals_empty'        => array( 'odoo-journals', 200, array() ),
+			'saved_woo_payment_methods'  => array( 'saved-woocommerce-payment-methods', 200, array( array( 'method_id' => 'bacs', 'title' => 'Direct bank transfer' ) ) ),
+			'saved_odoo_journals'        => array( 'saved-odoo-journals', 200, array( array( 'journal_id' => 8, 'name' => 'Bank' ) ) ),
+			'woo_not_configured'         => array( 'woocommerce-payment-methods', 400, array( 'code' => 'woocommerce_not_configured', 'message' => 'Save your WooCommerce connection settings first.' ) ), // 111, 136-143.
+			// Tax: 2422-2426 and 2457 (classes), 2587-2591 (stored), 2556-2566 (fetch and store), 2535 (204).
+			'woo_tax_classes'            => array( 'woo-tax-classes', 200, array( array( 'label' => 'Standard rate', 'value' => 'standard' ), array( 'label' => 'Reduced rate', 'value' => 'reduced-rate' ), array( 'label' => 'Zero rate', 'value' => 'zero-rate' ) ) ),
+			'stored_odoo_taxes'          => array( 'stored-odoo-taxes', 200, array( array( 'id' => 3, 'name' => '21% VAT sales', 'type_tax_use' => 'sale' ), array( 'id' => 4, 'name' => '21% VAT purchases', 'type_tax_use' => 'purchase' ), array( 'id' => 5, 'name' => '0% VAT sales', 'type_tax_use' => 'sale' ), array( 'id' => 6, 'name' => '0% VAT purchases', 'type_tax_use' => 'purchase' ) ) ),
+			'odoo_taxes_fetched'         => array( 'fetch-and-store-odoo-taxes', 200, array( array( 'id' => 3, 'name' => '21% VAT sales', 'rate' => 21.0, 'type_tax_use' => 'sale' ), array( 'id' => 4, 'name' => '21% VAT purchases', 'rate' => 21.0, 'type_tax_use' => 'purchase' ) ) ),
+			'odoo_taxes_fetched_empty'   => array( 'fetch-and-store-odoo-taxes', 204, array( 'message' => 'No tax records found in Odoo.' ) ),
+			// Stock: 1861-1871 (rows), 1972-1976 (locations).
+			'odoo_stock_locations'       => array( 'odoo-stock-locations', 200, array( 'locations' => array( array( 'id' => 12, 'name' => 'WH/Stock' ), array( 'id' => 15, 'name' => 'WH/Stock/Shelf 1' ) ) ) ),
+			'stock_mappings_list'        => array( 'stock-mappings', 200, array( 'mappings' => array( array( 'id' => 1, 'odoo_location_id' => 12, 'odoo_location_name' => 'WH/Stock', 'quantity_setting' => 'available', 'target_field' => 'stock_quantity', 'target_meta_key' => '' ), array( 'id' => 2, 'odoo_location_id' => 15, 'odoo_location_name' => 'WH/Stock/Shelf 1', 'quantity_setting' => 'on_hand', 'target_field' => 'meta', 'target_meta_key' => 'shelf_stock' ) ) ) ),
+			// Order routes and order pricelists: 1944-1948, 1088-1097, 1157-1166.
+			'odoo_routes'                => array( 'odoo-routes', 200, array( 'routes' => array( array( 'id' => 2, 'name' => 'Dropship' ), array( 'id' => 3, 'name' => 'Buy' ) ) ) ),
+			'odoo_routes_empty'          => array( 'odoo-routes', 200, array( 'routes' => array() ) ),
+			'order_route_mappings_list'  => array( 'order-route-mappings', 200, array( 'mappings' => array( array( 'id' => 1, 'meta_key' => 'source', 'meta_value' => 'pos', 'odoo_route_id' => 2, 'odoo_route_name' => 'Dropship' ) ) ) ),
+			'order_pricelist_mappings_list' => array( 'order-pricelist-mappings', 200, array( 'mappings' => array( array( 'id' => 1, 'meta_key' => 'customer_type', 'meta_value' => 'wholesale', 'odoo_pricelist_id' => 6, 'odoo_pricelist_name' => 'Retail DKK' ) ) ) ),
+			// Price rows, one of each source: 954-966.
+			'price_mappings_two_rows'    => array( 'price-mappings', 200, array( 'mappings' => array( array( 'id' => 1, 'source' => 'list_price', 'odoo_pricelist_id' => null, 'odoo_pricelist_name' => '', 'target_field' => 'regular_price', 'target_meta_key' => '', 'tax_treatment' => 'as_is', 'require_explicit_rule' => false ), array( 'id' => 2, 'source' => 'pricelist', 'odoo_pricelist_id' => 6, 'odoo_pricelist_name' => 'Retail DKK', 'target_field' => 'meta', 'target_meta_key' => '_wholesale_price', 'tax_treatment' => 'add_tax', 'require_explicit_rule' => true ) ) ) ),
+		);
+
+		foreach ( $reads as $name => list( $route, $status, $body ) ) {
+			$l = $this->fresh();
+			$this->fake_django( fn() => array( $status, $body ) );
+			$method = 'fetch-and-store-odoo-taxes' === $route ? 'POST' : 'GET';
+			$this->keep( $name, $this->rest( $method, $u( $l, $route ) ) );
+		}
+
+		$refusals = array(
+			// Payment: 2085, 2064-2067. Tax: 2380. Price: 1006, 995-996. Stock: 1900. Route: 1119. Pricelist: 1188.
+			'payment_save_duplicate'     => array( 'payment-method-mappings', array( array( 'woocommerce_payment_method' => 'bacs', 'odoo_journal_id' => 8 ), array( 'woocommerce_payment_method' => 'bacs', 'odoo_journal_id' => 9 ) ), 'invalid_value', "WooCommerce payment method 'bacs' is duplicated.", 'woocommerce_payment_method' ),
+			'payment_save_no_journal'    => array( 'payment-method-mappings', array( array( 'woocommerce_payment_method' => 'bacs', 'odoo_journal_id' => 0 ) ), 'invalid_value', 'Choose an Odoo journal for every payment method.', 'odoo_journal_id' ),
+			'tax_save_no_tax'            => array( 'tax-mappings', array( array( 'woocommerce_tax_class' => 'standard', 'odoo_customer_tax_id' => 3 ) ), 'invalid_value', 'Choose an Odoo tax for every tax class.', 'odoo_supplier_tax_id' ),
+			'price_save_duplicate'       => array( 'price-mappings', array( array( 'source' => 'list_price', 'target_field' => 'regular_price' ), array( 'source' => 'list_price', 'target_field' => 'regular_price' ) ), 'invalid_value', "Two mappings both write 'regular_price'. Each target takes one.", 'target_field' ),
+			'price_save_no_pricelist'    => array( 'price-mappings', array( array( 'source' => 'pricelist', 'target_field' => 'regular_price' ) ), 'invalid_value', 'A pricelist source needs an Odoo pricelist selected.', 'odoo_pricelist_id' ),
+			'stock_save_duplicate'       => array( 'stock-mappings', array( array( 'odoo_location_id' => 12 ), array( 'odoo_location_id' => 15 ) ), 'invalid_value', "Two mappings both write 'stock_quantity'. Each target takes one.", 'target_field' ),
+			'order_route_save_duplicate' => array( 'order-route-mappings', array( array( 'meta_key' => 'source', 'meta_value' => 'pos', 'odoo_route_id' => 2 ), array( 'meta_key' => 'source', 'meta_value' => 'pos', 'odoo_route_id' => 3 ) ), 'invalid_value', 'Two rules both match source=pos. Each pair takes one route.', 'meta_value' ),
+			'order_pricelist_save_duplicate' => array( 'order-pricelist-mappings', array( array( 'meta_key' => 'k', 'meta_value' => 'v', 'odoo_pricelist_id' => 5 ), array( 'meta_key' => 'k', 'meta_value' => 'v', 'odoo_pricelist_id' => 6 ) ), 'invalid_value', 'Two rules both match k=v. Each pair takes one pricelist.', 'meta_value' ),
+		);
+
+		foreach ( $refusals as $name => list( $route, $items, $code, $message, $field ) ) {
+			$l = $this->fresh();
+			$this->fake_django( fn() => array( 400, array( 'code' => $code, 'message' => $message, 'field' => $field ) ) );
+			$this->keep( $name, $this->rest( 'PUT', $u( $l, $route ), array( 'items' => $items ) ) );
+		}
+
+		$saves = array(
+			// Payment 2106, tax 2408, price 1036, stock 1920, route 1138, pricelist 1207.
+			'payment_save_success'        => array( 'payment-method-mappings', array( 'message' => 'Payment method mappings updated successfully.' ) ),
+			'tax_save_success'            => array( 'tax-mappings', array( 'status' => 'success' ) ),
+			'price_save_success'          => array( 'price-mappings', array( 'message' => 'Saved 2 price mapping(s).' ) ),
+			'stock_save_success'          => array( 'stock-mappings', array( 'message' => 'Saved 1 stock mapping(s).' ) ),
+			'order_route_save_success'    => array( 'order-route-mappings', array( 'message' => 'Saved 1 order route mapping(s).' ) ),
+			'order_pricelist_save_success' => array( 'order-pricelist-mappings', array( 'message' => 'Saved 1 order pricelist mapping(s).' ) ),
+		);
+
+		foreach ( $saves as $name => list( $route, $body ) ) {
+			$l = $this->fresh();
+			$this->fake_django( fn() => array( 200, $body ) );
+			$this->keep( $name, $this->rest( 'PUT', $u( $l, $route ), array( 'items' => array() ) ) );
+		}
+	}
+
 	public function test_browser_fixtures_match_the_real_routes(): void {
 		$l = $this->odoowoo_license();
 		$this->as_user( (int) $l['user_id'] );
@@ -298,6 +380,7 @@ final class BrowserFixturesTest extends RestTestCase {
 
 		$this->connection_fixtures();
 		$this->odoo_settings_fixtures();
+		$this->mapping_fixtures();
 
 		// GET /licenses: the real summary of a ready, a paused and a getting-ready license (Routes::license_summary).
 		foreach ( array( 'ready' => 'ready', 'paused' => 'paused', 'getting_ready' => 'provisioning' ) as $label => $resource_state ) {

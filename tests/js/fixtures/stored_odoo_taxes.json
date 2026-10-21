@@ -1,0 +1,30 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "id": 3,
+                    "name": "21% VAT sales",
+                    "type_tax_use": "sale"
+                },
+                {
+                    "id": 4,
+                    "name": "21% VAT purchases",
+                    "type_tax_use": "purchase"
+                },
+                {
+                    "id": 5,
+                    "name": "0% VAT sales",
+                    "type_tax_use": "sale"
+                },
+                {
+                    "id": 6,
+                    "name": "0% VAT purchases",
+                    "type_tax_use": "purchase"
+                }
+            ]
+        }
+    }
+}

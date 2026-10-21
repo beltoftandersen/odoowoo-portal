@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "Choose an Odoo journal for every payment method.",
+        "field": "odoo_journal_id"
+    }
+}

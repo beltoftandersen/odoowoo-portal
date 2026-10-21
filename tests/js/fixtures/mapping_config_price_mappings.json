@@ -1,0 +1,126 @@
+{
+    "status": 200,
+    "body": {
+        "route": "price-mappings",
+        "columns": [
+            {
+                "key": "source",
+                "label": "Price source",
+                "type": "select",
+                "options": [
+                    {
+                        "value": "list_price",
+                        "label": "Product sales price"
+                    },
+                    {
+                        "value": "pricelist",
+                        "label": "Pricelist"
+                    }
+                ],
+                "default": "list_price",
+                "required": true,
+                "missing": "choose a value."
+            },
+            {
+                "key": "odoo_pricelist_id",
+                "label": "Odoo pricelist",
+                "type": "select",
+                "numeric": true,
+                "source": {
+                    "route": "odoo-pricelists",
+                    "idKey": "id",
+                    "nameKey": "name"
+                },
+                "required": true,
+                "missing": "choose a pricelist.",
+                "nameField": "odoo_pricelist_name",
+                "showWhen": {
+                    "key": "source",
+                    "in": [
+                        "pricelist"
+                    ]
+                }
+            },
+            {
+                "key": "target_field",
+                "label": "Write to",
+                "type": "select",
+                "options": [
+                    {
+                        "value": "regular_price",
+                        "label": "Regular price"
+                    },
+                    {
+                        "value": "sale_price",
+                        "label": "Sale price"
+                    },
+                    {
+                        "value": "meta",
+                        "label": "Product meta field"
+                    }
+                ],
+                "default": "regular_price",
+                "required": true,
+                "missing": "choose a value."
+            },
+            {
+                "key": "target_meta_key",
+                "label": "Meta key",
+                "type": "text",
+                "required": true,
+                "missing": "enter the meta key to write.",
+                "showWhen": {
+                    "key": "target_field",
+                    "in": [
+                        "meta"
+                    ]
+                }
+            },
+            {
+                "key": "tax_treatment",
+                "label": "Tax",
+                "type": "select",
+                "options": [
+                    {
+                        "value": "as_is",
+                        "label": "Send as is"
+                    },
+                    {
+                        "value": "add_tax",
+                        "label": "Add the product tax"
+                    },
+                    {
+                        "value": "subtract_tax",
+                        "label": "Subtract the product tax"
+                    }
+                ],
+                "default": "as_is",
+                "required": true,
+                "missing": "choose a value."
+            },
+            {
+                "key": "require_explicit_rule",
+                "label": "Only products with their own pricelist rule",
+                "hint": "A pricelist with no rule for a product falls back to its sales price. Tick this to leave such products alone.",
+                "type": "checkbox",
+                "required": false
+            }
+        ],
+        "loaders": [
+            {
+                "label": "Load from Odoo",
+                "route": "odoo-pricelists",
+                "method": "GET",
+                "writes": false,
+                "empty": "Odoo returned no pricelists."
+            }
+        ],
+        "saved": [],
+        "unique": [
+            [
+                "target_field",
+                "target_meta_key"
+            ]
+        ]
+    }
+}

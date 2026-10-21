@@ -1,0 +1,26 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "id": 1,
+                    "odoo_location_id": 12,
+                    "odoo_location_name": "WH/Stock",
+                    "quantity_setting": "available",
+                    "target_field": "stock_quantity",
+                    "target_meta_key": ""
+                },
+                {
+                    "id": 2,
+                    "odoo_location_id": 15,
+                    "odoo_location_name": "WH/Stock/Shelf 1",
+                    "quantity_setting": "on_hand",
+                    "target_field": "meta",
+                    "target_meta_key": "shelf_stock"
+                }
+            ]
+        }
+    }
+}

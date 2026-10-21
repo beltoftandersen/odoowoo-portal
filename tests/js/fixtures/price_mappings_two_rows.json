@@ -1,0 +1,30 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "id": 1,
+                    "source": "list_price",
+                    "odoo_pricelist_id": null,
+                    "odoo_pricelist_name": "",
+                    "target_field": "regular_price",
+                    "target_meta_key": "",
+                    "tax_treatment": "as_is",
+                    "require_explicit_rule": false
+                },
+                {
+                    "id": 2,
+                    "source": "pricelist",
+                    "odoo_pricelist_id": 6,
+                    "odoo_pricelist_name": "Retail DKK",
+                    "target_field": "meta",
+                    "target_meta_key": "_wholesale_price",
+                    "tax_treatment": "add_tax",
+                    "require_explicit_rule": true
+                }
+            ]
+        }
+    }
+}

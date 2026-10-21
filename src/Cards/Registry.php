@@ -68,6 +68,13 @@ final class Registry {
 		$cards['odoo-settings']['strings']    = self::odoo_settings_strings();
 		$cards['odoo-settings']['requires']   = array( 'odoowoo-deps' );
 
+		foreach ( Mappings::CARDS as $mapping_card ) {
+			$cards[ $mapping_card ]['script']   = 'assets/js/card-mappings.js';
+			$cards[ $mapping_card ]['requires'] = array( 'odoowoo-mapping-editor' );
+			$cards[ $mapping_card ]['keys']     = Mappings::keys( $mapping_card );
+			$cards[ $mapping_card ]['strings']  = Mappings::strings();
+		}
+
 		/**
 		 * Filters the cards (name => title, template, script, keys, strings).
 		 *

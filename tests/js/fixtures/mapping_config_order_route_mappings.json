@@ -1,0 +1,52 @@
+{
+    "status": 200,
+    "body": {
+        "route": "order-route-mappings",
+        "columns": [
+            {
+                "key": "meta_key",
+                "label": "Order meta key",
+                "type": "text",
+                "required": true,
+                "missing": "enter the meta key."
+            },
+            {
+                "key": "meta_value",
+                "label": "Order meta value",
+                "type": "text",
+                "required": true,
+                "missing": "enter the meta value."
+            },
+            {
+                "key": "odoo_route_id",
+                "label": "Odoo route",
+                "type": "select",
+                "numeric": true,
+                "source": {
+                    "route": "odoo-routes",
+                    "idKey": "id",
+                    "nameKey": "name"
+                },
+                "required": true,
+                "missing": "choose a route.",
+                "nameField": "odoo_route_name"
+            }
+        ],
+        "loaders": [
+            {
+                "label": "Load from Odoo",
+                "route": "odoo-routes",
+                "method": "GET",
+                "writes": false,
+                "empty": "Odoo returned no routes."
+            }
+        ],
+        "saved": [],
+        "unique": [
+            [
+                "meta_key",
+                "meta_value"
+            ]
+        ]
+    }
+}

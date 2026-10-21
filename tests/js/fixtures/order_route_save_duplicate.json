@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "Two rules both match source=pos. Each pair takes one route.",
+        "field": "meta_value"
+    }
+}

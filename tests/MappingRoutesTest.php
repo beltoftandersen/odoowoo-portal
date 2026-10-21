@@ -438,6 +438,26 @@ final class MappingRoutesTest extends RestTestCase {
 		$this->assertSame( array( 'items' => $expected ), $res->get_data()['data'] );
 	}
 
+	/**
+	 * The three Odoo pickers reach the browser as {items: [...]} and nothing else; an empty, odd or
+	 * unwrapped body is an empty list (sync_app/views.py:1068, 1948, 1976 wrap their lists).
+	 */
+	public function test_odoo_pickers_are_shaped_to_items(): void {
+		$cases = array(
+			'odoo-pricelists'      => array( 'pricelists', array( 'id' => 5, 'name' => 'Public', 'currency' => 'EUR', 'internal' => 'x' ), array( 'id' => 5, 'name' => 'Public', 'currency' => 'EUR' ) ),
+			'odoo-routes'          => array( 'routes', array( 'id' => 2, 'name' => 'Dropship', 'internal' => 'x' ), array( 'id' => 2, 'name' => 'Dropship' ) ),
+			'odoo-stock-locations' => array( 'locations', array( 'id' => 12, 'name' => 'WH/Stock', 'internal' => 'x' ), array( 'id' => 12, 'name' => 'WH/Stock' ) ),
+		);
+
+		foreach ( $cases as $key => list( $wrap, $row, $shown ) ) {
+			$this->assertSame( array( 'items' => array( $shown ) ), Map::shape( $key, 'GET', array( $wrap => array( $row ) ) ), $key );
+			$this->assertSame( array( 'items' => array() ), Map::shape( $key, 'GET', array( $wrap => array() ) ), $key . ' empty' );
+			$this->assertSame( array( 'items' => array() ), Map::shape( $key, 'GET', array() ), $key . ' no body' );
+			$this->assertSame( array( 'items' => array() ), Map::shape( $key, 'GET', array( $wrap => 'x' ) ), $key . ' odd' );
+			$this->assertSame( array( 'items' => array() ), Map::shape( $key, 'GET', array( 'mappings' => array( $row ) ) ), $key . ' wrong key' );
+		}
+	}
+
 	public function test_a_bare_list_is_not_accepted_where_django_wraps_the_list(): void {
 		$this->assertSame( array( 'items' => array() ), Map::shape( 'odoo-pricelists', 'GET', array( array( 'id' => 5, 'name' => 'x', 'currency' => 'EUR' ) ) ) );
 		$this->assertSame( array( 'items' => array() ), Map::shape( 'stock-mappings', 'GET', array( array( 'id' => 1 ) ) ) );

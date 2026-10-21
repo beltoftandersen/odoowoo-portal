@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "Choose an Odoo tax for every tax class.",
+        "field": "odoo_supplier_tax_id"
+    }
+}

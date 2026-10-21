@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "Two mappings both write 'regular_price'. Each target takes one.",
+        "field": "target_field"
+    }
+}

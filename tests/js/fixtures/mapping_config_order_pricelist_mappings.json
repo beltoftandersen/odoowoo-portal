@@ -1,0 +1,52 @@
+{
+    "status": 200,
+    "body": {
+        "route": "order-pricelist-mappings",
+        "columns": [
+            {
+                "key": "meta_key",
+                "label": "Order meta key",
+                "type": "text",
+                "required": true,
+                "missing": "enter the meta key."
+            },
+            {
+                "key": "meta_value",
+                "label": "Order meta value",
+                "type": "text",
+                "required": true,
+                "missing": "enter the meta value."
+            },
+            {
+                "key": "odoo_pricelist_id",
+                "label": "Odoo pricelist",
+                "type": "select",
+                "numeric": true,
+                "source": {
+                    "route": "odoo-pricelists",
+                    "idKey": "id",
+                    "nameKey": "name"
+                },
+                "required": true,
+                "missing": "choose a pricelist.",
+                "nameField": "odoo_pricelist_name"
+            }
+        ],
+        "loaders": [
+            {
+                "label": "Load from Odoo",
+                "route": "odoo-pricelists",
+                "method": "GET",
+                "writes": false,
+                "empty": "Odoo returned no pricelists."
+            }
+        ],
+        "saved": [],
+        "unique": [
+            [
+                "meta_key",
+                "meta_value"
+            ]
+        ]
+    }
+}

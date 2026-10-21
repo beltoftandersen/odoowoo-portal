@@ -1,0 +1,79 @@
+{
+    "status": 200,
+    "body": {
+        "route": "payment-method-mappings",
+        "columns": [
+            {
+                "key": "woocommerce_payment_method",
+                "label": "WooCommerce payment method",
+                "type": "select",
+                "numeric": false,
+                "source": {
+                    "route": "woocommerce-payment-methods",
+                    "idKey": "id",
+                    "nameKey": "title"
+                },
+                "required": true,
+                "missing": "choose a payment method.",
+                "nameField": "woocommerce_payment_method_name"
+            },
+            {
+                "key": "odoo_journal_id",
+                "label": "Odoo journal",
+                "type": "select",
+                "numeric": true,
+                "source": {
+                    "route": "odoo-journals",
+                    "idKey": "id",
+                    "nameKey": "name"
+                },
+                "required": true,
+                "missing": "choose a journal.",
+                "nameField": "odoo_journal_name"
+            },
+            {
+                "key": "payment_ref_meta_keys",
+                "label": "Payment reference meta keys",
+                "hint": "Order meta keys, separated by commas. At most 500 characters.",
+                "type": "text",
+                "maxLength": 500,
+                "required": false
+            }
+        ],
+        "loaders": [
+            {
+                "label": "Load from Woo",
+                "route": "woocommerce-payment-methods",
+                "method": "GET",
+                "writes": true,
+                "empty": "WooCommerce returned no payment methods."
+            },
+            {
+                "label": "Load from Odoo",
+                "route": "odoo-journals",
+                "method": "GET",
+                "writes": true,
+                "empty": "Odoo returned no journals."
+            }
+        ],
+        "saved": [
+            {
+                "route": "saved-woocommerce-payment-methods",
+                "idKey": "method_id",
+                "nameKey": "title",
+                "into": "woocommerce-payment-methods"
+            },
+            {
+                "route": "saved-odoo-journals",
+                "idKey": "journal_id",
+                "nameKey": "name",
+                "into": "odoo-journals"
+            }
+        ],
+        "unique": [
+            [
+                "woocommerce_payment_method"
+            ]
+        ]
+    }
+}

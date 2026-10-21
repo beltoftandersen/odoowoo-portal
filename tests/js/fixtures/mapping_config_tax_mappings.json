@@ -1,0 +1,83 @@
+{
+    "status": 200,
+    "body": {
+        "route": "tax-mappings",
+        "columns": [
+            {
+                "key": "woocommerce_tax_class",
+                "label": "WooCommerce tax class",
+                "type": "select",
+                "numeric": false,
+                "source": {
+                    "route": "woo-tax-classes",
+                    "idKey": "value",
+                    "nameKey": "label"
+                },
+                "required": true,
+                "missing": "choose a tax class."
+            },
+            {
+                "key": "odoo_customer_tax_id",
+                "label": "Odoo customer tax",
+                "type": "select",
+                "numeric": true,
+                "source": {
+                    "route": "stored-odoo-taxes",
+                    "idKey": "id",
+                    "nameKey": "name",
+                    "filter": {
+                        "type_tax_use": "sale"
+                    }
+                },
+                "required": true,
+                "missing": "choose a customer tax."
+            },
+            {
+                "key": "odoo_supplier_tax_id",
+                "label": "Odoo supplier tax",
+                "type": "select",
+                "numeric": true,
+                "source": {
+                    "route": "stored-odoo-taxes",
+                    "idKey": "id",
+                    "nameKey": "name",
+                    "filter": {
+                        "type_tax_use": "purchase"
+                    }
+                },
+                "required": true,
+                "missing": "choose a supplier tax."
+            }
+        ],
+        "loaders": [
+            {
+                "label": "Load from Woo",
+                "route": "woo-tax-classes",
+                "method": "GET",
+                "writes": false,
+                "empty": "WooCommerce returned no tax classes."
+            },
+            {
+                "label": "Load from Odoo",
+                "route": "fetch-and-store-odoo-taxes",
+                "method": "POST",
+                "writes": true,
+                "empty": "Odoo returned no taxes.",
+                "into": "stored-odoo-taxes"
+            }
+        ],
+        "saved": [
+            {
+                "route": "stored-odoo-taxes",
+                "idKey": "id",
+                "nameKey": "name",
+                "into": "stored-odoo-taxes"
+            }
+        ],
+        "unique": [
+            [
+                "woocommerce_tax_class"
+            ]
+        ]
+    }
+}

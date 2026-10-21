@@ -1,0 +1,17 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "id": 1,
+                    "meta_key": "customer_type",
+                    "meta_value": "wholesale",
+                    "odoo_pricelist_id": 6,
+                    "odoo_pricelist_name": "Retail DKK"
+                }
+            ]
+        }
+    }
+}

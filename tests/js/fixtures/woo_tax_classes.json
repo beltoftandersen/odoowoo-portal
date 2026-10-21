@@ -1,0 +1,22 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "label": "Standard rate",
+                    "value": "standard"
+                },
+                {
+                    "label": "Reduced rate",
+                    "value": "reduced-rate"
+                },
+                {
+                    "label": "Zero rate",
+                    "value": "zero-rate"
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "status": 200,
+    "body": {
+        "ok": true,
+        "data": {
+            "items": [
+                {
+                    "journal_id": 8,
+                    "name": "Bank"
+                }
+            ]
+        }
+    }
+}

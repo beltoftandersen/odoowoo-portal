@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "WooCommerce payment method 'bacs' is duplicated.",
+        "field": "woocommerce_payment_method"
+    }
+}

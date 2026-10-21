@@ -72,6 +72,10 @@ final class Renderer {
 			wp_register_script( 'odoowoo-deps', $url . 'assets/js/deps.js', array( 'odoowoo-core' ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
 		}
 
+		if ( ! wp_script_is( 'odoowoo-mapping-editor', 'registered' ) ) {
+			wp_register_script( 'odoowoo-mapping-editor', $url . 'assets/js/mapping-editor.js', array( 'odoowoo-core' ), ODOOWOO_PORTAL_VERSION, array( 'in_footer' => true ) );
+		}
+
 		if ( ! wp_style_is( 'odoowoo', 'registered' ) ) {
 			wp_register_style( 'odoowoo', $url . 'assets/css/odoowoo.css', array(), ODOOWOO_PORTAL_VERSION );
 		}
@@ -315,6 +319,14 @@ final class Renderer {
 			return array(
 				'data-can-write'  => $ctx->can_write() ? '1' : '0',
 				'data-can-verify' => 'owner' === $ctx->mode() && $ctx->calls_allowed() ? '1' : '0',
+			);
+		}
+
+		if ( Mappings::is_card( $card ) ) {
+			// Reads need a ready or paused tenant; writing (Save and the loaders that rewrite rows) needs the owner of an active one.
+			return array(
+				'data-can-write' => $ctx->can_write() ? '1' : '0',
+				'data-can-read'  => $ctx->calls_allowed() ? '1' : '0',
 			);
 		}
 

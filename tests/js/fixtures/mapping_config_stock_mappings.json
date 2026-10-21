@@ -1,0 +1,91 @@
+{
+    "status": 200,
+    "body": {
+        "route": "stock-mappings",
+        "columns": [
+            {
+                "key": "odoo_location_id",
+                "label": "Odoo location",
+                "type": "select",
+                "numeric": true,
+                "source": {
+                    "route": "odoo-stock-locations",
+                    "idKey": "id",
+                    "nameKey": "name"
+                },
+                "required": true,
+                "missing": "choose a location.",
+                "nameField": "odoo_location_name"
+            },
+            {
+                "key": "quantity_setting",
+                "label": "Quantity",
+                "type": "select",
+                "options": [
+                    {
+                        "value": "on_hand",
+                        "label": "On hand"
+                    },
+                    {
+                        "value": "forecast",
+                        "label": "Forecast"
+                    },
+                    {
+                        "value": "available",
+                        "label": "Available"
+                    }
+                ],
+                "default": "available",
+                "required": true,
+                "missing": "choose a value."
+            },
+            {
+                "key": "target_field",
+                "label": "Write to",
+                "type": "select",
+                "options": [
+                    {
+                        "value": "stock_quantity",
+                        "label": "Stock quantity"
+                    },
+                    {
+                        "value": "meta",
+                        "label": "Product meta field"
+                    }
+                ],
+                "default": "stock_quantity",
+                "required": true,
+                "missing": "choose a value."
+            },
+            {
+                "key": "target_meta_key",
+                "label": "Meta key",
+                "type": "text",
+                "required": true,
+                "missing": "enter the meta key to write.",
+                "showWhen": {
+                    "key": "target_field",
+                    "in": [
+                        "meta"
+                    ]
+                }
+            }
+        ],
+        "loaders": [
+            {
+                "label": "Load from Odoo",
+                "route": "odoo-stock-locations",
+                "method": "GET",
+                "writes": false,
+                "empty": "Odoo returned no stock locations."
+            }
+        ],
+        "saved": [],
+        "unique": [
+            [
+                "target_field",
+                "target_meta_key"
+            ]
+        ]
+    }
+}

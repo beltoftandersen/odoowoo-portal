@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "Two rules both match k=v. Each pair takes one pricelist.",
+        "field": "meta_value"
+    }
+}

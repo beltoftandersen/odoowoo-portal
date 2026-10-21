@@ -1,0 +1,9 @@
+{
+    "status": 400,
+    "body": {
+        "ok": false,
+        "code": "invalid_value",
+        "message": "A pricelist source needs an Odoo pricelist selected.",
+        "field": "odoo_pricelist_id"
+    }
+}
