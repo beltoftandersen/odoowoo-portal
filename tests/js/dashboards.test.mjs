@@ -361,3 +361,19 @@ test( 'test_real_ready_summary_through_the_view_model', () => {
 	assert.equal( g.dashboards[ 0 ].name, 'Shop' );
 	assert.equal( g.dashboards[ 0 ].canPause, true );
 } );
+
+test( 'test_not_found_dashboard_hides_the_tabs_with_the_forms', () => {
+	// Task 18 walk: with another license's (or a made-up) dashboard id the tabs and their forms stayed
+	// visible next to "not found". Only a Tabs element that holds one of our cards is hidden.
+	const ours = { style: {}, hidden: false, querySelector: ( s ) => ( s === '.odoowoo-card' ? {} : null ) };
+	const other = { style: {}, hidden: false, querySelector: () => null };
+	const doc = { querySelectorAll: ( s ) => ( s === '.brxe-tabs-nested' ? [ ours, other ] : [] ) };
+
+	assert.equal( typeof header.hideDashboardTabs, 'function' );
+	header.hideDashboardTabs( doc );
+
+	assert.equal( ours.hidden, true );
+	assert.equal( ours.style.display, 'none' );
+	assert.equal( other.hidden, false );
+	assert.equal( other.style.display, undefined );
+} );

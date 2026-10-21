@@ -57,6 +57,16 @@
 		return { notFound: false, heading: t( 'headerError' ), message: core.errorText( r ), retry: true };
 	}
 
+	/** A dashboard that is not there has no forms: hide the Tabs element that holds our cards. */
+	function hideDashboardTabs( doc ) {
+		Array.prototype.forEach.call( doc.querySelectorAll( '.brxe-tabs-nested' ), function ( tabs ) {
+			if ( tabs.querySelector( '.odoowoo-card' ) ) {
+				tabs.hidden = true;
+				tabs.style.display = 'none';
+			}
+		} );
+	}
+
 	function path( licenseId, dashboardId ) {
 		return 'licenses/' + encodeURIComponent( String( licenseId ) ) + '/dashboards/' + encodeURIComponent( String( dashboardId ) );
 	}
@@ -171,6 +181,7 @@
 
 		if ( dashboardId <= 0 ) {
 			nameEl.textContent = t( 'notFound' );
+			hideDashboardTabs( window.document );
 			return;
 		}
 
@@ -192,6 +203,10 @@
 				renameBtn.hidden = true;
 				core.status( statusEl, 'error', f.message );
 
+				if ( f.notFound ) {
+					hideDashboardTabs( window.document );
+				}
+
 				if ( f.retry ) {
 					retryBtn = el( 'button', 'odoowoo-button odoowoo-button--secondary odoowoo-retry', t( 'retry' ) );
 					retryBtn.type = 'button';
@@ -210,7 +225,7 @@
 		core.whenVisible( root, load );
 	}
 
-	var api_ = { renameBody: renameBody, headerView: headerView, headerFailure: headerFailure, rename: rename };
+	var api_ = { renameBody: renameBody, headerView: headerView, headerFailure: headerFailure, hideDashboardTabs: hideDashboardTabs, rename: rename };
 
 	if ( typeof module !== 'undefined' && module.exports ) {
 		module.exports = api_;

@@ -97,7 +97,7 @@ final class Conditions {
 			return $render_set;
 		}
 
-		$has     = array() !== Context::licenses_for_user( get_current_user_id() );
+		$has     = DynamicData::has_plan( get_current_user_id() );
 		$wanted  = isset( $condition['value'] ) && filter_var( $condition['value'], FILTER_VALIDATE_BOOLEAN );
 		$compare = isset( $condition['compare'] ) ? $condition['compare'] : '==';
 

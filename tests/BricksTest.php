@@ -18,6 +18,7 @@ use OdooWooPortal\Cards\Registry;
 use OdooWooPortal\Cards\Renderer;
 use OdooWooPortal\Context;
 use OdooWooPortal\Plugin;
+use OdooWooPortal\Support;
 use OdooWooPortal\Tabs;
 
 require_once __DIR__ . '/Support/BricksStub.php';
@@ -676,5 +677,56 @@ final class BricksTest extends RestTestCase {
 
 		$this->assertSame( array( 'user_logged_in', 'user_id', 'odoowoo_has_plan' ), $keys );
 		$this->assertSame( $keys, apply_filters( 'bricks/abilities/element_conditions/allowed_keys', $keys ), 'Not added twice.' );
+	}
+
+	public function test_card_labels_have_their_own_readable_colour(): void {
+		// Task 18 walk: the site's own label style rendered them #9e9e9e (about 2.7:1 on white).
+		$css = (string) file_get_contents( ODOOWOO_PORTAL_PATH . 'assets/css/odoowoo.css' );
+
+		$this->assertMatchesRegularExpression( '/\.odoowoo-card label\s*\{[^}]*color:\s*var\(--odoowoo-text\)/', $css );
+		$this->assertMatchesRegularExpression( '/\.odoowoo-tip-button\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center[^}]*justify-content:\s*center/', $css );
+	}
+
+	public function test_has_plan_is_true_for_a_support_viewer_of_the_license_in_the_url(): void {
+		// Task 18 walk: "View as support" lands on the list page; support owns no license, so the
+		// list was hidden and the upsell shown.
+		$license = $this->odoowoo_license();
+		$other   = $this->odoowoo_license();
+		$admin   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		get_userdata( $admin )->add_cap( 'manage_woocommerce' );
+		$this->as_user( $admin );
+
+		$_GET = array( 'license' => (string) $license['id'] );
+		$this->assertSame( '', $this->tag( 'odoowoo_has_plan' ), 'No support session yet.' );
+
+		Support::grant( $admin, (int) $license['id'] );
+		Context::reset();
+		$this->assertSame( '1', $this->tag( 'odoowoo_has_plan' ) );
+
+		$_GET = array( 'license' => (string) $other['id'] );
+		Context::reset();
+		$this->assertSame( '', $this->tag( 'odoowoo_has_plan' ), 'The session is for one license only.' );
+
+		$_GET = array();
+		Context::reset();
+		$this->assertSame( '', $this->tag( 'odoowoo_has_plan' ), 'A session needs the license named in the URL.' );
+	}
+
+	public function test_condition_true_for_a_support_viewer_of_the_license_in_the_url(): void {
+		// Task 18 walk: the page conditions use this filter, not the tag, so support saw the upsell.
+		$license = $this->odoowoo_license();
+		$admin   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		get_userdata( $admin )->add_cap( 'manage_woocommerce' );
+		$this->as_user( $admin );
+		Support::grant( $admin, (int) $license['id'] );
+
+		$_GET = array( 'license' => (string) $license['id'] );
+		Context::reset();
+		$this->assertTrue( $this->condition( '==', true ) );
+		$this->assertFalse( $this->condition( '==', false, true ) );
+
+		$_GET = array();
+		Context::reset();
+		$this->assertFalse( $this->condition( '==', true, true ) );
 	}
 }

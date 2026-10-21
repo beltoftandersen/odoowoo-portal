@@ -114,6 +114,22 @@ final class DynamicData {
 	}
 
 	/**
+	 * Does the user have an OdooWoo plan to show: a usable license of their own, or (support, who
+	 * owns none) a running support session for the license the URL names. Shared with Conditions.
+	 *
+	 * @param int $user User id.
+	 */
+	public static function has_plan( int $user ): bool {
+		if ( array() !== Context::licenses_for_user( $user ) ) {
+			return true;
+		}
+
+		$named = Renderer::context_ids()['license'];
+
+		return $named > 0 && null !== Context::for_user( $user, $named );
+	}
+
+	/**
 	 * The value of a tag for the current viewer.
 	 *
 	 * @param string $tag Tag name.
@@ -125,12 +141,12 @@ final class DynamicData {
 			return '';
 		}
 
-		$licenses = Context::licenses_for_user( $user );
-
 		// Any usable license, as the condition: it is WordPress state, so no Django read.
 		if ( 'odoowoo_has_plan' === $tag ) {
-			return array() !== $licenses ? '1' : '';
+			return self::has_plan( $user ) ? '1' : '';
 		}
+
+		$licenses = Context::licenses_for_user( $user );
 
 		$ids = Renderer::context_ids();
 
