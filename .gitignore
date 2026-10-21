@@ -1,0 +1,4 @@
+.internal/
+CLAUDE.md
+.phpunit.result.cache
+.playwright-mcp/
