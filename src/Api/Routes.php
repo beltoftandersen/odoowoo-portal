@@ -121,7 +121,7 @@ final class Routes {
 		if ( array() !== $keys ) {
 			register_rest_route(
 				self::NAMESPACE,
-				'/licenses/(?P<license>\d+)/dashboards/(?P<dashboard>\d+)/(?P<route>' . implode( '|', array_map( 'preg_quote', $keys ) ) . ')(?:/(?P<task>[A-Za-z0-9._-]+))?',
+				'/licenses/(?P<license>\d+)/dashboards/(?P<dashboard>\d+)/(?P<route>' . implode( '|', array_map( 'preg_quote', $keys ) ) . ')(?:/(?P<task>[A-Za-z0-9_-]+))?',
 				array(
 					'methods'  => \WP_REST_Server::ALLMETHODS,
 					'callback' => array( __CLASS__, 'dispatch' ),
@@ -162,6 +162,16 @@ final class Routes {
 
 		if ( $license_id <= 0 || ! isset( Map::ROUTES[ $route_key ] ) ) {
 			return self::refusal( 400, 'odoowoo_portal_bad_request', __( 'This request is not valid.', 'odoowoo-portal' ) );
+		}
+
+		$url_params = $r->get_url_params();
+
+		if ( isset( $url_params['dashboard'] ) && (int) $url_params['dashboard'] <= 0 ) {
+			return self::refusal( 400, 'odoowoo_portal_bad_request', __( 'This request is not valid.', 'odoowoo-portal' ) );
+		}
+
+		if ( null === Map::target( $route_key, $r->get_method() ) ) {
+			return self::refusal( 405, 'odoowoo_portal_bad_method', __( 'This request is not valid.', 'odoowoo-portal' ) );
 		}
 
 		$ctx = Context::for_user( $user_id, $license_id );
@@ -221,7 +231,7 @@ final class Routes {
 			return new \WP_REST_Response(
 				array(
 					'ok'   => true,
-					'data' => $r->data(),
+					'data' => array() === $r->data() ? new \stdClass() : $r->data(),
 				),
 				200
 			);
@@ -233,7 +243,8 @@ final class Routes {
 			return self::refusal( 404, 'dashboard_not_found', Messages::not_found() );
 		}
 
-		$status = $r->customer_facing() && $r->status() >= 400 && $r->status() < 600 ? $r->status() : 502;
+		// 401 and 403 mean "session expired" to the browser: Django's never do.
+		$status = $r->customer_facing() && $r->status() >= 400 && $r->status() < 600 && ! in_array( $r->status(), array( 401, 403 ), true ) ? $r->status() : 502;
 
 		return new \WP_REST_Response( array( 'ok' => false ) + $error, $status );
 	}
@@ -280,6 +291,10 @@ final class Routes {
 			if ( 'PATCH' === $target[0] && array() === $body ) {
 				return self::refusal( 400, 'odoowoo_portal_bad_request', __( 'There is nothing to change.', 'odoowoo-portal' ) );
 			}
+		}
+
+		if ( '' !== $suffix && empty( Map::ROUTES[ $key ]['task'] ) ) {
+			return self::refusal( 400, 'odoowoo_portal_bad_request', __( 'This request is not valid.', 'odoowoo-portal' ) );
 		}
 
 		$reply = Client::request( $ctx, $target[0], $target[1] . $suffix, $body );
@@ -423,7 +438,9 @@ final class Routes {
 		if ( $ctx->calls_allowed() && in_array( $entry['state'], array( 'ready', 'paused' ), true ) ) {
 			$tenant = Client::request( $ctx, 'GET', 'tenants/' . rawurlencode( $ctx->tenant() ) . '/' );
 
-			if ( $tenant->ok() ) {
+			if ( ! $tenant->ok() ) {
+				$entry['error'] = Messages::from_reply( $tenant )['message'];
+			} else {
 				$t                   = $tenant->data();
 				$entry['limit']      = isset( $t['limit'] ) && is_numeric( $t['limit'] ) ? (int) $t['limit'] : null;
 				$entry['used']       = isset( $t['used'] ) && is_numeric( $t['used'] ) ? (int) $t['used'] : null;

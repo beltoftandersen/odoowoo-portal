@@ -27,7 +27,7 @@ final class RoutesTest extends RestTestCase {
 		$this->assertSame( '/api/dashboards/create/', $call['path_and_query'] );
 		$this->assertSame( array( 'name' => 'Shop' ), json_decode( $call['body'], true ) );
 		$this->assert_signed( $call, $this->tenant( $l ) );
-		$this->assertSame( 403, $res->get_status() );
+		$this->assertSame( 502, $res->get_status() );
 		$this->assertSame( 'dashboard_limit_reached', $res->get_data()['code'] );
 	}
 
@@ -182,5 +182,69 @@ final class RoutesTest extends RestTestCase {
 		$this->assertCount( 2, $data );
 		$this->assertSame( array( 1, 1, 11 ), array( $by[ $one['id'] ]['limit'], $by[ $one['id'] ]['used'], $by[ $one['id'] ]['dashboards'][0]['id'] ) );
 		$this->assertSame( array( 5, 2, 22 ), array( $by[ $two['id'] ]['limit'], $by[ $two['id'] ]['used'], $by[ $two['id'] ]['dashboards'][0]['id'] ) );
+	}
+
+	public function test_dot_segments_and_task_suffixes_never_reach_django(): void {
+		$l = $this->odoowoo_license();
+		$this->fake_django( fn() => array( 200, array( 'x' => 1 ) ) );
+		$this->as_user( (int) $l['user_id'] );
+		$base = '/licenses/' . $l['id'] . '/dashboards/5/verify-odoo';
+
+		foreach ( array( '/..', '/.', '/%2e%2e', '/a.b', '/..%2f..' ) as $suffix ) {
+			$res = $this->rest( 'POST', $base . $suffix, array( 'odoo_url' => 'u' ) );
+			$this->assertGreaterThanOrEqual( 400, $res->get_status(), $suffix );
+		}
+
+		// A task suffix on a row that has no task path is refused.
+		$res = $this->rest( 'POST', $base . '/abc-123', array( 'odoo_url' => 'u' ) );
+		$this->assertSame( 400, $res->get_status() );
+		$this->assertCount( 0, $this->django_calls() );
+
+		// The client itself refuses odd paths.
+		$ctx = Context::for_user( (int) $l['user_id'], (int) $l['id'] );
+		foreach ( array( 'dashboards/5/../../tenants/x/', 'a/./b', 'a?x=1', 'a#f', 'a//b', 'a/%2e%2e/b', '' ) as $path ) {
+			$r = \OdooWooPortal\Django\Client::request( $ctx, 'GET', $path );
+			$this->assertFalse( $r->ok(), $path );
+		}
+		$this->assertCount( 0, $this->django_calls() );
+	}
+
+	public function test_guard_refusals_before_rate_limit_and_status_mapping(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, array() ) );
+
+		// Wrong method: 405, no slot consumed.
+		$this->assertSame( 405, $this->rest( 'GET', '/licenses/' . $l['id'] . '/dashboards/5/verify-odoo' )->get_status() );
+		$this->assertFalse( \BeltoftServices\RateLimit::exceeded( (int) $l['user_id'], 'odoowoo-portal:verify', 1 ), 'First counted call is the first.' );
+
+		// Dashboard id 0.
+		$this->assertSame( 400, $this->rest( 'GET', '/licenses/' . $l['id'] . '/dashboards/0' )->get_status() );
+		$this->assertCount( 0, $this->django_calls() );
+
+		// Django 401/403/409 with a customer error: never 401/403 to the browser.
+		foreach ( array( 401 => 401, 403 => 403, 409 => 409 ) as $django => $expect ) {
+			$this->fake_django( fn() => array( $django, array( 'code' => 'some_code', 'message' => 'Shown.' ) ) );
+			$res = $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/5', array( 'name' => 'n' ) );
+			$this->assertSame( 409 === $django ? 409 : 502, $res->get_status() );
+			$this->assertSame( 'some_code', $res->get_data()['code'] );
+			$this->assertSame( 'Shown.', $res->get_data()['message'] );
+		}
+	}
+
+	public function test_failed_tenant_read_sets_error_and_delete_data_is_an_object(): void {
+		$l = $this->odoowoo_license();
+		$this->fake_django(
+			fn( $call ) => str_contains( $call['path_and_query'], 'tenants/' ) ? array( 502, '<html>' ) : array( 200, array() )
+		);
+		$s = Routes::license_summary( Context::for_user( (int) $l['user_id'], (int) $l['id'] ) );
+		$this->assertNull( $s['limit'] );
+		$this->assertNotEmpty( $s['error'] );
+		$this->assertStringNotContainsString( 'html', $s['error'] );
+
+		$this->fake_django( fn() => array( 204, '' ) );
+		$this->as_user( (int) $l['user_id'] );
+		$res = $this->rest( 'DELETE', '/licenses/' . $l['id'] . '/dashboards/5' );
+		$this->assertSame( '{"ok":true,"data":{}}', wp_json_encode( $res->get_data() ) );
 	}
 }

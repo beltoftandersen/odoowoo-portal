@@ -38,6 +38,10 @@ final class Client {
 			return self::refused( 'no tenant that may be called' );
 		}
 
+		if ( ! self::path_is_plain( $path ) ) {
+			return self::refused( 'path is not a plain relative path' );
+		}
+
 		$connection = self::connection();
 
 		if ( null === $connection ) {
@@ -95,6 +99,25 @@ final class Client {
 		}
 
 		return $reply;
+	}
+
+	/**
+	 * A path with no dot segment, query, fragment, backslash, encoded dot or empty segment.
+	 *
+	 * @param string $path Path relative to /api/.
+	 */
+	private static function path_is_plain( string $path ): bool {
+		if ( '' === $path || preg_match( '/[?#\\\\\x00-\x20]|%2e|%2f|%5c/i', $path ) || false !== strpos( $path, '//' ) ) {
+			return false;
+		}
+
+		foreach ( explode( '/', trim( $path, '/' ) ) as $segment ) {
+			if ( '.' === $segment || '..' === $segment ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
