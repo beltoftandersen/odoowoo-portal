@@ -360,6 +360,15 @@ final class Registry {
 	private static function manual_sync_strings(): array {
 		return array(
 			'syncing'         => __( 'Syncing…', 'odoowoo-portal' ),
+			/* translators: %s: what is syncing, for example Products. */
+			'running'         => __( '%s sync running…', 'odoowoo-portal' ),
+			'kindBrands'      => __( 'Brands', 'odoowoo-portal' ),
+			'kindCategories'  => __( 'Categories', 'odoowoo-portal' ),
+			'kindProducts'    => __( 'Products', 'odoowoo-portal' ),
+			'kindStock'       => __( 'Stock', 'odoowoo-portal' ),
+			'kindPrices'      => __( 'Prices', 'odoowoo-portal' ),
+			'kindBarcodes'    => __( 'Barcodes', 'odoowoo-portal' ),
+			'kindOrders'      => __( 'Orders', 'odoowoo-portal' ),
 			'brandsNotInPlan' => __( 'Brand sync is not part of your plan.', 'odoowoo-portal' ),
 			'backToList'      => __( 'Back to your dashboards', 'odoowoo-portal' ),
 			'noValidId'       => __( 'Enter at least one valid id, or leave the field empty.', 'odoowoo-portal' ),
@@ -389,7 +398,7 @@ final class Registry {
 			'odooRef'       => __( 'Odoo %s', 'odoowoo-portal' ),
 			'odooNone'      => __( 'Odoo N/A', 'odoowoo-portal' ),
 			'logLabel'      => __( 'Log', 'odoowoo-portal' ),
-			'itemFailed'    => __( 'This item was not synced. See the sync log for details.', 'odoowoo-portal' ),
+			'itemFailed'    => __( 'This item was not synced.', 'odoowoo-portal' ),
 			'unknownStatus' => __( 'Unknown', 'odoowoo-portal' ),
 		);
 	}

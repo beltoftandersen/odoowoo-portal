@@ -178,11 +178,15 @@ test( 'test_odoowoo_mistake_running_task_resumed_after_reload', async () => {
 	// A reload mid-run: the first call is sync/active, then the task is polled to its end.
 	const calls = fakeFetch( [ 'sync_active_task', 'task_running_1_of_10', 'task_running_2_of_10', 'task_done' ] );
 	const seen = [];
+	const kinds = [];
 	const out = await manual.resume( ctx, {
 		el: { isConnected: true },
 		sleep: () => Promise.resolve(),
 		onUpdate: ( v ) => seen.push( v.text ),
+		onTask: ( task ) => kinds.push( task.kind ),
 	} );
+
+	assert.deepEqual( kinds, [ 'products' ], 'The card learns the kind before polling.' );
 
 	assert.equal( calls[ 0 ].url, P + 'sync/active', 'The first call is the active read.' );
 	assert.equal( calls[ 0 ].method, 'GET' );
@@ -249,19 +253,57 @@ test( 'test_log_row_uses_status_text_and_unknown_gets_text', () => {
 	assert.equal( logs.rowView( null ).badge, 'Unknown' );
 } );
 
-test( 'test_log_with_a_traceback_or_a_fault_is_replaced_by_the_fixed_message', () => {
+const FIXED = 'This item was not synced.';
+
+// SYNTHETIC strings modelled on what reaches OrderSync.log through str(e) (orders/tasks.py:214,233,354,372).
+const MARKERS = {
+	traceback: 'Traceback (most recent call last):\n  boom',
+	fault: "<Fault 1: 'odoo.exceptions boom'>",
+	file: 'Unexpected: File "/opt/odoo/addons/sale/models/sale.py" was not readable',
+	line: 'Failed at line 412 of the importer',
+	module_odoo: 'Call to odoo.models failed',
+	module_odoorpc: 'odoorpc.error blew up',
+	module_psycopg2: 'psycopg2.OperationalError: connection refused',
+	module_xmlrpc: 'xmlrpc.client.ProtocolError: 502',
+	module_requests: 'requests.exceptions.ConnectionError: refused',
+	module_urllib3: 'urllib3.connectionpool gave up',
+	error: 'ValueError: invalid literal for int()',
+	exception: 'Got an AccessException while reading',
+	host: "HTTPConnectionPool(host='odoo.internal', port=8069): Max retries",
+	ip: 'Could not reach 10.10.10.2 in time',
+};
+
+for ( const [ name, text ] of Object.entries( MARKERS ) ) {
+	test( 'test_log_marker_' + name + '_is_replaced_by_the_fixed_message', () => {
+		boot();
+		assert.equal( logs.safeLog( text ), FIXED );
+		assert.equal( logs.rowView( { woocommerce_order_id: '1', status: 'warning', status_text: 'Warning', log: text } ).log, FIXED );
+	} );
+}
+
+test( 'test_plain_log_text_is_shown_as_written', () => {
 	boot();
 
-	const fixed = 'This item was not synced. See the sync log for details.';
 	const rows = fixture( 'order_syncs_list' ).body.data.items;
 
-	assert.equal( logs.safeLog( rows[ 3 ].log ), fixed, 'A Fault with a traceback.' );
-	assert.equal( logs.safeLog( 'Traceback (most recent call last):\n  File "x.py"' ), fixed );
-	assert.equal( logs.safeLog( 'Odoo said: Fault 2: boom' ), fixed );
-	assert.equal( logs.safeLog( rows[ 1 ].log ), rows[ 1 ].log, 'A plain refusal is shown as written.' );
-	assert.equal( logs.safeLog( 'The default journal is missing. Faulty lines skipped.' ), 'The default journal is missing. Faulty lines skipped.' );
+	assert.equal( logs.safeLog( rows[ 2 ].log ), rows[ 2 ].log );
+	assert.equal( logs.safeLog( 'The default journal is missing. Faulty lines skipped. Version 1.2.3 of the plan.' ), 'The default journal is missing. Faulty lines skipped. Version 1.2.3 of the plan.' );
 	assert.equal( logs.safeLog( '' ), '' );
 	assert.equal( logs.safeLog( undefined ), '' );
+} );
+
+test( 'test_error_and_failed_rows_never_show_their_raw_log', () => {
+	boot();
+
+	for ( const status of [ 'error', 'failed', 'ERROR', 'Failed' ] ) {
+		const v = logs.rowView( { woocommerce_order_id: '1', status, status_text: 'Failed', log: 'A harmless looking sentence.' } );
+
+		assert.equal( v.log, FIXED, status );
+		assert.equal( v.hasLog, true );
+		assert.equal( v.badge, 'Failed', 'The status stays visible.' );
+	}
+
+	assert.equal( logs.rowView( { woocommerce_order_id: '1', status: 'success', status_text: 'Synced', log: 'Synced fine.' } ).log, 'Synced fine.' );
 } );
 
 test( 'test_log_list_is_built_with_details_and_text_only', () => {
@@ -289,12 +331,12 @@ test( 'test_log_list_is_built_with_details_and_text_only', () => {
 
 	assert.ok( details, 'A row with a log has <details>.' );
 	assert.equal( details.children[ 0 ].tag, 'summary' );
-	assert.ok( details.children.some( ( c ) => c.tag === 'pre' && c.textContent.startsWith( 'Order 1050 was not created' ) ) );
+	assert.ok( details.children.some( ( c ) => c.tag === 'pre' && c.textContent === 'This item was not synced.' ) );
 	assert.equal( list.children[ 0 ].children.some( ( c ) => c.tag === 'details' ), false, 'No log, nothing to expand.' );
 
 	const fault = list.children[ 3 ].children.find( ( c ) => c.tag === 'details' );
 
-	assert.ok( fault.children.some( ( c ) => c.tag === 'pre' && c.textContent === 'This item was not synced. See the sync log for details.' ) );
+	assert.ok( fault.children.some( ( c ) => c.tag === 'pre' && c.textContent === 'This item was not synced.' ) );
 
 	const badge = ( row ) => JSON.stringify( row ).includes( '"Unknown"' );
 
@@ -323,4 +365,25 @@ test( 'test_logs_load_reads_the_list_as_given', async () => {
 	assert.equal( failed.ok, false );
 	assert.equal( failed.reply.message, 'Something went wrong on our side. Please try again in a moment.' );
 	assert.ok( core );
+} );
+
+test( 'test_refusal_points_the_input_at_its_message_and_resumed_kind_is_named', () => {
+	boot();
+
+	const attrs = {};
+	const input = { setAttribute: ( k, v ) => { attrs[ k ] = v; }, removeAttribute() {} };
+	const place = { textContent: '', hidden: true, id: 'x-dates-error', getAttribute: ( k ) => ( k === 'data-input' ? 'from' : null ) };
+	const root = {
+		querySelector: ( sel ) => ( sel === '[data-error-for="from_date"]' ? place : ( sel === '[name="from"]' ? input : null ) ),
+		querySelectorAll: () => [],
+	};
+
+	assert.equal( core.showFieldError( root, { message: 'The start date is after the end date.', field: 'from_date' } ), true );
+	assert.equal( attrs[ 'aria-invalid' ], 'true' );
+	assert.equal( attrs[ 'aria-describedby' ], 'x-dates-error' );
+	assert.equal( place.textContent, 'The start date is after the end date.' );
+
+	assert.equal( manual.runningText( 'products' ), 'Products sync running…' );
+	assert.equal( manual.runningText( 'orders' ), 'Orders sync running…' );
+	assert.equal( manual.runningText( 'weird' ), '' );
 } );

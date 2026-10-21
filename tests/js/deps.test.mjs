@@ -275,7 +275,7 @@ test( 'pricelists: shaped reply is read on demand, the saved one is shown first'
 
 test( 'a Django refusal marks the named input and puts the message below it', () => {
 	const attrs = {};
-	const place = { textContent: '', hidden: true };
+	const place = { textContent: '', hidden: true, id: '', getAttribute: () => null };
 	const other = { textContent: 'old', hidden: false };
 	const input = { setAttribute: ( k, v ) => { attrs[ k ] = v; }, removeAttribute: ( k ) => { delete attrs[ k ]; } };
 	const form = {

@@ -200,6 +200,13 @@ final class CardSyncTest extends RestTestCase {
 
 		// One polite live region carries the progress and the result.
 		$this->assertMatchesRegularExpression( '#<div[^>]*class="odoowoo-sync-result"[^>]*aria-live="polite"#', $html );
+
+		// Every refusal place has an id (the input points at it) and the dates' one says which input it is for.
+		foreach ( array( 'product_ids', 'order_ids', 'from_date' ) as $field ) {
+			$this->assertMatchesRegularExpression( '#<p[^>]*\bid="[^"]+"[^>]*data-error-for="' . $field . '"#', $html, $field );
+		}
+
+		$this->assertMatchesRegularExpression( '#data-error-for="from_date"[^>]*data-input="from"#', $html );
 		$this->assertMatchesRegularExpression( '#<div[^>]*class="odoowoo-sync-result"[^>]*role="status"#', $html );
 
 		$core = Renderer::core_strings();
@@ -210,7 +217,7 @@ final class CardSyncTest extends RestTestCase {
 
 		$strings = Registry::cards()['manual-sync']['strings'];
 
-		foreach ( array( 'syncing', 'brandsNotInPlan', 'backToList', 'noValidId', 'tooManyIds', 'nothingChosen', 'badDates', 'reversedDates', 'itemsHeading', 'resultLost' ) as $key ) {
+		foreach ( array( 'kindProducts', 'kindOrders', 'running', 'syncing', 'brandsNotInPlan', 'backToList', 'noValidId', 'tooManyIds', 'nothingChosen', 'badDates', 'reversedDates', 'itemsHeading', 'resultLost' ) as $key ) {
 			$this->assertArrayHasKey( $key, $strings, $key );
 			$this->assertNotSame( '', $strings[ $key ], $key );
 		}
@@ -231,7 +238,7 @@ final class CardSyncTest extends RestTestCase {
 			$this->assertNotSame( '', $strings[ $key ], $key );
 		}
 
-		$this->assertSame( 'This item was not synced. See the sync log for details.', $strings['itemFailed'] );
+		$this->assertSame( 'This item was not synced.', $strings['itemFailed'] );
 
 		// The script builds <details> and writes text only.
 		$js = (string) file_get_contents( ODOOWOO_PORTAL_PATH . 'assets/js/card-sync-logs.js' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents

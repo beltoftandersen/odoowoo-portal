@@ -43,7 +43,7 @@ $odoowoo_uid = wp_unique_id( 'odoowoo-sync-' );
 			<button type="button" class="odoowoo-button" data-kind="prices"<?php echo $odoowoo_off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php esc_html_e( 'Sync prices', 'odoowoo-portal' ); ?></button>
 			<button type="button" class="odoowoo-button" data-kind="barcodes"<?php echo $odoowoo_off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php esc_html_e( 'Sync barcodes', 'odoowoo-portal' ); ?></button>
 		</div>
-		<p class="odoowoo-sync-error odoowoo-field-error" data-error-for="product_ids" role="alert" hidden></p>
+		<p class="odoowoo-sync-error odoowoo-field-error" id="<?php echo esc_attr( $odoowoo_uid ); ?>-products-error" data-error-for="product_ids" role="alert" hidden></p>
 	</section>
 
 	<section class="odoowoo-sync-section" data-section="orders">
@@ -66,8 +66,8 @@ $odoowoo_uid = wp_unique_id( 'odoowoo-sync-' );
 		<div class="odoowoo-actions">
 			<button type="button" class="odoowoo-button" data-kind="orders"<?php echo $odoowoo_off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php esc_html_e( 'Sync orders', 'odoowoo-portal' ); ?></button>
 		</div>
-		<p class="odoowoo-sync-error odoowoo-field-error" data-error-for="order_ids" role="alert" hidden></p>
-		<p class="odoowoo-sync-error odoowoo-field-error" data-error-for="from_date" role="alert" hidden></p>
+		<p class="odoowoo-sync-error odoowoo-field-error" id="<?php echo esc_attr( $odoowoo_uid ); ?>-orders-error" data-error-for="order_ids" role="alert" hidden></p>
+		<p class="odoowoo-sync-error odoowoo-field-error" id="<?php echo esc_attr( $odoowoo_uid ); ?>-dates-error" data-error-for="from_date" data-input="from" role="alert" hidden></p>
 	</section>
 
 	<p class="odoowoo-sync-message" role="status" aria-live="polite" hidden></p>

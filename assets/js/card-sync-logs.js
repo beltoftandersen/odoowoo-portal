@@ -18,7 +18,7 @@
 		odooRef: 'Odoo %s',
 		odooNone: 'Odoo N/A',
 		logLabel: 'Log',
-		itemFailed: 'This item was not synced. See the sync log for details.',
+		itemFailed: 'This item was not synced.',
 		unknownStatus: 'Unknown',
 	} );
 
@@ -27,17 +27,27 @@
 	}
 
 	/**
-	 * The text of a log entry that may be shown: the server's own text, except an entry that
-	 * carries a Python traceback or an XML-RPC fault, which is replaced by the fixed message.
+	 * What in a log text marks an engine error (Python or Odoo internals, an address). The raw
+	 * str(e) of a failed sync reaches the log, so any hit replaces the whole text. Matched on
+	 * the lowercased text.
 	 */
+	var DENY = [
+		/traceback/,
+		/\bfault\b/,
+		/file ".*"/,
+		/line \d+/,
+		/\b(odoo|odoorpc|psycopg2|xmlrpc|requests|urllib3)\./,
+		/\w+(error|exception)\b/,
+		/host=/,
+		/\b\d{1,3}(\.\d{1,3}){3}\b/,
+	];
+
+	/** The text of a log entry that may be shown: the server's own text, or the fixed message after a denylist hit. */
 	function safeLog( text ) {
 		var s = str( text );
+		var lower = s.toLowerCase();
 
-		if ( s.indexOf( 'Traceback (most recent call last)' ) !== -1 || s.indexOf( 'Fault ' ) !== -1 ) {
-			return t( 'itemFailed' );
-		}
-
-		return s;
+		return DENY.some( function ( re ) { return re.test( lower ); } ) ? t( 'itemFailed' ) : s;
 	}
 
 	/** A time for the row; the text as given when it is not a date. */
@@ -59,13 +69,16 @@
 	function rowView( row ) {
 		var r = row && typeof row === 'object' ? row : {};
 		var odoo = str( r.odoo_order_id );
-		var log = safeLog( r.log );
+		var raw = str( r.status );
+		var errored = [ 'error', 'failed' ].indexOf( raw.toLowerCase() ) !== -1;
+		// A failed row never shows its raw log: it is the str(e) of the failure.
+		var log = errored ? t( 'itemFailed' ) : safeLog( r.log );
 
 		return {
 			woo: str( r.woocommerce_order_id ),
 			odoo: odoo !== '' ? t( 'odooRef' ).replace( '%s', odoo ) : t( 'odooNone' ),
 			badge: str( r.status_text ) !== '' ? str( r.status_text ) : t( 'unknownStatus' ),
-			raw: str( r.status ),
+			raw: raw,
 			at: str( r.synced_at ),
 			time: formatTime( r.synced_at ),
 			log: log,

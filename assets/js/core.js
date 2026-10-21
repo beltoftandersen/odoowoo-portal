@@ -451,15 +451,22 @@
 		clearFieldErrors( form );
 
 		var field = fieldOf( reply );
-		var input = field !== '' && form.elements ? form.elements[ field ] : null;
 		var place = field !== '' ? form.querySelector( '[data-error-for="' + field + '"]' ) : null;
 
 		if ( ! place ) {
 			return false;
 		}
 
+		// The place may name the input it belongs to (data-input), when that is not the field's own name.
+		var name = place.getAttribute( 'data-input' ) || field;
+		var input = form.elements ? form.elements[ name ] : form.querySelector( '[name="' + name + '"]' );
+
 		if ( input ) {
 			input.setAttribute( 'aria-invalid', 'true' );
+
+			if ( place.id ) {
+				input.setAttribute( 'aria-describedby', place.id );
+			}
 		}
 
 		place.textContent = typeof reply.message === 'string' ? reply.message : '';

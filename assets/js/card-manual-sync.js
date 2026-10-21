@@ -20,6 +20,14 @@
 		nothingChosen: 'Enter order ids, or choose a start and end date.',
 		badDates: 'Enter a valid start and end date.',
 		reversedDates: 'The start date is after the end date.',
+		running: '%s sync running…',
+		kindBrands: 'Brands',
+		kindCategories: 'Categories',
+		kindProducts: 'Products',
+		kindStock: 'Stock',
+		kindPrices: 'Prices',
+		kindBarcodes: 'Barcodes',
+		kindOrders: 'Orders',
 		itemsHeading: 'Items that were not synced',
 		resultLost: 'We could not follow this sync any more. See the sync log for what happened.',
 	} );
@@ -239,9 +247,20 @@
 			return null;
 		}
 
+		if ( o && typeof o.onTask === 'function' ) {
+			o.onTask( task );
+		}
+
 		var out = await follow( ctx, task.task_id, o || {} );
 
 		return { reason: out.reason, view: out.view, kind: task.kind };
+	}
+
+	/** "Products sync running…" for a kind; '' for an unknown kind. */
+	function runningText( kind ) {
+		var name = KINDS[ kind ] ? t( 'kind' + kind.charAt( 0 ).toUpperCase() + kind.slice( 1 ) ) : '';
+
+		return name === '' ? '' : t( 'running' ).replace( '%s', name );
 	}
 
 	function init( root ) {
@@ -282,13 +301,7 @@
 		}
 
 		function clearMessages() {
-			Array.prototype.forEach.call( root.querySelectorAll( '[data-error-for]' ), function ( place ) {
-				place.textContent = '';
-				place.hidden = true;
-			} );
-			Array.prototype.forEach.call( root.querySelectorAll( '[aria-invalid]' ), function ( el ) {
-				el.removeAttribute( 'aria-invalid' );
-			} );
+			core.clearFieldErrors( root );
 			messageEl.textContent = '';
 			messageEl.hidden = true;
 		}
@@ -298,18 +311,7 @@
 
 			clearMessages();
 
-			var place = v.field !== '' ? root.querySelector( '[data-error-for="' + v.field + '"]' ) : null;
-
-			if ( place ) {
-				var el = field( v.field );
-
-				if ( el ) {
-					el.setAttribute( 'aria-invalid', 'true' );
-				}
-
-				place.textContent = v.message;
-				place.hidden = false;
-
+			if ( core.showFieldError( root, reply ) ) {
 				return;
 			}
 
@@ -359,6 +361,11 @@
 		function finished( out, resumed ) {
 			running = false;
 			enable();
+
+			if ( messageEl.getAttribute( 'data-state' ) === 'info' ) {
+				messageEl.textContent = '';
+				messageEl.hidden = true;
+			}
 
 			if ( ! out || out.reason === 'cancelled' || out.reason === 'done' || out.reason === 'skipped' || out.reason === 'failed' ) {
 				return;
@@ -418,7 +425,18 @@
 			// First thing: is a sync running? (a reload must not lose it)
 			running = true;
 			enable();
-			resume( ctx, { el: root, onUpdate: onUpdate } ).then( function ( out ) {
+			resume( ctx, {
+				el: root,
+				onUpdate: onUpdate,
+				onTask: function ( task ) {
+					var text = runningText( task.kind );
+
+					if ( text !== '' ) {
+						core.status( messageEl, 'info', text );
+						messageEl.hidden = false;
+					}
+				},
+			} ).then( function ( out ) {
 				finished( out, true );
 			}, function () {
 				running = false;
@@ -432,7 +450,7 @@
 		} );
 	}
 
-	var api_ = { syncBody: syncBody, cleanIds: cleanIds, resultLine: resultLine, resultItems: resultItems, refusalView: refusalView, brandsAvailable: brandsAvailable, start: start, activeTask: activeTask, resume: resume, follow: follow };
+	var api_ = { runningText: runningText, syncBody: syncBody, cleanIds: cleanIds, resultLine: resultLine, resultItems: resultItems, refusalView: refusalView, brandsAvailable: brandsAvailable, start: start, activeTask: activeTask, resume: resume, follow: follow };
 
 	if ( typeof module !== 'undefined' && module.exports ) {
 		module.exports = api_;
