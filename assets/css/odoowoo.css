@@ -3,22 +3,22 @@
  * which default to the site's palette variables. Size in px: the site's root is 62.5%.
  */
 .odoowoo-card {
-	--odoowoo-text: var(--navy, #14213d);
-	--odoowoo-muted: var(--ink-mid, #4a5568);
-	--odoowoo-bg: var(--bg-card, #ffffff);
-	--odoowoo-border: var(--rule, #d9dde3);
-	--odoowoo-accent: var(--green, #1a7f37);
-	--odoowoo-danger: #b42318;
-	--odoowoo-radius: 8px;
+	--odoowoo-text: #252c29;
+	--odoowoo-muted: #59615c;
+	--odoowoo-bg: #ffffff;
+	--odoowoo-border: #d7ddd4;
+	--odoowoo-accent: var(--green, #004400);
+	--odoowoo-danger: #8a2c22;
+	--odoowoo-radius: 0;
 	--odoowoo-gap: 16px;
 	--odoowoo-font: 'Onest', system-ui, sans-serif;
 
 	box-sizing: border-box;
-	margin: 0 0 var(--odoowoo-gap);
-	padding: calc(var(--odoowoo-gap) * 1.25);
+	margin: 0;
+	padding: 32px;
 	color: var(--odoowoo-text);
 	background: var(--odoowoo-bg);
-	border: 1px solid var(--odoowoo-border);
+	border: 0;
 	border-radius: var(--odoowoo-radius);
 	font-family: var(--odoowoo-font);
 	font-size: 16px;
@@ -31,21 +31,23 @@
 }
 
 .odoowoo-card__title {
-	margin: 0 0 var(--odoowoo-gap);
+	margin: 0 0 24px;
 	font-size: 20px;
 	font-weight: 700;
+	line-height: 1.3;
 	color: var(--odoowoo-text);
 }
 
 .odoowoo-notice,
 .odoowoo-banner {
-	margin: 0 0 var(--odoowoo-gap);
-	padding: 8px 12px;
+	margin: 0 0 24px;
+	padding: 14px 18px;
 	font-size: 15px;
 	color: var(--odoowoo-text);
-	border: 1px solid var(--odoowoo-border);
-	border-left: 4px solid var(--odoowoo-accent);
-	border-radius: var(--odoowoo-radius);
+	background: #f7f6f2;
+	border: 0;
+	border-left: 3px solid var(--odoowoo-accent);
+	border-radius: 0;
 }
 
 .odoowoo-banner {
@@ -60,8 +62,10 @@
 
 .odoowoo-card label {
 	display: block;
-	margin-bottom: 4px;
-	font-weight: 500;
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.4;
 	color: var(--odoowoo-text);
 }
 
@@ -73,53 +77,104 @@
 .odoowoo-card select,
 .odoowoo-card textarea {
 	width: 100%;
-	max-width: 480px;
-	padding: 8px 10px;
+	max-width: 520px;
+	min-height: 44px;
+	padding: 10px 14px;
 	font: inherit;
 	color: var(--odoowoo-text);
-	background: var(--odoowoo-bg);
+	background: #f7f6f2;
 	border: 1px solid var(--odoowoo-border);
 	border-radius: var(--odoowoo-radius);
+	box-shadow: none;
+}
+
+.odoowoo-card input::placeholder {
+	color: #8a918c;
+}
+
+.odoowoo-card input:hover,
+.odoowoo-card select:hover,
+.odoowoo-card textarea:hover {
+	border-color: #aab3a8;
+}
+
+.odoowoo-card input:focus,
+.odoowoo-card select:focus,
+.odoowoo-card textarea:focus {
+	background: var(--odoowoo-bg);
+	border-color: var(--odoowoo-accent);
 }
 
 .odoowoo-card :focus-visible,
 .odoowoo-dialog :focus-visible {
-	outline: 3px solid var(--odoowoo-accent);
+	outline: 2px solid var(--odoowoo-accent);
 	outline-offset: 2px;
 }
 
 .odoowoo-button {
-	padding: 8px 16px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding: 10px 22px;
 	font: inherit;
-	font-weight: 500;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.2;
 	color: #ffffff;
-	background: var(--odoowoo-accent);
-	border: 1px solid var(--odoowoo-accent);
+	background: var(--odoowoo-accent, #004400);
+	border: 1px solid var(--odoowoo-accent, #004400);
 	border-radius: var(--odoowoo-radius);
 	cursor: pointer;
+	transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.odoowoo-button:hover {
+	background: #002d00;
+	border-color: #002d00;
 }
 
 .odoowoo-button--secondary {
-	color: var(--odoowoo-text);
+	color: var(--odoowoo-accent, #004400);
 	background: transparent;
-	border-color: var(--odoowoo-border);
+	border-color: var(--odoowoo-accent, #004400);
+}
+
+.odoowoo-button--secondary:hover {
+	color: #ffffff;
+	background: var(--odoowoo-accent, #004400);
 }
 
 .odoowoo-button--danger {
-	background: var(--odoowoo-danger);
-	border-color: var(--odoowoo-danger);
+	color: var(--odoowoo-danger, #8a2c22);
+	background: transparent;
+	border-color: #d9bdb8;
+}
+
+.odoowoo-button--danger:hover {
+	color: var(--odoowoo-danger, #8a2c22);
+	background: #f8ecea;
+	border-color: var(--odoowoo-danger, #8a2c22);
 }
 
 .odoowoo-button[disabled],
+.odoowoo-button[disabled]:hover {
+	color: #8d948f;
+	background: #f0efe8;
+	border-color: #f0efe8;
+	cursor: not-allowed;
+}
+
 .odoowoo-button[aria-busy='true'] {
-	opacity: 0.6;
+	opacity: 0.7;
 	cursor: progress;
 }
 
 /* Status is text plus a symbol, never colour alone. */
 [data-state] {
-	margin-left: 8px;
+	margin-left: 12px;
 	font-size: 15px;
+	color: var(--odoowoo-muted, #59615c);
 }
 
 [data-state='saving']::before {
@@ -139,12 +194,13 @@
 
 .odoowoo-progress__bar {
 	width: 100%;
-	max-width: 480px;
-	height: 12px;
+	max-width: 520px;
+	height: 8px;
+	accent-color: var(--odoowoo-accent, #004400);
 }
 
 .odoowoo-progress__text {
-	margin: 4px 0 0;
+	margin: 8px 0 0;
 	font-size: 15px;
 }
 
@@ -162,10 +218,10 @@
 .odoowoo-dialog {
 	width: 100%;
 	max-width: 440px;
-	padding: 24px;
-	color: var(--navy, #14213d);
-	background: var(--bg-card, #ffffff);
-	border-radius: 8px;
+	padding: 32px;
+	color: #252c29;
+	background: #ffffff;
+	border-radius: 0;
 	font-family: 'Onest', system-ui, sans-serif;
 	font-size: 16px;
 }
@@ -192,8 +248,10 @@
 
 /* Dashboard list and header. */
 .odoowoo-license-plan {
-	margin: 0 0 8px;
+	margin: 0 0 16px;
 	font-size: 18px;
+	font-weight: 700;
+	line-height: 1.4;
 }
 
 .odoowoo-count {
@@ -201,8 +259,21 @@
 	color: var(--odoowoo-muted);
 }
 
+.odoowoo-card[data-odoowoo-card='dashboard-list'] > .odoowoo-card__title {
+	margin-bottom: 20px;
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--odoowoo-muted);
+}
+
+.odoowoo-license-group + .odoowoo-license-group {
+	margin-top: 32px;
+}
+
 .odoowoo-dashboards {
-	margin: 0 0 var(--odoowoo-gap);
+	display: grid;
+	gap: 8px;
+	margin: 0 0 24px;
 	padding: 0;
 	list-style: none;
 }
@@ -211,20 +282,35 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 8px 16px;
-	padding: 12px 0;
-	border-top: 1px solid var(--odoowoo-border);
+	gap: 12px 24px;
+	padding: 18px 24px;
+	background: #f7f6f2;
 }
 
 .odoowoo-dashboard .odoowoo-name {
-	flex: 1 1 200px;
+	flex: 1 1 220px;
+	font-size: 17px;
+	font-weight: 700;
 }
 
-.odoowoo-dashboard .odoowoo-state::before {
+.odoowoo-dashboard .odoowoo-state {
+	flex: 0 0 auto;
+	min-width: 80px;
+	font-size: 15px;
+	color: var(--odoowoo-muted);
+}
+
+.odoowoo-dashboard .odoowoo-state::before,
+.odoowoo-header .odoowoo-state::before {
 	content: '● ';
+	font-size: 0.7em;
+	vertical-align: 0.1em;
+	color: var(--odoowoo-text);
 }
 
 .odoowoo-dashboard .odoowoo-created {
+	flex: 0 0 auto;
+	min-width: 170px;
 	font-size: 15px;
 	color: var(--odoowoo-muted);
 }
@@ -232,18 +318,47 @@
 .odoowoo-actions {
 	display: inline-flex;
 	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+}
+
+.odoowoo-dashboard .odoowoo-actions {
+	flex: 0 0 auto;
 	gap: 8px;
+}
+
+.odoowoo-dashboard .odoowoo-button {
+	min-height: 40px;
+	padding: 8px 18px;
+}
+
+.odoowoo-list-status:empty,
+.odoowoo-log-status:empty {
+	display: none;
+}
+
+.odoowoo-list-actions {
+	margin: 0;
+}
+
+.odoowoo-empty,
+.odoowoo-limit-note {
+	margin: 0 0 var(--odoowoo-gap);
+	color: var(--odoowoo-muted);
 }
 
 a.odoowoo-button,
 .odoowoo-card a.odoowoo-button {
-	display: inline-block;
-	color: #ffffff;
 	text-decoration: none;
 }
 
+a.odoowoo-button:not(.odoowoo-button--secondary):not(.odoowoo-button--danger),
+.odoowoo-card a.odoowoo-button:not(.odoowoo-button--secondary):not(.odoowoo-button--danger) {
+	color: #ffffff;
+}
+
 .odoowoo-form-error {
-	margin: 8px 0 0;
+	margin: 12px 0 0;
 	color: var(--odoowoo-danger);
 }
 
@@ -254,49 +369,85 @@ a.odoowoo-button,
 
 .odoowoo-dialog .odoowoo-form label {
 	display: block;
-	margin: 8px 0 4px;
-	font-weight: 500;
+	margin: 16px 0 8px;
+	font-size: 15px;
+	font-weight: 600;
 }
 
 .odoowoo-dialog .odoowoo-form input,
 .odoowoo-dialog .odoowoo-form select {
 	width: 100%;
-	padding: 8px 10px;
+	min-height: 44px;
+	padding: 10px 14px;
 	font: inherit;
-	border: 1px solid var(--odoowoo-border);
-	border-radius: var(--odoowoo-radius);
+	background: #f7f6f2;
+	border: 1px solid #d7ddd4;
+	border-radius: 0;
+}
+
+.odoowoo-header__back {
+	margin: 0 0 12px;
+	font-size: 15px;
 }
 
 .odoowoo-header__title {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 8px 16px;
+	gap: 8px 20px;
 }
 
 .odoowoo-dashboard-name {
 	margin: 0;
-	font-size: 28px;
+	font-size: 40px;
+	font-weight: 700;
 	line-height: 1.2;
+	color: var(--odoowoo-text);
 }
 
-.odoowoo-header .odoowoo-state::before {
-	content: '● ';
+.odoowoo-header .odoowoo-state {
+	font-size: 15px;
+	color: var(--odoowoo-muted);
+}
+
+.odoowoo-header .odoowoo-rename {
+	margin-left: auto;
+}
+
+.odoowoo-header .odoowoo-rename[hidden] {
+	display: none;
 }
 
 .odoowoo-rename-form {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 8px;
-	margin-top: 12px;
+	gap: 12px;
+	margin-top: 20px;
 }
 
-/* The header card's own h1 is its title: the shell's h2 stays for screen readers only. */
+.odoowoo-header__status:empty {
+	display: none;
+}
+
+.odoowoo-header__status {
+	margin: 12px 0 0;
+	font-size: 15px;
+	color: var(--odoowoo-muted);
+}
+
+/* The dashboard header sits on the page, not in a box. Its own h1 is its title: the shell's h2
+   stays for screen readers only. */
+.odoowoo-card[data-odoowoo-card='dashboard-header'] {
+	padding: 0 0 8px;
+	background: transparent;
+}
+
 .odoowoo-card[data-odoowoo-card='dashboard-header'] > .odoowoo-card__title {
 	position: absolute;
 	width: 1px;
 	height: 1px;
+	margin: 0;
 	overflow: hidden;
 	clip: rect(0 0 0 0);
 	white-space: nowrap;
@@ -305,29 +456,72 @@ a.odoowoo-button,
 /* Connection and settings cards */
 .odoowoo-card .odoowoo-form {
 	display: grid;
-	gap: 12px;
+	gap: 20px;
 	max-width: 560px;
 }
 
 .odoowoo-card .odoowoo-field {
 	position: relative;
 	display: grid;
-	gap: 4px;
+	gap: 8px;
 }
 
 .odoowoo-card .odoowoo-field--check {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 12px;
 }
 
 .odoowoo-card .odoowoo-field--check label {
 	margin: 0;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.odoowoo-card input[type='checkbox'] {
+	flex: 0 0 auto;
+	width: 20px;
+	height: 20px;
+	margin: 0;
+	appearance: none;
+	background: #ffffff center / 14px no-repeat;
+	border: 1.5px solid #59615c;
+	border-radius: 0;
+	cursor: pointer;
+	accent-color: var(--odoowoo-accent);
+}
+
+.odoowoo-card input[type='checkbox']:hover {
+	border-color: var(--odoowoo-accent);
+}
+
+.odoowoo-card input[type='checkbox']:checked {
+	background-color: var(--odoowoo-accent);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M2.5 7.5l3 3 6-7' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E");
+	border-color: var(--odoowoo-accent);
+}
+
+.odoowoo-card input[type='checkbox']:disabled {
+	background-color: #f0efe8;
+	border-color: #c4c9c2;
+	cursor: not-allowed;
+}
+
+.odoowoo-card input[type='checkbox']:disabled:checked {
+	background-color: #8d948f;
+	border-color: #8d948f;
+}
+
+.odoowoo-card input[type='checkbox']:disabled + label {
+	color: var(--odoowoo-muted);
+	cursor: not-allowed;
 }
 
 .odoowoo-secret {
 	display: flex;
+	align-items: stretch;
 	gap: 8px;
+	max-width: 520px;
 }
 
 .odoowoo-secret input {
@@ -339,23 +533,34 @@ a.odoowoo-button,
 .odoowoo-helper-status,
 .odoowoo-callback-box {
 	margin: 0;
-	font-size: 15px;
+	font-size: 14px;
+	line-height: 1.5;
 	color: var(--odoowoo-muted);
+}
+
+.odoowoo-form-status:empty {
+	display: none;
 }
 
 .odoowoo-badges {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 8px;
+	gap: 4px 20px;
 	margin: 0;
 }
 
+.odoowoo-badges:not(:has(.odoowoo-badge:not([hidden]))) {
+	display: none;
+}
+
+/* Plain text with a mark, not a chip. */
 .odoowoo-badge {
-	padding: 2px 10px;
+	padding: 0;
 	font-size: 14px;
 	font-weight: 600;
-	border: 1px solid var(--odoowoo-accent);
-	border-radius: 999px;
+	color: var(--odoowoo-accent);
+	border: 0;
+	border-radius: 0;
 }
 
 .odoowoo-badge::before {
@@ -364,8 +569,8 @@ a.odoowoo-button,
 
 .odoowoo-callbacks {
 	display: grid;
-	gap: 8px;
-	padding-top: 12px;
+	gap: 12px;
+	padding-top: 24px;
 	border-top: 1px solid var(--odoowoo-border);
 }
 
@@ -377,17 +582,23 @@ a.odoowoo-button,
 /* Odoo settings card */
 .odoowoo-card .odoowoo-group {
 	display: grid;
-	gap: 8px;
+	gap: 14px;
+}
+
+.odoowoo-card .odoowoo-group + .odoowoo-group {
+	padding-top: 20px;
+	border-top: 1px solid #f0efe8;
 }
 
 .odoowoo-field__head {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 6px;
 }
 
 .odoowoo-reason {
 	flex-basis: 100%;
+	padding-left: 32px;
 	font-size: 14px;
 	color: var(--odoowoo-muted);
 }
@@ -398,6 +609,7 @@ a.odoowoo-button,
 
 .odoowoo-field--check {
 	flex-wrap: wrap;
+	row-gap: 2px;
 }
 
 .odoowoo-field-error {
@@ -405,6 +617,7 @@ a.odoowoo-button,
 	margin: 0;
 	font-size: 14px;
 	font-weight: 600;
+	color: var(--odoowoo-danger);
 }
 
 .odoowoo-field-error::before {
@@ -421,21 +634,30 @@ a.odoowoo-button,
 	display: inline-block;
 }
 
+/* The help trigger is a quiet underlined question mark. */
 .odoowoo-tip-button {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 24px;
+	min-width: 24px;
 	height: 24px;
 	padding: 0;
+	font: inherit;
 	font-size: 14px;
-	font-weight: 700;
+	font-weight: 500;
 	line-height: 1;
+	color: var(--odoowoo-muted);
+	text-decoration: underline;
+	text-underline-offset: 3px;
 	cursor: help;
 	background: transparent;
-	border: 1px solid currentcolor;
-	border-radius: 50%;
-	color: inherit;
+	border: 0;
+	border-radius: 0;
+}
+
+.odoowoo-tip-button:hover,
+.odoowoo-tip-button[aria-expanded='true'] {
+	color: var(--odoowoo-accent);
 }
 
 .odoowoo-tip {
@@ -447,9 +669,12 @@ a.odoowoo-button,
 	max-width: 80vw;
 	padding: 0;
 	font-size: 14px;
+	line-height: 1.5;
+	color: var(--odoowoo-text);
 	background: var(--odoowoo-bg, var(--bg-card, Canvas));
 	border: 0 solid var(--odoowoo-border);
-	border-radius: 6px;
+	border-radius: 0;
+	box-shadow: 0 8px 24px rgba(37, 44, 41, 0.12);
 	clip: rect(0 0 0 0);
 	clip-path: inset(50%);
 	overflow: hidden;
@@ -465,7 +690,7 @@ a.odoowoo-button,
 	overflow: visible;
 	width: min(280px, 100%);
 	height: auto;
-	padding: 8px 10px;
+	padding: 12px 16px;
 	border-width: 1px;
 }
 
@@ -473,13 +698,13 @@ a.odoowoo-button,
 .odoowoo-mapping__loaders {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 8px;
-	margin: 0 0 var(--odoowoo-gap);
+	gap: 12px;
+	margin: 0 0 24px;
 }
 
 .odoowoo-mapping__rows {
 	position: relative;
-	margin: 0 0 var(--odoowoo-gap);
+	margin: 0 0 24px;
 	overflow-x: auto;
 }
 
@@ -490,15 +715,16 @@ a.odoowoo-button,
 
 .odoowoo-mapping__table th {
 	min-width: 150px;
-	padding: 4px 8px 8px 0;
+	padding: 0 12px 10px 0;
 	text-align: left;
 	font-size: 14px;
 	font-weight: 600;
+	color: var(--odoowoo-muted);
 	vertical-align: bottom;
 }
 
 .odoowoo-mapping__table td {
-	padding: 4px 8px 4px 0;
+	padding: 6px 12px 6px 0;
 	vertical-align: top;
 }
 
@@ -507,12 +733,13 @@ a.odoowoo-button,
 .odoowoo-mapping__table input[type='number'] {
 	width: 100%;
 	min-width: 140px;
-	padding: 8px;
+	min-height: 44px;
+	padding: 10px 14px;
 	font: inherit;
 	color: var(--odoowoo-text);
-	background: var(--odoowoo-bg);
+	background: #f7f6f2;
 	border: 1px solid var(--odoowoo-border);
-	border-radius: var(--odoowoo-radius);
+	border-radius: 0;
 }
 
 .odoowoo-mapping__table [aria-invalid='true'] {
@@ -523,7 +750,7 @@ a.odoowoo-button,
 
 .odoowoo-hint {
 	display: block;
-	font-size: 12px;
+	font-size: 13px;
 	font-weight: 400;
 	color: var(--odoowoo-muted);
 }
@@ -551,14 +778,35 @@ a.odoowoo-button,
 .odoowoo-sync,
 .odoowoo-gift-cards {
 	display: grid;
-	gap: var(--odoowoo-gap);
+	gap: 32px;
 }
 
 .odoowoo-sync-section {
 	display: grid;
+	gap: 12px;
+	max-width: 560px;
+	padding: 0;
+	border: 0;
+}
+
+.odoowoo-sync-section .odoowoo-field {
 	gap: 8px;
-	padding-bottom: var(--odoowoo-gap);
-	border-bottom: 1px solid var(--odoowoo-border);
+}
+
+.odoowoo-sync-section .odoowoo-actions {
+	margin-top: 4px;
+}
+
+/* Many sync buttons in one card: all outlined, so none shouts. */
+.odoowoo-sync .odoowoo-button:not([disabled]) {
+	color: var(--odoowoo-accent);
+	background: transparent;
+	border-color: var(--odoowoo-accent);
+}
+
+.odoowoo-sync .odoowoo-button:not([disabled]):hover {
+	color: #ffffff;
+	background: var(--odoowoo-accent);
 }
 
 .odoowoo-sync-section__title {
@@ -570,7 +818,7 @@ a.odoowoo-button,
 .odoowoo-sync-dates {
 	display: flex;
 	flex-wrap: wrap;
-	gap: var(--odoowoo-gap);
+	gap: 16px 24px;
 }
 
 .odoowoo-sync-message {
@@ -578,7 +826,7 @@ a.odoowoo-button,
 }
 
 .odoowoo-sync-items h4 {
-	margin: 0 0 4px;
+	margin: 0 0 8px;
 	font-size: 16px;
 }
 
@@ -590,41 +838,48 @@ a.odoowoo-button,
 .odoowoo-log-list {
 	display: grid;
 	gap: 8px;
-	max-height: 480px;
+	max-height: 560px;
 	margin: 0;
 	padding: 0;
 	overflow-y: auto;
 	list-style: none;
 }
 
+.odoowoo-logs > .odoowoo-actions {
+	margin-bottom: 20px;
+}
+
 .odoowoo-log-row {
-	padding: 8px 12px;
-	border: 1px solid var(--odoowoo-border);
-	border-radius: var(--odoowoo-radius);
+	padding: 14px 20px;
+	background: #f7f6f2;
+	border: 0;
+	border-radius: 0;
 }
 
 .odoowoo-log-row__head {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 4px 16px;
+	gap: 4px 20px;
 }
 
+/* Plain text, not a chip. */
 .odoowoo-log-badge {
-	padding: 0 10px;
+	padding: 0;
 	font-size: 14px;
 	font-weight: 600;
-	border: 1px solid var(--odoowoo-muted);
-	border-radius: 999px;
+	color: var(--odoowoo-muted);
+	border: 0;
+	border-radius: 0;
 }
 
 .odoowoo-log-row summary {
-	margin-top: 4px;
+	margin-top: 8px;
 	cursor: pointer;
 }
 
 .odoowoo-log-text {
-	margin: 4px 0 0;
+	margin: 8px 0 0;
 	font: inherit;
 	font-size: 14px;
 	white-space: pre-wrap;
@@ -633,12 +888,14 @@ a.odoowoo-button,
 
 .odoowoo-note {
 	display: grid;
-	gap: 4px;
-	padding: 8px 12px;
+	gap: 8px;
+	max-width: 720px;
+	padding: 16px 20px;
 	font-size: 15px;
 	color: var(--odoowoo-muted);
-	border: 1px solid var(--odoowoo-border);
-	border-radius: var(--odoowoo-radius);
+	background: #f7f6f2;
+	border: 0;
+	border-radius: 0;
 }
 
 .odoowoo-note p {
@@ -647,14 +904,45 @@ a.odoowoo-button,
 
 .odoowoo-gift-expiry {
 	display: grid;
-	gap: var(--odoowoo-gap);
+	gap: 20px;
 	margin: 0;
-	padding: var(--odoowoo-gap) 0 0;
+	padding: 32px 0 0;
 	border: 0;
-	border-top: 1px solid var(--odoowoo-border);
+	border-top: 1px solid #f0efe8;
 }
 
 .odoowoo-gift-expiry legend {
 	padding: 0;
+	font-size: 17px;
 	font-weight: 700;
+}
+
+@media (max-width: 767px) {
+	.odoowoo-card {
+		padding: 24px 20px;
+	}
+
+	.odoowoo-dashboard-name {
+		font-size: 30px;
+	}
+
+	.odoowoo-header .odoowoo-rename {
+		margin-left: 0;
+	}
+
+	.odoowoo-dashboard {
+		padding: 16px 20px;
+	}
+
+	.odoowoo-dashboard .odoowoo-created {
+		min-width: 0;
+	}
+
+	.odoowoo-dashboard .odoowoo-actions {
+		flex-basis: 100%;
+	}
+
+	.odoowoo-dialog {
+		padding: 24px 20px;
+	}
 }
