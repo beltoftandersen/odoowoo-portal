@@ -107,6 +107,8 @@ final class CardListTest extends RestTestCase {
 		$this->assertStringContainsString( 'data-odoowoo-card="dashboard-header"', $html );
 		$this->assertStringContainsString( 'data-dashboard="9"', $html );
 		$this->assertStringContainsString( 'data-can-write="1"', $html );
+		$this->assertStringContainsString( 'data-can-read="1"', $html, 'The status line may read the connections.' );
+		$this->assertStringContainsString( 'odoowoo-health__headline', $html );
 		$this->assertMatchesRegularExpression( '#<h1 class="odoowoo-dashboard-name"[^>]*>#', $html );
 		$this->assertStringContainsString( 'odoowoo-rename', $html );
 		$this->assertStringContainsString( 'odoowoo-state', $html );
@@ -138,7 +140,7 @@ final class CardListTest extends RestTestCase {
 			$this->assertNotSame( '', $cards['dashboard-list']['strings'][ $key ], $key );
 		}
 
-		foreach ( array( 'rename', 'save', 'nameLabel', 'nameRequired', 'active', 'paused' ) as $key ) {
+		foreach ( array( 'rename', 'save', 'nameLabel', 'nameRequired', 'active', 'paused', 'connectWoo', 'connectOdoo', 'headHealthy', 'headAttention', 'needAttention', 'lastOrder' ) as $key ) {
 			$this->assertArrayHasKey( $key, $cards['dashboard-header']['strings'], $key );
 		}
 

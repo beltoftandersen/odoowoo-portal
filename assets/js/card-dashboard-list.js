@@ -272,7 +272,10 @@
 
 			li.setAttribute( 'data-id', String( d.id ) );
 			li.appendChild( el( 'strong', 'odoowoo-name', d.name ) );
-			li.appendChild( el( 'span', 'odoowoo-state', d.stateText ) );
+			var stateEl = el( 'span', 'odoowoo-state', d.stateText );
+
+			stateEl.setAttribute( 'data-on', d.enabled === false ? '0' : '1' );
+			li.appendChild( stateEl );
 
 			var when = formatCreated( d.created_at, lang );
 

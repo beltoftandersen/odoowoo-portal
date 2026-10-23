@@ -67,6 +67,11 @@
 
 			var slug = titleSlug( title );
 
+			// On a phone the tab row scrolls sideways: keep the open tab in view.
+			if ( typeof title.scrollIntoView === 'function' ) {
+				title.scrollIntoView( { block: 'nearest', inline: 'nearest' } );
+			}
+
 			if ( slug !== '' ) {
 				window.history.replaceState( window.history.state, '', withTab( window.location.href, slug ) );
 			}

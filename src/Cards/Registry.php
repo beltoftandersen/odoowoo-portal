@@ -155,6 +155,26 @@ final class Registry {
 			'notFound'     => \OdooWooPortal\Django\Messages::not_found(),
 			'headerError'  => __( 'Dashboard', 'odoowoo-portal' ),
 			'retry'        => __( 'Try again', 'odoowoo-portal' ),
+			'healthWoo'    => __( 'WooCommerce', 'odoowoo-portal' ),
+			'healthOdoo'   => __( 'Odoo', 'odoowoo-portal' ),
+			'healthOrders' => __( 'Orders', 'odoowoo-portal' ),
+			'connected'    => __( 'Connected', 'odoowoo-portal' ),
+			'notConnected' => __( 'Not connected', 'odoowoo-portal' ),
+			'unchecked'    => __( 'Could not be checked', 'odoowoo-portal' ),
+			'connectWoo'   => __( 'Connect your WooCommerce store', 'odoowoo-portal' ),
+			'connectOdoo'  => __( 'Connect Odoo', 'odoowoo-portal' ),
+			'waiting'      => __( 'Waiting for both connections', 'odoowoo-portal' ),
+			'noOrders'     => __( 'No orders synced yet', 'odoowoo-portal' ),
+			'runSync'      => __( 'Run a first sync', 'odoowoo-portal' ),
+			'lastOrder'    => __( 'Last order synced %s', 'odoowoo-portal' ),
+			'needAttention' => __( '%1$s of the last %2$s orders need attention', 'odoowoo-portal' ),
+			'needAttentionOne' => __( '1 of the last %s orders needs attention', 'odoowoo-portal' ),
+			'seeLogs'      => __( 'See the logs', 'odoowoo-portal' ),
+			'headHealthy'  => __( 'Your sync is healthy', 'odoowoo-portal' ),
+			'headAttention' => __( 'Something needs your attention', 'odoowoo-portal' ),
+			'headSetup'    => __( 'Finish setting up to start syncing', 'odoowoo-portal' ),
+			'headReady'    => __( 'Connected and ready for the first sync', 'odoowoo-portal' ),
+			'headPaused'   => __( 'This dashboard is paused, so nothing syncs', 'odoowoo-portal' ),
 		);
 	}
 
@@ -377,7 +397,7 @@ final class Registry {
 	private static function sync_logs_strings(): array {
 		return array(
 			'loading'       => __( 'Loading logs…', 'odoowoo-portal' ),
-			'empty'         => __( 'No sync logs yet.', 'odoowoo-portal' ),
+			'empty'         => __( 'No orders synced yet. Orders appear here after the first sync, once WooCommerce and Odoo are connected.', 'odoowoo-portal' ),
 			'refresh'       => __( 'Refresh', 'odoowoo-portal' ),
 			'refreshed'     => __( 'Refreshed', 'odoowoo-portal' ),
 			/* translators: %s: the WooCommerce order reference. */
