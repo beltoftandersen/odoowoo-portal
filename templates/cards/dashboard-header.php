@@ -20,9 +20,5 @@ use OdooWooPortal\Urls;
 		<button type="button" class="odoowoo-button odoowoo-button--secondary odoowoo-rename" hidden><?php esc_html_e( 'Rename', 'odoowoo-portal' ); ?></button>
 	</div>
 	<div class="odoowoo-header__form"></div>
-	<div class="odoowoo-health" hidden>
-		<p class="odoowoo-health__headline" role="status" aria-live="polite"></p>
-		<ul class="odoowoo-health__list"></ul>
-	</div>
 	<p class="odoowoo-header__status" role="status" aria-live="polite"></p>
 </div>

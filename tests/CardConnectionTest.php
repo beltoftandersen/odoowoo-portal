@@ -121,17 +121,6 @@ final class CardConnectionTest extends RestTestCase {
 		}
 	}
 
-	public function test_connection_cards_say_what_to_have_ready(): void {
-		$woo = $this->render_as_owner( 'woo-connection' );
-		$this->assertStringContainsString( 'class="odoowoo-ready"', $woo );
-		$this->assertStringContainsString( 'WooCommerce REST API key', $woo );
-
-		Renderer::reset();
-		$odoo = $this->render_as_owner( 'odoo-connection' );
-		$this->assertStringContainsString( 'class="odoowoo-ready"', $odoo );
-		$this->assertStringContainsString( 'OdooWoo Helper module', $odoo );
-	}
-
 	public function test_buttons_have_idle_and_busy_labels(): void {
 		$cards = Registry::cards();
 		$woo   = $cards['woo-connection']['strings'];

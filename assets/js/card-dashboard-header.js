@@ -19,26 +19,6 @@
 		notFound: 'This dashboard was not found.',
 		headerError: 'Dashboard',
 		retry: 'Try again',
-		healthWoo: 'WooCommerce',
-		healthOdoo: 'Odoo',
-		healthOrders: 'Orders',
-		connected: 'Connected',
-		notConnected: 'Not connected',
-		unchecked: 'Could not be checked',
-		connectWoo: 'Connect your WooCommerce store',
-		connectOdoo: 'Connect Odoo',
-		waiting: 'Waiting for both connections',
-		noOrders: 'No orders synced yet',
-		runSync: 'Run a first sync',
-		lastOrder: 'Last order synced %s',
-		needAttention: '%1$s of the last %2$s orders need attention',
-		needAttentionOne: '1 of the last %s orders needs attention',
-		seeLogs: 'See the logs',
-		headHealthy: 'Your sync is healthy',
-		headAttention: 'Something needs your attention',
-		headSetup: 'Finish setting up to start syncing',
-		headReady: 'Connected and ready for the first sync',
-		headPaused: 'This dashboard is paused, so nothing syncs',
 	};
 
 	var t = core.translator( FALLBACK );
@@ -56,162 +36,6 @@
 		}
 
 		return { name: d.name, stateText: d.enabled === false ? t( 'paused' ) : t( 'active' ) };
-	}
-
-	function filled( v ) {
-		return typeof v === 'string' && v.trim() !== '';
-	}
-
-	/** Order sync statuses that need the customer's eyes (OrderSync.status values of the engine). */
-	function needsAttention( row ) {
-		var raw = row && typeof row.status === 'string' ? row.status.toLowerCase() : '';
-
-		return [ 'error', 'failed', 'warning' ].indexOf( raw ) !== -1;
-	}
-
-	function when( iso ) {
-		var d = new Date( iso );
-
-		if ( typeof iso !== 'string' || iso === '' || isNaN( d.getTime() ) ) {
-			return '';
-		}
-
-		try {
-			return d.toLocaleString( undefined, { dateStyle: 'medium', timeStyle: 'short' } );
-		} catch ( e ) {
-			return iso;
-		}
-	}
-
-	/**
-	 * The status line of a dashboard: a headline and three rows (WooCommerce, Odoo, Orders), each
-	 * {key, label, text, tone, action}. tone is ok, todo, attention, idle or unknown; action is
-	 * {text, tab} or null. woo, odoo and syncs are the replies of the three reads, or null when a
-	 * read failed. enabled is the dashboard's own flag.
-	 */
-	function healthView( woo, odoo, syncs, enabled ) {
-		var wooOk = woo && woo.ok === true && woo.data && typeof woo.data === 'object';
-		var odooOk = odoo && odoo.ok === true && odoo.data && typeof odoo.data === 'object';
-		var syncOk = syncs && syncs.ok === true;
-		var wooOn = !! wooOk && filled( woo.data.woocommerce_url ) && filled( woo.data.consumer_key );
-		var odooOn = !! odooOk && filled( odoo.data.odoo_url ) && filled( odoo.data.odoo_db ) && filled( odoo.data.odoo_user );
-		var items = syncOk ? core.listOf( syncs.data ) : [];
-		var bad = items.filter( needsAttention ).length;
-		var rows = [];
-
-		rows.push( ! wooOk
-			? { key: 'woo', label: t( 'healthWoo' ), text: t( 'unchecked' ), tone: 'unknown', action: null }
-			: ( wooOn
-				? { key: 'woo', label: t( 'healthWoo' ), text: t( 'connected' ), tone: 'ok', action: null }
-				: { key: 'woo', label: t( 'healthWoo' ), text: t( 'notConnected' ), tone: 'todo', action: { text: t( 'connectWoo' ), tab: 'connections' } } ) );
-		rows.push( ! odooOk
-			? { key: 'odoo', label: t( 'healthOdoo' ), text: t( 'unchecked' ), tone: 'unknown', action: null }
-			: ( odooOn
-				? { key: 'odoo', label: t( 'healthOdoo' ), text: t( 'connected' ), tone: 'ok', action: null }
-				: { key: 'odoo', label: t( 'healthOdoo' ), text: t( 'notConnected' ), tone: 'todo', action: { text: t( 'connectOdoo' ), tab: 'connections' } } ) );
-
-		var order;
-
-		if ( ! syncOk ) {
-			order = { key: 'orders', label: t( 'healthOrders' ), text: t( 'unchecked' ), tone: 'unknown', action: null };
-		} else if ( ! wooOn || ! odooOn ) {
-			order = { key: 'orders', label: t( 'healthOrders' ), text: t( 'waiting' ), tone: 'idle', action: null };
-		} else if ( items.length === 0 ) {
-			order = { key: 'orders', label: t( 'healthOrders' ), text: t( 'noOrders' ), tone: 'idle', action: { text: t( 'runSync' ), tab: 'sync' } };
-		} else if ( bad > 0 ) {
-			order = {
-				key: 'orders',
-				label: t( 'healthOrders' ),
-				text: bad === 1 ? core.fill( t( 'needAttentionOne' ), items.length ) : core.fill( t( 'needAttention' ), bad, items.length ),
-				tone: 'attention',
-				action: { text: t( 'seeLogs' ), tab: 'logs' },
-			};
-		} else {
-			var at = when( items[ 0 ] && items[ 0 ].synced_at );
-
-			order = { key: 'orders', label: t( 'healthOrders' ), text: at !== '' ? core.fill( t( 'lastOrder' ), at ) : t( 'connected' ), tone: 'ok', action: null };
-		}
-
-		rows.push( order );
-
-		var headline;
-
-		if ( enabled === false ) {
-			headline = { text: t( 'headPaused' ), tone: 'idle' };
-		} else if ( bad > 0 ) {
-			headline = { text: t( 'headAttention' ), tone: 'attention' };
-		} else if ( wooOk && odooOk && ( ! wooOn || ! odooOn ) ) {
-			headline = { text: t( 'headSetup' ), tone: 'todo' };
-		} else if ( wooOn && odooOn && syncOk && items.length === 0 ) {
-			headline = { text: t( 'headReady' ), tone: 'idle' };
-		} else if ( wooOn && odooOn && syncOk ) {
-			headline = { text: t( 'headHealthy' ), tone: 'ok' };
-		} else {
-			headline = { text: '', tone: 'unknown' };
-		}
-
-		return { headline: headline, rows: rows };
-	}
-
-	/** Opens a tab of the Tabs element that holds our cards; false when there is none to open. */
-	function openTab( doc, slug ) {
-		var title = doc.querySelector( '.brxe-tabs-nested [data-odoowoo-tab="' + slug + '"]' );
-
-		if ( ! title ) {
-			return false;
-		}
-
-		title.click();
-
-		if ( typeof title.scrollIntoView === 'function' ) {
-			title.scrollIntoView( { block: 'nearest', inline: 'nearest' } );
-		}
-
-		return true;
-	}
-
-	/** Fills the status line. DOM glue. */
-	function renderHealth( doc, box, view ) {
-		var headline = box.querySelector( '.odoowoo-health__headline' );
-		var list = box.querySelector( '.odoowoo-health__list' );
-
-		headline.textContent = view.headline.text;
-		headline.setAttribute( 'data-tone', view.headline.tone );
-		headline.hidden = view.headline.text === '';
-		list.textContent = '';
-
-		view.rows.forEach( function ( row ) {
-			var li = doc.createElement( 'li' );
-			var label = doc.createElement( 'span' );
-			var text = doc.createElement( 'span' );
-
-			li.className = 'odoowoo-health__row';
-			li.setAttribute( 'data-tone', row.tone );
-			label.className = 'odoowoo-health__label';
-			label.textContent = row.label;
-			text.className = 'odoowoo-health__text';
-			text.textContent = row.text;
-			li.appendChild( label );
-			li.appendChild( text );
-
-			if ( row.action ) {
-				var a = doc.createElement( 'a' );
-
-				a.className = 'odoowoo-health__action';
-				a.href = '?tab=' + encodeURIComponent( row.action.tab );
-				a.textContent = row.action.text;
-				a.addEventListener( 'click', function ( e ) {
-					if ( openTab( doc, row.action.tab ) ) {
-						e.preventDefault();
-					}
-				} );
-				li.appendChild( a );
-			}
-
-			list.appendChild( li );
-		} );
-
-		box.hidden = false;
 	}
 
 	/**
@@ -293,33 +117,13 @@
 		var formBox = root.querySelector( '.odoowoo-header__form' );
 		var statusEl = root.querySelector( '.odoowoo-header__status' );
 		var canWrite = root.getAttribute( 'data-can-write' ) === '1';
-		var canRead = root.getAttribute( 'data-can-read' ) === '1';
-		var healthBox = root.querySelector( '.odoowoo-health' );
-		var ctx = { licenseId: licenseId, dashboardId: dashboardId };
 
 		function show( d ) {
 			var v = headerView( d );
 
 			nameEl.textContent = v.name;
 			stateEl.textContent = v.stateText;
-			stateEl.setAttribute( 'data-on', d && d.enabled === false ? '0' : '1' );
 			renameBtn.hidden = ! canWrite;
-		}
-
-		async function loadHealth( enabled ) {
-			if ( ! healthBox || ! canRead ) {
-				return;
-			}
-
-			var replies = await Promise.all( [ 'woo-keys', 'odoo-settings', 'order-syncs' ].map( function ( route ) {
-				return core.api( 'GET', core.dashboardPath( ctx, route ) );
-			} ) );
-
-			if ( root.isConnected === false ) {
-				return;
-			}
-
-			renderHealth( G.document, healthBox, healthView( replies[ 0 ], replies[ 1 ], replies[ 2 ], enabled ) );
 		}
 
 		function openForm() {
@@ -412,13 +216,12 @@
 			core.status( statusEl, 'saved', '' );
 			statusEl.removeAttribute( 'data-state' );
 			show( reply.data );
-			loadHealth( reply.data && reply.data.enabled );
 		}
 
 		core.whenVisible( root, load );
 	}
 
-	var api_ = { renameBody: renameBody, headerView: headerView, headerFailure: headerFailure, healthView: healthView, hideDashboardTabs: hideDashboardTabs, rename: rename };
+	var api_ = { renameBody: renameBody, headerView: headerView, headerFailure: headerFailure, hideDashboardTabs: hideDashboardTabs, rename: rename };
 
 	if ( typeof module !== 'undefined' && module.exports ) {
 		module.exports = api_;

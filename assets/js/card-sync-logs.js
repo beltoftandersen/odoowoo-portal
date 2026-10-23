@@ -12,7 +12,7 @@
 
 	var t = core.translator( {
 		loading: 'Loading logs…',
-		empty: 'No orders synced yet. Orders appear here after the first sync, once WooCommerce and Odoo are connected.',
+		empty: 'No sync logs yet.',
 		refreshed: 'Refreshed',
 		wooRef: 'WooCommerce %s',
 		odooRef: 'Odoo %s',

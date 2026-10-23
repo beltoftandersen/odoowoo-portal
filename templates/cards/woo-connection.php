@@ -17,7 +17,6 @@ $odoowoo_uid = wp_unique_id( 'odoowoo-woo-' );
 
 ?>
 <form class="odoowoo-form" novalidate>
-	<p class="odoowoo-ready"><strong><?php esc_html_e( 'Have ready:', 'odoowoo-portal' ); ?></strong> <?php esc_html_e( 'your store address, and a WooCommerce REST API key with read and write permission (WooCommerce, Settings, Advanced, REST API).', 'odoowoo-portal' ); ?></p>
 	<div class="odoowoo-field">
 		<label for="<?php echo esc_attr( $odoowoo_uid ); ?>-url"><?php echo $odoowoo_s( 'storeUrl' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the closure. ?></label>
 		<input type="url" id="<?php echo esc_attr( $odoowoo_uid ); ?>-url" name="woocommerce_url" autocomplete="off" placeholder="https://" />

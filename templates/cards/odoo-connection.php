@@ -17,7 +17,6 @@ $odoowoo_uid = wp_unique_id( 'odoowoo-odoo-' );
 
 ?>
 <form class="odoowoo-form" novalidate>
-	<p class="odoowoo-ready"><strong><?php esc_html_e( 'Have ready:', 'odoowoo-portal' ); ?></strong> <?php esc_html_e( 'your Odoo address, the database name, and a user with its password or API key. The OdooWoo Helper module must be installed in Odoo.', 'odoowoo-portal' ); ?></p>
 	<div class="odoowoo-field">
 		<label for="<?php echo esc_attr( $odoowoo_uid ); ?>-url"><?php echo $odoowoo_s( 'odooUrl' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the closure. ?></label>
 		<input type="url" id="<?php echo esc_attr( $odoowoo_uid ); ?>-url" name="odoo_url" autocomplete="off" placeholder="https://" />

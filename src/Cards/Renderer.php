@@ -302,7 +302,7 @@ final class Renderer {
 	 * dashboard-list: the dashboard page URL template (license and dashboard 0, filled in by the
 	 * script) and, for a support viewer only, the license summary: GET /licenses lists only the
 	 * viewer's own licenses, so support would see nothing. Ownership already holds (Context).
-	 * dashboard-header: whether the viewer may rename, and whether the status line may read the connections. The connection and settings cards: whether the
+	 * dashboard-header: whether the viewer may rename. The connection and settings cards: whether the
 	 * viewer may save and whether they may verify.
 	 *
 	 * @param string  $card Card name.
@@ -321,10 +321,7 @@ final class Renderer {
 		}
 
 		if ( 'dashboard-header' === $card ) {
-			return array(
-				'data-can-write' => $ctx->can_write() ? '1' : '0',
-				'data-can-read'  => $ctx->calls_allowed() ? '1' : '0',
-			);
+			return array( 'data-can-write' => $ctx->can_write() ? '1' : '0' );
 		}
 
 		if ( in_array( $card, array( 'woo-connection', 'woo-settings', 'odoo-connection', 'odoo-settings' ), true ) ) {
