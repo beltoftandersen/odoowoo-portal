@@ -19,6 +19,7 @@
 		transferring: 'Transferring…',
 		badgeSaved: 'Saved',
 		badgeVerified: 'Verified',
+		wooVerified: 'WooCommerce connection verified.',
 		badgeWebhooks: 'Webhooks transferred',
 		show: 'Show',
 		hide: 'Hide',
@@ -178,7 +179,7 @@
 			secretIn.setAttribute( 'autocomplete', 'new-password' );
 			secretIn.setAttribute( 'placeholder', secret.placeholder );
 			badges.saved.hidden = ! ( s.has_consumer_secret === true && filled( s.consumer_key ) );
-			badges.verified.hidden = ! verified;
+			badges.verified.hidden = true; // The result is the status line, as on the Odoo card.
 			badges.webhooks.hidden = ! webhookBadge( transferred );
 			var tr = transferState( s, store.dirty() );
 
@@ -223,7 +224,7 @@
 				return out.reply;
 			}, t( 'verifying' ) ).then( function ( reply ) {
 				if ( reply.ok === true ) {
-					core.status( statusEl, 'saved', t( 'badgeVerified' ) );
+					core.status( statusEl, 'saved', t( 'wooVerified' ) );
 				}
 			} );
 		} );

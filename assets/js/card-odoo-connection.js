@@ -216,17 +216,22 @@
 		}
 
 		verifyBtn.addEventListener( 'click', function () {
+			var result = null;
+
 			helperEl.textContent = '';
 			core.submit( verifyBtn, statusEl, async function () {
 				var out = await verifyOdoo( ctx, store );
 
-				if ( out.view.verified ) {
-					helperEl.textContent = out.view.message;
-					helperEl.setAttribute( 'data-helper', out.view.helper );
-				}
+				result = out.view;
+				helperEl.setAttribute( 'data-helper', out.view.helper );
 
 				return out.reply;
-			}, t( 'verifying' ) );
+			}, t( 'verifying' ) ).then( function () {
+				// One status line, as on the WooCommerce card: the verification result, not "Saved".
+				if ( result && result.verified ) {
+					core.status( statusEl, 'saved', result.message );
+				}
+			} );
 		} );
 
 		form.addEventListener( 'submit', function ( e ) {

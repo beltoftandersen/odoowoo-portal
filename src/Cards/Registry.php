@@ -180,6 +180,7 @@ final class Registry {
 			'transferHelp'   => __( 'Creates the order webhooks in your store. Save the keys first.', 'odoowoo-portal' ),
 			'badgeSaved'     => __( 'Saved', 'odoowoo-portal' ),
 			'badgeVerified'  => __( 'Verified', 'odoowoo-portal' ),
+			'wooVerified'    => __( 'WooCommerce connection verified.', 'odoowoo-portal' ),
 			'badgeWebhooks'  => __( 'Webhooks transferred', 'odoowoo-portal' ),
 			'keyRequired'    => __( 'Enter the consumer key.', 'odoowoo-portal' ),
 			'urlRequired'    => __( 'Enter the store URL.', 'odoowoo-portal' ),
