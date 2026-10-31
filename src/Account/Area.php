@@ -35,6 +35,7 @@ final class Area {
 	 */
 	public static function register(): void {
 		add_filter( 'beltoft_services_account_page_body', array( __CLASS__, 'body' ), 10, 2 );
+		add_filter( 'beltoft_services_account_page_chrome', array( __CLASS__, 'chrome' ), 10, 2 );
 		add_filter( 'beltoft_services_account_page_redirect', array( __CLASS__, 'redirect' ), 10, 2 );
 		add_filter( 'beltoft_services_account_app_url', array( __CLASS__, 'app_url' ), 10, 3 );
 		add_action( 'beltoft_services_account_assets', array( __CLASS__, 'assets' ) );
@@ -244,6 +245,25 @@ final class Area {
 	}
 
 	/**
+	 * Listener of beltoft_services_account_page_chrome: a store's page has one header of its own (back link, name, state,
+	 * Rename), so the service's back link and head are left out there. The list, and the notice for a dashboard that is not
+	 * found, keep them.
+	 *
+	 * @param mixed $chrome Whether to keep the service's link and head.
+	 * @param mixed $page   The page: license, path.
+	 * @return mixed
+	 */
+	public static function chrome( $chrome, $page = array() ) {
+		if ( ! $chrome || ! is_array( $page ) || ! is_array( $page['license'] ?? null ) || ! self::is_odoowoo( $page['license'] ) || empty( $page['path'] ) || ! is_array( $page['path'] ) ) {
+			return $chrome;
+		}
+
+		$ctx = self::owner_context( (int) $page['license']['id'] );
+
+		return null !== $ctx && Dashboards::resolve( $ctx, (string) $page['path'][0] ) > 0 ? false : $chrome;
+	}
+
+	/**
 	 * What a dashboard that is not the viewer's, or not there, is told: the same words either way.
 	 */
 	public static function not_found_text(): string {
@@ -257,7 +277,9 @@ final class Area {
 	 */
 	private static function print_list( int $license_id ): void {
 		Renderer::use_ids( array( 'license' => $license_id, 'dashboard' => 0, 'tab' => 'connections' ) );
+		echo '<div class="odoowoo-account-panel">';
 		echo Renderer::render( 'dashboard-list' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the card's shell and template.
+		echo '</div>';
 	}
 
 	/**
@@ -284,11 +306,14 @@ final class Area {
 
 		ServiceArea::tab_nav( $nav, $tab, __( 'Dashboard sections', 'odoowoo-portal' ) );
 
+		// One panel per tab, like the server tabs: the cards are its sections.
+		echo '<div class="odoowoo-account-panel">';
+
 		foreach ( Tabs::cards( $tab ) as $card ) {
 			echo Renderer::render( $card ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the card's shell and template.
 		}
 
-		echo '</div>';
+		echo '</div></div>';
 	}
 
 	/**

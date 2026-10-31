@@ -966,7 +966,7 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 }
 
 .beltoft-services-area-page .odoowoo-card {
-	margin: 0 0 32px;
+	margin: 0;
 	padding: 0;
 	max-width: 100%;
 	background: transparent;
@@ -975,7 +975,7 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 
 .beltoft-services-area-page .odoowoo-card__title,
 .beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] > .odoowoo-card__title {
-	margin: 0 0 12px;
+	margin: 0 0 16px;
 	padding: 0;
 	background: transparent;
 	color: var(--navy, #0c1535);
@@ -985,7 +985,7 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 }
 
 .beltoft-services-area-page .odoowoo-account-dashboard .beltoft-services-tabs {
-	margin: 16px 0 24px;
+	margin: 16px 0 16px;
 }
 
 .beltoft-services-area-page .odoowoo-account-dashboard .odoowoo-card[data-odoowoo-card='dashboard-header'] {
@@ -1073,6 +1073,233 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	font-size: 15px;
 }
 
+/* The service panel's root and the portal's own status texts carry [data-state]: no indent from the portal's rule for them. */
+.beltoft-services-area-page .odoowoo-card [data-state] {
+	margin-left: 0;
+}
+
+/* Back link: a chevron like the service pages. */
+.beltoft-services-area-page .odoowoo-card a.odoowoo-back::before {
+	content: '\2039\00a0';
+}
+
+/* One white panel per tab (like the server tabs); the cards are its sections, a thin rule between unrelated ones. */
+.beltoft-services-area-page .odoowoo-account-panel {
+	box-sizing: border-box;
+	min-width: 0;
+	max-width: 880px;
+	padding: 16px;
+	background: var(--bg-card, #ffffff);
+}
+
+.beltoft-services-area-page .odoowoo-account-panel > .odoowoo-card + .odoowoo-card {
+	margin-top: 32px;
+	padding-top: 32px;
+	border-top: 1px solid var(--rule, #d6d2c8);
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-form {
+	gap: 16px;
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-form > .odoowoo-help {
+	margin-top: -10px;
+}
+
+/* Fields: labels in regular weight, inputs white with a thin rule, read-only ones warm and quiet. */
+.beltoft-services-area-page .odoowoo-card label {
+	font-size: 15px;
+	font-weight: 400;
+	color: var(--navy, #0c1535);
+}
+
+.beltoft-services-area-page .odoowoo-card input[type='text'],
+.beltoft-services-area-page .odoowoo-card input[type='url'],
+.beltoft-services-area-page .odoowoo-card input[type='password'],
+.beltoft-services-area-page .odoowoo-card input[type='number'],
+.beltoft-services-area-page .odoowoo-card input[type='date'],
+.beltoft-services-area-page .odoowoo-card select,
+.beltoft-services-area-page .odoowoo-card textarea,
+.beltoft-services-area-page .odoowoo-mapping__table select,
+.beltoft-services-area-page .odoowoo-mapping__table input[type='text'],
+.beltoft-services-area-page .odoowoo-mapping__table input[type='number'] {
+	box-sizing: border-box;
+	min-height: 44px;
+	padding: 10px 12px;
+	color: var(--navy, #0c1535);
+	background-color: var(--bg-card, #ffffff);
+	border: 1px solid var(--rule, #d6d2c8);
+}
+
+.beltoft-services-area-page .odoowoo-card input:disabled,
+.beltoft-services-area-page .odoowoo-card select:disabled,
+.beltoft-services-area-page .odoowoo-card textarea:disabled,
+.beltoft-services-area-page .odoowoo-card input[readonly] {
+	color: var(--ink-soft, #5e7080);
+	background-color: var(--bg-warm, #eeece6);
+	cursor: not-allowed;
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-field {
+	gap: 6px;
+}
+
+.beltoft-services-area-page .odoowoo-help,
+.beltoft-services-area-page .odoowoo-helper-status,
+.beltoft-services-area-page .odoowoo-card .odoowoo-reason {
+	font-size: 14px;
+	color: var(--ink-soft, #5e7080);
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-group {
+	gap: 8px;
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-group + .odoowoo-group {
+	padding-top: 16px;
+	border-top: 1px solid var(--rule, #d6d2c8);
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-field--check {
+	gap: 8px;
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-field--check label {
+	font-size: 15px;
+	font-weight: 400;
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-reason {
+	padding-left: 28px;
+}
+
+/* Sections inside a card (Manual sync): the same rhythm, a rule between them. */
+.beltoft-services-area-page .odoowoo-sync-section {
+	gap: 16px;
+	max-width: none;
+}
+
+.beltoft-services-area-page .odoowoo-sync-section + .odoowoo-sync-section {
+	margin-top: 24px;
+	padding-top: 24px;
+	border-top: 1px solid var(--rule, #d6d2c8);
+}
+
+.beltoft-services-area-page .odoowoo-sync-section__title {
+	font-size: 15px;
+}
+
+.beltoft-services-area-page .odoowoo-sync-section .odoowoo-actions {
+	margin-top: 0;
+}
+
+.beltoft-services-area-page .odoowoo-gift-cards {
+	gap: 16px;
+}
+
+.beltoft-services-area-page .odoowoo-callbacks {
+	padding-top: 16px;
+	border-top: 1px solid var(--rule, #d6d2c8);
+}
+
+/* Buttons of a section: one row at its end. */
+.beltoft-services-area-page .odoowoo-card .odoowoo-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 0;
+}
+
+/* Help markers: a small square outlined mark, the same everywhere; the explanation behaves as before. */
+.beltoft-services-area-page .odoowoo-tip-button {
+	box-sizing: border-box;
+	min-width: 20px;
+	width: 20px;
+	height: 20px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--ink-soft, #5e7080);
+	text-decoration: none;
+	background: var(--bg-card, #ffffff);
+	border: 1px solid var(--rule, #d6d2c8);
+}
+
+.beltoft-services-area-page .odoowoo-tip-button:hover,
+.beltoft-services-area-page .odoowoo-tip-button[aria-expanded='true'] {
+	color: var(--navy, #0c1535);
+	border-color: var(--navy, #0c1535);
+}
+
+/* Mapping editors: loaders, then a table with small quiet column heads and thin rules; the empty state is one quiet line. */
+.beltoft-services-area-page .odoowoo-mapping__loaders {
+	gap: 8px;
+	margin: 0 0 16px;
+}
+
+.beltoft-services-area-page .odoowoo-mapping__rows {
+	margin: 0;
+	border-top: 1px solid var(--rule, #d6d2c8);
+}
+
+.beltoft-services-area-page .odoowoo-mapping__table th {
+	padding: 12px 12px 8px 0;
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--ink-soft, #5e7080);
+}
+
+.beltoft-services-area-page .odoowoo-mapping__table td {
+	padding: 8px 12px 8px 0;
+	border-top: 1px solid var(--bg-warm, #eeece6);
+}
+
+.beltoft-services-area-page .odoowoo-mapping__empty {
+	margin: 0;
+	padding: 12px 0;
+	color: var(--ink-soft, #5e7080);
+}
+
+.beltoft-services-area-page .odoowoo-mapping__empty:empty {
+	display: none;
+}
+
+.beltoft-services-area-page .odoowoo-hint {
+	font-size: 12px;
+	letter-spacing: normal;
+	text-transform: none;
+}
+
+/* Logs: Refresh on the title row's right side, rows as thin-ruled lines, the empty line at the title's edge. */
+.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='sync-logs'] {
+	position: relative;
+}
+
+.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='sync-logs'] > .odoowoo-card__title {
+	display: flex;
+	align-items: center;
+	min-height: 38px;
+	margin-bottom: 8px;
+}
+
+.beltoft-services-area-page .odoowoo-logs > .odoowoo-actions {
+	position: absolute;
+	top: 0;
+	right: 0;
+	margin: 0;
+}
+
+.beltoft-services-area-page .odoowoo-log-row {
+	padding: 10px 0;
+	background: transparent;
+	border-top: 1px solid var(--bg-warm, #eeece6);
+}
+
+.beltoft-services-area-page .odoowoo-log-list {
+	gap: 0;
+}
+
 /* Buttons, in the page and in the dialogs they open: navy filled, navy outline, danger outline. */
 .beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button,
 .beltoft-services-area-page .odoowoo-card a.odoowoo-button.odoowoo-button,
@@ -1128,9 +1355,28 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button--danger.od
 
 .beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button[disabled],
 body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-button[disabled] {
-	color: #8d948f;
+	color: var(--ink-soft, #5e7080);
 	background: var(--bg-warm, #eeece6);
 	border-color: var(--bg-warm, #eeece6);
+	cursor: not-allowed;
+}
+
+/* Sync buttons: every one secondary, none shouts. */
+.beltoft-services-area-page .odoowoo-sync .odoowoo-button.odoowoo-button:not([disabled]) {
+	color: var(--navy, #0c1535);
+	background: transparent;
+	border-color: var(--navy, #0c1535);
+}
+
+.beltoft-services-area-page .odoowoo-sync .odoowoo-button.odoowoo-button:not([disabled]):hover {
+	color: var(--navy, #0c1535);
+	background: var(--bg-warm, #eeece6);
+}
+
+/* Disabled buttons keep their own width, in a light warm fill. */
+.beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button {
+	width: auto;
+	justify-self: start;
 }
 
 /* WooCommerce adds its own inline "Show" to every password field: keep that one, not a second button next to it. */
@@ -1139,8 +1385,69 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-bu
 }
 
 @media (max-width: 767px) {
-	.beltoft-services-area-page .odoowoo-card {
-		padding: 0;
+	.beltoft-services-area-page .odoowoo-account-panel {
+		padding: 14px;
+	}
+
+	.beltoft-services-area-page .odoowoo-card input[type='text'],
+	.beltoft-services-area-page .odoowoo-card input[type='url'],
+	.beltoft-services-area-page .odoowoo-card input[type='password'],
+	.beltoft-services-area-page .odoowoo-card input[type='number'],
+	.beltoft-services-area-page .odoowoo-card input[type='date'],
+	.beltoft-services-area-page .odoowoo-card select,
+	.beltoft-services-area-page .odoowoo-card textarea {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.beltoft-services-area-page .odoowoo-account-dashboard .beltoft-services-tabs {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+	}
+
+	.beltoft-services-area-page .odoowoo-sync-dates {
+		gap: 16px;
+	}
+
+	.beltoft-services-area-page .odoowoo-mapping__rows {
+		overflow-x: visible;
+	}
+
+	.beltoft-services-area-page .odoowoo-mapping__table,
+	.beltoft-services-area-page .odoowoo-mapping__table tbody,
+	.beltoft-services-area-page .odoowoo-mapping__table tr,
+	.beltoft-services-area-page .odoowoo-mapping__table td {
+		display: block;
+		width: 100%;
+	}
+
+	.beltoft-services-area-page .odoowoo-mapping__table thead {
+		display: none;
+	}
+
+	.beltoft-services-area-page .odoowoo-mapping__table tr {
+		padding: 8px 0;
+		border-top: 1px solid var(--bg-warm, #eeece6);
+	}
+
+	.beltoft-services-area-page .odoowoo-mapping__table td {
+		padding: 4px 0;
+		border-top: 0;
+	}
+
+	.beltoft-services-area-page .odoowoo-mapping__table td[data-label]::before {
+		content: attr(data-label);
+		display: block;
+		margin: 0 0 4px;
+		font-size: 14px;
+		color: var(--ink-soft, #5e7080);
+	}
+
+	.beltoft-services-area-page .odoowoo-mapping__table select,
+	.beltoft-services-area-page .odoowoo-mapping__table input[type='text'],
+	.beltoft-services-area-page .odoowoo-mapping__table input[type='number'] {
+		width: 100%;
+		min-width: 0;
 	}
 
 	.beltoft-services-area-page .odoowoo-dashboard {

@@ -644,7 +644,76 @@ final class AccountAreaTest extends RestTestCase {
 			}
 		}
 
+		foreach ( array( '.odoowoo-account-panel', 'var(--bg-card', '.odoowoo-tip-button', '.odoowoo-mapping__empty', '.odoowoo-mapping__table td[data-label]::before', 'cursor: not-allowed', "content: '\\2039", 'overflow-x: auto' ) as $needle ) {
+			$this->assertStringContainsString( $needle, $block, $needle );
+		}
+
 		$this->assertStringContainsString( 'font-size: 20px', $block );
 		$this->assertStringContainsString( ':has(.show-password-input) .odoowoo-reveal', $block );
+	}
+
+	public function test_each_tab_and_the_list_sit_in_one_panel(): void {
+		$license = $this->app_license();
+		$this->django_with( $license, array( array( 'id' => 5, 'name' => 'Shop' ) ) );
+		$this->as_user( (int) $license['user_id'] );
+
+		$tab = $this->body( $license, array( 'shop', 'mappings' ) );
+		$this->assertSame( 1, substr_count( $tab, 'class="odoowoo-account-panel"' ) );
+		$this->assertSame( 6, substr_count( substr( $tab, (int) strpos( $tab, 'odoowoo-account-panel' ) ), 'data-odoowoo-card=' ), 'The six mapping cards are inside it.' );
+		$this->assertLessThan( (int) strpos( $tab, 'odoowoo-account-panel' ), (int) strpos( $tab, 'data-odoowoo-card="dashboard-header"' ), 'The header and the tabs come before the panel.' );
+		$this->assertLessThan( (int) strpos( $tab, 'odoowoo-account-panel' ), (int) strpos( $tab, 'beltoft-services-tabs' ) );
+
+		$list = $this->body( $license );
+		$this->assertSame( 1, substr_count( $list, 'class="odoowoo-account-panel"' ) );
+	}
+
+	public function test_a_store_page_drops_the_service_chrome_and_the_list_and_not_found_keep_it(): void {
+		$license = $this->app_license();
+		$this->django_with( $license, array( array( 'id' => 5, 'name' => 'Shop' ) ) );
+		$this->as_user( (int) $license['user_id'] );
+		Routes::reset();
+		$page = static fn( array $path ) => array( 'license' => $license, 'path' => $path );
+
+		$this->assertFalse( apply_filters( 'beltoft_services_account_page_chrome', true, $page( array( 'shop' ) ) ) );
+		$this->assertFalse( apply_filters( 'beltoft_services_account_page_chrome', true, $page( array( 'shop', 'logs' ) ) ) );
+		$this->assertFalse( apply_filters( 'beltoft_services_account_page_chrome', true, $page( array( '5' ) ) ) );
+		$this->assertTrue( apply_filters( 'beltoft_services_account_page_chrome', true, $page( array() ) ), 'The list keeps it.' );
+		$this->assertTrue( apply_filters( 'beltoft_services_account_page_chrome', true, $page( array( 'nope' ) ) ), 'An unknown dashboard shows the list with the head.' );
+
+		$other                 = $license;
+		$other['product_slug'] = 'something-else';
+		$this->assertTrue( apply_filters( 'beltoft_services_account_page_chrome', true, array( 'license' => $other, 'path' => array( 'shop' ) ) ) );
+
+		$this->as_user( self::factory()->user->create() );
+		Context::reset();
+		$this->assertTrue( apply_filters( 'beltoft_services_account_page_chrome', true, $page( array( 'shop' ) ) ), 'Not the owner: nothing changes.' );
+	}
+
+	public function test_the_apps_page_shows_one_header_for_a_store(): void {
+		$license = $this->app_license();
+		Resource::for_license( (int) $license['id'] )->set( array( 'state' => 'ready', 'desired' => 'ready' ) );
+		$this->django_with( $license, array( array( 'id' => 5, 'name' => 'Shop' ) ) );
+		$this->as_user( (int) $license['user_id'] );
+		Context::reset();
+		$area = ServiceArea::get( Apps::class );
+		$view = View::license( $license );
+
+		$GLOBALS['wp']->query_vars['apps'] = \BeltoftServices\Account\Slugs::value( $license ) . '/shop';
+		ob_start();
+		$area->render( array( $view ) );
+		$store = (string) ob_get_clean();
+
+		$this->assertStringNotContainsString( 'All apps', $store );
+		$this->assertStringNotContainsString( 'beltoft-services-page__name', $store );
+		$this->assertStringContainsString( 'class="odoowoo-back"', $store, 'The portal\'s own back link.' );
+		$this->assertSame( 1, substr_count( $store, 'odoowoo-dashboard-name' ) );
+
+		$GLOBALS['wp']->query_vars['apps'] = \BeltoftServices\Account\Slugs::value( $license );
+		Context::reset();
+		ob_start();
+		$area->render( array( $view ) );
+		$list = (string) ob_get_clean();
+		$this->assertStringContainsString( 'All apps', $list );
+		$this->assertStringContainsString( 'beltoft-services-page__name', $list );
 	}
 }
