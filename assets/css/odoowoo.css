@@ -1476,3 +1476,8 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-bu
 .beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] > .odoowoo-card__title {
 	margin-top: 16px;
 }
+
+/* My Account area: every section title keeps 16px between itself and its first field, button row or description. */
+.beltoft-services-area-page .odoowoo-account-panel .odoowoo-card .odoowoo-card__title.odoowoo-card__title {
+	margin-bottom: 16px;
+}
