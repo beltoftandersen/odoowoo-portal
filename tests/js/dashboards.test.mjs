@@ -232,6 +232,34 @@ test( 'test_dashboard_url_fills_license_and_dashboard', () => {
 	assert.equal( list.dashboardUrl( '/app/?page_id=3&tab=connections', 1, 2 ), '/app/?page_id=3&tab=connections&license=1&dashboard=2' );
 } );
 
+test( 'test_dashboard_url_template_inside_my_account_takes_the_number', () => {
+	const tpl = 'https://beltoft.test/my-account/apps/odoowoo/{dashboard}/';
+
+	assert.equal( list.dashboardUrl( tpl, 7, 9 ), 'https://beltoft.test/my-account/apps/odoowoo/9/' );
+	assert.equal( list.dashboardUrl( '/my-account/apps/odoowoo/{dashboard}/', 7, '12abc' ), '/my-account/apps/odoowoo/0/', 'Only a number gets in.' );
+	assert.equal( tpl.includes( '{dashboard}' ), true, 'The template is left alone.' );
+} );
+
+test( 'test_the_view_model_keeps_a_safe_address_the_page_gave_and_drops_the_rest', () => {
+	const vm = list.viewModel( [ entry( { dashboards: [
+		{ ...dash( 11, 'Shop' ), url: 'https://beltoft.test/my-account/apps/odoowoo/shop/' },
+		{ ...dash( 12, 'Outlet' ), url: 'javascript:alert(1)' },
+		dash( 13, 'Plain' ),
+	] } ) ] );
+
+	assert.deepEqual( vm.groups[ 0 ].dashboards.map( ( d ) => d.url ), [ 'https://beltoft.test/my-account/apps/odoowoo/shop/', '', '' ] );
+} );
+
+test( 'test_the_plan_label_from_my_account_is_used_with_a_dot_before_the_count', () => {
+	const labelled = list.viewModel( [ entry( { plan: 'OdooWoo - Pro, Monthly', plan_label: 'OdooWoo Pro, billed monthly' } ) ] ).groups[ 0 ];
+	const plain = list.viewModel( [ entry( { plan: 'OdooWoo - Pro, Monthly' } ) ] ).groups[ 0 ];
+
+	assert.equal( labelled.plan, 'OdooWoo Pro, billed monthly' );
+	assert.equal( labelled.planSep, ' \u00b7 ' );
+	assert.equal( plain.plan, 'OdooWoo - Pro, Monthly' );
+	assert.equal( plain.planSep, ' ' );
+} );
+
 test( 'test_format_created_uses_the_page_language', () => {
 	assert.equal( list.formatCreated( '2026-10-21T12:00:00Z', 'en' ), 'Oct 21, 2026' );
 	const da = list.formatCreated( '2026-10-21T12:00:00Z', 'da' );
@@ -376,4 +404,21 @@ test( 'test_not_found_dashboard_hides_the_tabs_with_the_forms', () => {
 	assert.equal( ours.style.display, 'none' );
 	assert.equal( other.hidden, false );
 	assert.equal( other.style.display, undefined );
+} );
+
+test( 'gift card tab: shown only when show_gift_cards is exactly true', () => {
+	assert.equal( header.giftTabVisible( { show_gift_cards: true } ), true );
+	assert.equal( header.giftTabVisible( { show_gift_cards: false } ), false );
+	assert.equal( header.giftTabVisible( {} ), false );
+	assert.equal( header.giftTabVisible( null ), false );
+} );
+
+test( 'gift card tab: the strip inside My Account shows and hides its link', () => {
+	const link = { hidden: true };
+	const doc = { querySelectorAll: ( selector ) => ( selector.includes( 'beltoft-services-tabs a[data-odoowoo-tab="gift-cards"]' ) ? [ link ] : [] ) };
+
+	header.applyGiftTab( doc, true );
+	assert.equal( link.hidden, false );
+	header.applyGiftTab( doc, false );
+	assert.equal( link.hidden, true );
 } );

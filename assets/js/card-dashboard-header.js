@@ -63,6 +63,42 @@
 		} );
 	}
 
+	/** The Gift cards tab shows only when Django says show_gift_cards is true. */
+	function giftTabVisible( d ) {
+		return d !== null && typeof d === 'object' && d.show_gift_cards === true;
+	}
+
+	/** Hides (or shows again) the Gift cards tab title and its pane in our Bricks Tabs element. */
+	function applyGiftTab( doc, visible ) {
+		// The tab strip of the dashboard page inside My Account (links, not Bricks tabs).
+		Array.prototype.forEach.call( doc.querySelectorAll( '.beltoft-services-tabs a[data-odoowoo-tab="gift-cards"]' ), function ( link ) {
+			link.hidden = ! visible;
+		} );
+
+		Array.prototype.forEach.call( doc.querySelectorAll( '.brxe-tabs-nested' ), function ( tabs ) {
+			if ( ! tabs.querySelector( '.odoowoo-card' ) ) {
+				return;
+			}
+
+			var titles = Array.prototype.slice.call( tabs.querySelectorAll( ':scope > .tab-menu > .tab-title' ) );
+			var panes = Array.prototype.slice.call( tabs.querySelectorAll( ':scope > .tab-content > .tab-pane' ) );
+
+			titles.forEach( function ( title, i ) {
+				var slug = title.getAttribute( 'data-odoowoo-tab' ) || String( title.textContent ).toLowerCase().replace( /[^a-z0-9]+/g, '-' ).replace( /^-+|-+$/g, '' );
+
+				if ( slug === 'gift-cards' ) {
+					title.hidden = ! visible;
+					title.style.display = visible ? '' : 'none';
+
+					if ( panes[ i ] ) {
+						panes[ i ].hidden = ! visible;
+						panes[ i ].style.display = visible ? '' : 'none';
+					}
+				}
+			} );
+		} );
+	}
+
 	function path( licenseId, dashboardId ) {
 		return 'licenses/' + encodeURIComponent( String( licenseId ) ) + '/dashboards/' + encodeURIComponent( String( dashboardId ) );
 	}
@@ -117,6 +153,17 @@
 		var formBox = root.querySelector( '.odoowoo-header__form' );
 		var statusEl = root.querySelector( '.odoowoo-header__status' );
 		var canWrite = root.getAttribute( 'data-can-write' ) === '1';
+
+		function showGift( d ) {
+			var visible = giftTabVisible( d );
+
+			applyGiftTab( window.document, visible );
+
+			// Opened by the address with the flag off: back to the main settings page.
+			if ( ! visible && root.getAttribute( 'data-tab' ) === 'gift-cards' && root.getAttribute( 'data-connections-url' ) ) {
+				window.location.replace( root.getAttribute( 'data-connections-url' ) );
+			}
+		}
 
 		function show( d ) {
 			var v = headerView( d );
@@ -216,12 +263,13 @@
 			core.status( statusEl, 'saved', '' );
 			statusEl.removeAttribute( 'data-state' );
 			show( reply.data );
+			showGift( reply.data );
 		}
 
 		core.whenVisible( root, load );
 	}
 
-	var api_ = { renameBody: renameBody, headerView: headerView, headerFailure: headerFailure, hideDashboardTabs: hideDashboardTabs, rename: rename };
+	var api_ = { renameBody: renameBody, headerView: headerView, headerFailure: headerFailure, hideDashboardTabs: hideDashboardTabs, giftTabVisible: giftTabVisible, applyGiftTab: applyGiftTab, rename: rename };
 
 	if ( typeof module !== 'undefined' && module.exports ) {
 		module.exports = api_;

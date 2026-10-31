@@ -46,6 +46,7 @@ final class BricksTest extends RestTestCase {
 		'woo-connection'           => array( 'odoowoo-woo-connection', 'OdooWoo: Woo connection' ),
 		'woo-settings'             => array( 'odoowoo-woo-settings', 'OdooWoo: Woo settings' ),
 		'odoo-connection'          => array( 'odoowoo-odoo-connection', 'OdooWoo: Odoo connection' ),
+		'dashboard-settings'       => array( 'odoowoo-dashboard-settings', 'OdooWoo: Dashboard settings' ),
 		'odoo-settings'            => array( 'odoowoo-odoo-settings', 'OdooWoo: Odoo settings' ),
 		'payment-mappings'         => array( 'odoowoo-payment-mappings', 'OdooWoo: Payment mappings' ),
 		'tax-mappings'             => array( 'odoowoo-tax-mappings', 'OdooWoo: Tax mappings' ),
@@ -181,7 +182,7 @@ final class BricksTest extends RestTestCase {
 
 		Elements::register();
 
-		$this->assertCount( 15, \Bricks\Elements::$calls );
+		$this->assertCount( 16, \Bricks\Elements::$calls );
 
 		foreach ( \Bricks\Elements::$calls as $args ) {
 			$this->assertCount( 1, $args, 'Only the file.' );
@@ -480,10 +481,14 @@ final class BricksTest extends RestTestCase {
 		$this->assertSame( '{post_title}', $list[0]['name'], 'Existing entries stay.' );
 		$this->assertSame(
 			array( '{odoowoo_dashboard_name}', '{odoowoo_dashboard_state}', '{odoowoo_plan_dashboards}', '{odoowoo_plan_used}', '{odoowoo_has_plan}' ),
-			array_column( array_slice( $list, 1 ), 'name' )
+			array_values( array_filter( array_column( array_slice( $list, 1 ), 'name' ), static fn( $name ): bool => 0 === strpos( (string) $name, '{odoowoo_' ) ) ) // beltoft-services adds its own tags to the list.
 		);
 
 		foreach ( array_slice( $list, 1 ) as $entry ) {
+			if ( 0 !== strpos( (string) $entry['name'], '{odoowoo_' ) ) {
+				continue;
+			}
+
 			$this->assertSame( 'OdooWoo', $entry['group'] );
 			$this->assertNotSame( '', $entry['label'] );
 		}

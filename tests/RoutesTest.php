@@ -105,6 +105,19 @@ final class RoutesTest extends RestTestCase {
 		$this->assertCount( 2, $this->django_calls() );
 	}
 
+	public function test_gift_tab_flag_patches_show_gift_cards_only(): void {
+		$l = $this->odoowoo_license();
+		$this->fake_django( fn() => array( 200, array( 'id' => 5, 'name' => 'N', 'enabled' => true, 'show_gift_cards' => true, 'created_at' => '2026-10-21T12:00:00Z' ) ) );
+		$this->as_user( (int) $l['user_id'] );
+
+		$res  = $this->rest( 'PATCH', '/licenses/' . $l['id'] . '/dashboards/5', array( 'show_gift_cards' => true, 'tenant' => 'x' ) );
+		$call = $this->django_calls()[0];
+
+		$this->assertSame( 200, $res->get_status() );
+		$this->assertSame( '/api/dashboards/5/', $call['path_and_query'] );
+		$this->assertSame( array( 'show_gift_cards' => true ), json_decode( $call['body'], true ) );
+	}
+
 	public function test_delete_calls_dashboard_delete_and_forgets_tasks(): void {
 		$l = $this->odoowoo_license();
 		$this->fake_django( fn() => array( 204, '' ) );

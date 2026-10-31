@@ -64,6 +64,12 @@ final class Map {
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
+		'dashboard-gift-tab'  => array(
+			'methods'      => array( 'PATCH' => array( 'PATCH', 'dashboards/{d}/' ) ),
+			'fields'       => array( 'show_gift_cards' ),
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
 		'dashboard-delete'    => array(
 			'methods'      => array( 'DELETE' => array( 'DELETE', 'dashboards/{d}/delete/' ) ),
 			'fields'       => array(),
@@ -506,7 +512,7 @@ final class Map {
 				continue;
 			}
 
-			if ( 'enabled' === $field ) {
+			if ( 'enabled' === $field || 'show_gift_cards' === $field ) {
 				$value = is_bool( $value ) ? $value : filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
 
 				if ( null === $value ) {

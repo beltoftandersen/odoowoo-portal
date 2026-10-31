@@ -24,7 +24,7 @@ Required plugins: WooCommerce, Beltoft Licenses and Beltoft Services. It is buil
 
 = Hooks =
 
-* Filters: `odoowoo_portal_dependencies`, `odoowoo_portal_cards`, `odoowoo_portal_rate_limit`, `odoowoo_portal_bricks_available`.
+* Filters: `odoowoo_portal_dependencies`, `odoowoo_portal_cards`, `odoowoo_portal_account_tab_cards`, `odoowoo_portal_rate_limit`, `odoowoo_portal_bricks_available`.
 * Actions: `odoowoo_portal_log`, `odoowoo_portal_dashboard_deleted`.
 
 == Installation ==

@@ -614,7 +614,7 @@
 				}
 			}
 
-			var td = el( 'td', { 'data-column': col.key }, [ input ] );
+			var td = el( 'td', { 'data-column': col.key, 'data-label': col.label }, [ input ] );
 
 			// A column is dropped only when no row shows it; in a row that does not, the cell is empty so the columns stay aligned.
 			td.hidden = ! visibleColumn;

@@ -29,6 +29,7 @@ final class Registry {
 			'woo-connection'           => __( 'WooCommerce connection', 'odoowoo-portal' ),
 			'woo-settings'             => __( 'WooCommerce settings', 'odoowoo-portal' ),
 			'odoo-connection'          => __( 'Odoo connection', 'odoowoo-portal' ),
+			'dashboard-settings'       => __( 'Dashboard settings', 'odoowoo-portal' ),
 			'odoo-settings'            => __( 'Odoo settings', 'odoowoo-portal' ),
 			'payment-mappings'         => __( 'Payment method mappings', 'odoowoo-portal' ),
 			'tax-mappings'             => __( 'Tax mappings', 'odoowoo-portal' ),
@@ -57,6 +58,7 @@ final class Registry {
 		$cards['woo-connection']['strings']   = self::woo_connection_strings();
 		$cards['woo-settings']['strings']     = self::woo_settings_strings();
 		$cards['odoo-connection']['strings']  = self::odoo_connection_strings();
+		$cards['dashboard-settings']['strings'] = self::dashboard_settings_strings();
 		$cards['odoo-settings']['strings']    = self::odoo_settings_strings();
 		$cards['odoo-settings']['requires']   = array( 'odoowoo-deps' );
 
@@ -155,6 +157,19 @@ final class Registry {
 			'notFound'     => \OdooWooPortal\Django\Messages::not_found(),
 			'headerError'  => __( 'Dashboard', 'odoowoo-portal' ),
 			'retry'        => __( 'Try again', 'odoowoo-portal' ),
+		);
+	}
+
+	/**
+	 * The dashboard settings card's strings.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function dashboard_settings_strings(): array {
+		return array(
+			'enableGiftCards' => __( 'Enable gift card handling', 'odoowoo-portal' ),
+			'giftCardsHelp'   => __( 'Needed for countries with multiple VAT rates, such as PT. Shows the Gift cards tab.', 'odoowoo-portal' ),
+			'save'            => __( 'Save', 'odoowoo-portal' ),
 		);
 	}
 
