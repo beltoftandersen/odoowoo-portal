@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-24T07:45:18+00:00\n"
+"POT-Creation-Date: 2026-10-31T12:14:22+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: odoowoo-portal\n"
@@ -35,114 +35,144 @@ msgstr ""
 msgid "beltoft.net"
 msgstr ""
 
+#: src/Account/Area.php:142
+msgid "billed monthly"
+msgstr ""
+
+#: src/Account/Area.php:143
+#: src/Account/Area.php:144
+#: src/Account/Area.php:145
+msgid "billed yearly"
+msgstr ""
+
+#: src/Account/Area.php:146
+msgid "billed quarterly"
+msgstr ""
+
+#: src/Account/Area.php:147
+msgid "billed weekly"
+msgstr ""
+
+#: src/Account/Area.php:148
+msgid "billed daily"
+msgstr ""
+
+#: src/Account/Area.php:270
+msgid "That dashboard was not found. Here are your dashboards."
+msgstr ""
+
+#: src/Account/Area.php:319
+msgid "Dashboard sections"
+msgstr ""
+
 #: src/Account/OpenLink.php:54
 msgid "Open OdooWoo"
 msgstr ""
 
-#: src/Api/Map.php:595
-#: src/Cards/Registry.php:364
+#: src/Api/Map.php:601
+#: src/Cards/Registry.php:379
 msgid "At most 500 ids at a time."
 msgstr ""
 
-#: src/Api/Map.php:620
-#: src/Cards/Registry.php:366
+#: src/Api/Map.php:626
+#: src/Cards/Registry.php:381
 msgid "Enter a valid start and end date."
 msgstr ""
 
-#: src/Api/Map.php:624
-#: src/Cards/Registry.php:367
+#: src/Api/Map.php:630
+#: src/Cards/Registry.php:382
 msgid "The start date is after the end date."
 msgstr ""
 
-#: src/Api/Map.php:670
-#: src/Cards/Registry.php:363
+#: src/Api/Map.php:676
+#: src/Cards/Registry.php:378
 msgid "Enter at least one valid id, or leave the field empty."
 msgstr ""
 
-#: src/Api/Map.php:687
-#: src/Cards/Registry.php:365
+#: src/Api/Map.php:693
+#: src/Cards/Registry.php:380
 msgid "Enter order ids, or choose a start and end date."
 msgstr ""
 
-#: src/Api/Map.php:892
+#: src/Api/Map.php:898
 msgid "Synced"
 msgstr ""
 
-#: src/Api/Map.php:894
-#: src/Api/Routes.php:540
-#: src/Cards/Renderer.php:169
+#: src/Api/Map.php:900
+#: src/Api/Routes.php:543
+#: src/Cards/Renderer.php:195
 msgid "Failed"
 msgstr ""
 
-#: src/Api/Map.php:896
+#: src/Api/Map.php:902
 msgid "Warning"
 msgstr ""
 
-#: src/Api/Map.php:898
-#: src/Cards/Registry.php:391
+#: src/Api/Map.php:904
+#: src/Cards/Registry.php:406
 msgid "Unknown"
 msgstr ""
 
-#: src/Api/Map.php:943
-#: src/Cards/Registry.php:390
+#: src/Api/Map.php:949
+#: src/Cards/Registry.php:405
 msgid "This item was not synced."
 msgstr ""
 
-#: src/Api/Routes.php:156
-#: src/Api/Routes.php:171
+#: src/Api/Routes.php:159
+#: src/Api/Routes.php:174
 msgid "Please log in again."
 msgstr ""
 
-#: src/Api/Routes.php:177
-#: src/Api/Routes.php:183
-#: src/Api/Routes.php:187
-#: src/Api/Routes.php:191
-#: src/Api/Routes.php:334
-#: src/Api/Routes.php:387
-#: src/Api/Routes.php:701
+#: src/Api/Routes.php:180
+#: src/Api/Routes.php:186
+#: src/Api/Routes.php:190
+#: src/Api/Routes.php:194
+#: src/Api/Routes.php:337
+#: src/Api/Routes.php:390
+#: src/Api/Routes.php:708
 msgid "This request is not valid."
 msgstr ""
 
-#: src/Api/Routes.php:197
+#: src/Api/Routes.php:200
 msgid "You do not have access to this license."
 msgstr ""
 
-#: src/Api/Routes.php:229
+#: src/Api/Routes.php:232
 msgid "Too many requests. Please wait a minute and try again."
 msgstr ""
 
-#: src/Api/Routes.php:338
+#: src/Api/Routes.php:341
 msgid "This sync was not found. It may have finished more than a day ago."
 msgstr ""
 
-#: src/Api/Routes.php:357
+#: src/Api/Routes.php:360
 msgid "There is nothing to change."
 msgstr ""
 
-#: src/Api/Routes.php:369
+#: src/Api/Routes.php:372
 msgid "This save is incomplete, so nothing was changed. Reload the page and try again."
 msgstr ""
 
-#: src/Api/Routes.php:534
-#: src/Cards/Renderer.php:165
+#: src/Api/Routes.php:537
+#: src/Cards/Renderer.php:191
 msgid "Running"
 msgstr ""
 
-#: src/Api/Routes.php:536
-#: src/Cards/Renderer.php:166
+#: src/Api/Routes.php:539
+#: src/Cards/Renderer.php:192
 msgid "Completed"
 msgstr ""
 
-#: src/Api/Routes.php:538
-#: src/Cards/Renderer.php:168
+#: src/Api/Routes.php:541
+#: src/Cards/Renderer.php:194
 msgid "Skipped"
 msgstr ""
 
-#: src/Api/Routes.php:546
+#: src/Api/Routes.php:549
 msgid "The sync failed. See the sync log for details."
 msgstr ""
 
-#: src/Api/Routes.php:586
+#: src/Api/Routes.php:589
 msgid "This item was not synced. See the sync log for details."
 msgstr ""
 
@@ -234,8 +264,8 @@ msgid "Select"
 msgstr ""
 
 #: src/Bricks/DynamicData.php:52
-#: src/Cards/Registry.php:102
-#: src/Cards/Registry.php:151
+#: src/Cards/Registry.php:104
+#: src/Cards/Registry.php:153
 msgid "Dashboard name"
 msgstr ""
 
@@ -260,14 +290,14 @@ msgid "unlimited"
 msgstr ""
 
 #: src/Bricks/DynamicData.php:198
-#: src/Cards/Registry.php:119
-#: src/Cards/Registry.php:153
+#: src/Cards/Registry.php:121
+#: src/Cards/Registry.php:155
 msgid "Active"
 msgstr ""
 
 #: src/Bricks/DynamicData.php:198
-#: src/Cards/Registry.php:120
-#: src/Cards/Registry.php:154
+#: src/Cards/Registry.php:122
+#: src/Cards/Registry.php:156
 msgid "Paused"
 msgstr ""
 
@@ -279,13 +309,19 @@ msgstr ""
 msgid "Dashboard list"
 msgstr ""
 
+#: src/Bricks/elements/Dashboard_Settings.php:26
+#: src/Cards/Registry.php:32
+msgid "Dashboard settings"
+msgstr ""
+
 #: src/Bricks/elements/Gift_Cards.php:26
-#: src/Cards/Registry.php:39
+#: src/Cards/Registry.php:40
+#: src/Tabs.php:28
 msgid "Gift cards"
 msgstr ""
 
 #: src/Bricks/elements/Manual_Sync.php:26
-#: src/Cards/Registry.php:40
+#: src/Cards/Registry.php:41
 msgid "Manual sync"
 msgstr ""
 
@@ -295,17 +331,17 @@ msgid "Odoo connection"
 msgstr ""
 
 #: src/Bricks/elements/Odoo_Settings.php:26
-#: src/Cards/Registry.php:32
+#: src/Cards/Registry.php:33
 msgid "Odoo settings"
 msgstr ""
 
 #: src/Bricks/elements/Order_Pricelist_Mappings.php:26
-#: src/Cards/Registry.php:38
+#: src/Cards/Registry.php:39
 msgid "Order pricelist mappings"
 msgstr ""
 
 #: src/Bricks/elements/Order_Route_Mappings.php:26
-#: src/Cards/Registry.php:37
+#: src/Cards/Registry.php:38
 msgid "Order route mappings"
 msgstr ""
 
@@ -314,22 +350,22 @@ msgid "Payment mappings"
 msgstr ""
 
 #: src/Bricks/elements/Price_Mappings.php:26
-#: src/Cards/Registry.php:35
+#: src/Cards/Registry.php:36
 msgid "Price mappings"
 msgstr ""
 
 #: src/Bricks/elements/Stock_Mappings.php:26
-#: src/Cards/Registry.php:36
+#: src/Cards/Registry.php:37
 msgid "Stock mappings"
 msgstr ""
 
 #: src/Bricks/elements/Sync_Logs.php:26
-#: src/Cards/Registry.php:41
+#: src/Cards/Registry.php:42
 msgid "Sync logs"
 msgstr ""
 
 #: src/Bricks/elements/Tax_Mappings.php:26
-#: src/Cards/Registry.php:34
+#: src/Cards/Registry.php:35
 msgid "Tax mappings"
 msgstr ""
 
@@ -525,17 +561,17 @@ msgid "Quantity"
 msgstr ""
 
 #: src/Cards/Mappings.php:398
-#: src/Cards/Registry.php:306
+#: src/Cards/Registry.php:321
 msgid "On hand"
 msgstr ""
 
 #: src/Cards/Mappings.php:402
-#: src/Cards/Registry.php:307
+#: src/Cards/Registry.php:322
 msgid "Forecast"
 msgstr ""
 
 #: src/Cards/Mappings.php:406
-#: src/Cards/Registry.php:308
+#: src/Cards/Registry.php:323
 msgid "Available"
 msgstr ""
 
@@ -574,11 +610,12 @@ msgid "Remove row %s"
 msgstr ""
 
 #: src/Cards/Mappings.php:499
-#: src/Cards/Registry.php:150
-#: src/Cards/Registry.php:176
-#: src/Cards/Registry.php:206
-#: src/Cards/Registry.php:228
-#: src/Cards/Registry.php:315
+#: src/Cards/Registry.php:152
+#: src/Cards/Registry.php:172
+#: src/Cards/Registry.php:191
+#: src/Cards/Registry.php:221
+#: src/Cards/Registry.php:243
+#: src/Cards/Registry.php:330
 #: templates/cards/gift-cards.php:124
 msgid "Save"
 msgstr ""
@@ -610,9 +647,9 @@ msgid "Choose…"
 msgstr ""
 
 #: src/Cards/Mappings.php:508
-#: src/Cards/Registry.php:148
-#: src/Cards/Registry.php:311
-#: src/Cards/Registry.php:338
+#: src/Cards/Registry.php:150
+#: src/Cards/Registry.php:326
+#: src/Cards/Registry.php:353
 #: templates/cards/dashboard-header.php:18
 msgid "Loading…"
 msgstr ""
@@ -635,7 +672,7 @@ msgid "Your dashboards"
 msgstr ""
 
 #: src/Cards/Registry.php:28
-#: src/Cards/Registry.php:156
+#: src/Cards/Registry.php:158
 msgid "Dashboard"
 msgstr ""
 
@@ -647,745 +684,753 @@ msgstr ""
 msgid "WooCommerce settings"
 msgstr ""
 
-#: src/Cards/Registry.php:33
+#: src/Cards/Registry.php:34
 msgid "Payment method mappings"
 msgstr ""
 
-#: src/Cards/Registry.php:99
+#: src/Cards/Registry.php:101
 #: templates/cards/dashboard-list.php:14
 msgid "Loading your dashboards…"
 msgstr ""
 
-#: src/Cards/Registry.php:100
-#: src/Cards/Registry.php:101
+#: src/Cards/Registry.php:102
+#: src/Cards/Registry.php:103
 #: templates/cards/dashboard-list.php:16
 msgid "New dashboard"
 msgstr ""
 
-#: src/Cards/Registry.php:103
+#: src/Cards/Registry.php:105
 msgid "Plan"
 msgstr ""
 
-#: src/Cards/Registry.php:104
+#: src/Cards/Registry.php:106
 msgid "Create"
 msgstr ""
 
-#: src/Cards/Registry.php:105
+#: src/Cards/Registry.php:107
 msgid "Creating…"
 msgstr ""
 
-#: src/Cards/Registry.php:106
-#: src/Cards/Registry.php:152
+#: src/Cards/Registry.php:108
+#: src/Cards/Registry.php:154
 msgid "Give the dashboard a name."
 msgstr ""
 
-#: src/Cards/Registry.php:107
+#: src/Cards/Registry.php:109
 msgid "Open"
 msgstr ""
 
-#: src/Cards/Registry.php:108
+#: src/Cards/Registry.php:110
 msgid "Pause"
 msgstr ""
 
-#: src/Cards/Registry.php:109
+#: src/Cards/Registry.php:111
 msgid "Enable"
 msgstr ""
 
-#: src/Cards/Registry.php:110
-msgid "Delete"
-msgstr ""
-
-#. translators: %s: dashboard name.
 #: src/Cards/Registry.php:112
-#, php-format
-msgid "Open %s"
+msgid "Delete"
 msgstr ""
 
 #. translators: %s: dashboard name.
 #: src/Cards/Registry.php:114
 #, php-format
-msgid "Pause %s"
+msgid "Open %s"
 msgstr ""
 
 #. translators: %s: dashboard name.
 #: src/Cards/Registry.php:116
 #, php-format
-msgid "Enable %s"
+msgid "Pause %s"
 msgstr ""
 
 #. translators: %s: dashboard name.
 #: src/Cards/Registry.php:118
 #, php-format
+msgid "Enable %s"
+msgstr ""
+
+#. translators: %s: dashboard name.
+#: src/Cards/Registry.php:120
+#, php-format
 msgid "Delete %s"
 msgstr ""
 
 #. translators: %s: date.
-#: src/Cards/Registry.php:122
+#: src/Cards/Registry.php:124
 #, php-format
 msgid "Created %s"
 msgstr ""
 
-#: src/Cards/Registry.php:123
+#: src/Cards/Registry.php:125
 msgid "Delete dashboard"
 msgstr ""
 
 #. translators: %s: dashboard name.
-#: src/Cards/Registry.php:125
+#: src/Cards/Registry.php:127
 #, php-format
 msgid "Delete %s? This removes its settings and logs. Stores already connected stop syncing."
 msgstr ""
 
-#: src/Cards/Registry.php:126
+#: src/Cards/Registry.php:128
 msgid "You have no dashboards yet. Create one to connect a store."
 msgstr ""
 
-#: src/Cards/Registry.php:127
-#: src/Cards/Renderer.php:239
+#: src/Cards/Registry.php:129
+#: src/Cards/Renderer.php:265
 msgid "You do not have an OdooWoo plan yet."
 msgstr ""
 
 #. translators: %s: number of dashboards.
-#: src/Cards/Registry.php:129
+#: src/Cards/Registry.php:131
 #, php-format
 msgid "%s dashboards"
 msgstr ""
 
-#: src/Cards/Registry.php:130
+#: src/Cards/Registry.php:132
 msgid "1 dashboard"
 msgstr ""
 
 #. translators: 1: dashboards used, 2: dashboards the plan allows.
-#: src/Cards/Registry.php:132
+#: src/Cards/Registry.php:134
 #, php-format
 msgid "%1$s of %2$s dashboards"
 msgstr ""
 
 #. translators: %s: dashboards used.
-#: src/Cards/Registry.php:134
+#: src/Cards/Registry.php:136
 #, php-format
 msgid "%s of 1 dashboard"
 msgstr ""
 
 #. translators: %s: number of dashboards.
-#: src/Cards/Registry.php:136
+#: src/Cards/Registry.php:138
 #, php-format
 msgid "You have reached your plan limit of %s dashboards."
 msgstr ""
 
-#: src/Cards/Registry.php:137
+#: src/Cards/Registry.php:139
 msgid "You have reached your plan limit of 1 dashboard."
 msgstr ""
 
-#: src/Cards/Registry.php:149
+#: src/Cards/Registry.php:151
 #: templates/cards/dashboard-header.php:20
 msgid "Rename"
 msgstr ""
 
-#: src/Cards/Registry.php:157
+#: src/Cards/Registry.php:159
 msgid "Try again"
 msgstr ""
 
-#: src/Cards/Registry.php:168
-msgid "Store URL"
-msgstr ""
-
-#: src/Cards/Registry.php:169
-msgid "Consumer Key"
-msgstr ""
-
 #: src/Cards/Registry.php:170
-msgid "Consumer Secret"
+msgid "Enable gift card handling"
 msgstr ""
 
 #: src/Cards/Registry.php:171
-#: src/Cards/Registry.php:223
-msgid "Show"
-msgstr ""
-
-#: src/Cards/Registry.php:172
-#: src/Cards/Registry.php:224
-msgid "Hide"
-msgstr ""
-
-#: src/Cards/Registry.php:173
-#: src/Cards/Registry.php:225
-msgid "Verify connection"
-msgstr ""
-
-#: src/Cards/Registry.php:174
-#: src/Cards/Registry.php:226
-msgid "Verifying…"
-msgstr ""
-
-#: src/Cards/Registry.php:175
-msgid "Verify also saves the URL and keys."
-msgstr ""
-
-#: src/Cards/Registry.php:177
-msgid "Transfer webhooks"
-msgstr ""
-
-#: src/Cards/Registry.php:178
-msgid "Transferring…"
-msgstr ""
-
-#: src/Cards/Registry.php:179
-#: src/Cards/Registry.php:236
-msgid "Save your changes first."
-msgstr ""
-
-#: src/Cards/Registry.php:180
-msgid "Creates the order webhooks in your store. Save the keys first."
-msgstr ""
-
-#: src/Cards/Registry.php:181
-#: src/Cards/Renderer.php:161
-msgid "Saved"
-msgstr ""
-
-#: src/Cards/Registry.php:182
-msgid "Verified"
+msgid "Needed for countries with multiple VAT rates, such as PT. Shows the Gift cards tab."
 msgstr ""
 
 #: src/Cards/Registry.php:183
-msgid "WooCommerce connection verified."
+msgid "Store URL"
 msgstr ""
 
 #: src/Cards/Registry.php:184
-msgid "Webhooks transferred"
+msgid "Consumer Key"
 msgstr ""
 
 #: src/Cards/Registry.php:185
-msgid "Enter the consumer key."
+msgid "Consumer Secret"
 msgstr ""
 
 #: src/Cards/Registry.php:186
-msgid "Enter the store URL."
+#: src/Cards/Registry.php:238
+msgid "Show"
 msgstr ""
 
 #: src/Cards/Registry.php:187
-msgid "Enter the consumer secret."
+#: src/Cards/Registry.php:239
+msgid "Hide"
 msgstr ""
 
 #: src/Cards/Registry.php:188
-#: src/Cards/Registry.php:243
-msgid "Connection verified."
+#: src/Cards/Registry.php:240
+msgid "Verify connection"
+msgstr ""
+
+#: src/Cards/Registry.php:189
+#: src/Cards/Registry.php:241
+msgid "Verifying…"
+msgstr ""
+
+#: src/Cards/Registry.php:190
+msgid "Verify also saves the URL and keys."
+msgstr ""
+
+#: src/Cards/Registry.php:192
+msgid "Transfer webhooks"
+msgstr ""
+
+#: src/Cards/Registry.php:193
+msgid "Transferring…"
+msgstr ""
+
+#: src/Cards/Registry.php:194
+#: src/Cards/Registry.php:251
+msgid "Save your changes first."
+msgstr ""
+
+#: src/Cards/Registry.php:195
+msgid "Creates the order webhooks in your store. Save the keys first."
+msgstr ""
+
+#: src/Cards/Registry.php:196
+#: src/Cards/Renderer.php:187
+msgid "Saved"
+msgstr ""
+
+#: src/Cards/Registry.php:197
+msgid "Verified"
+msgstr ""
+
+#: src/Cards/Registry.php:198
+msgid "WooCommerce connection verified."
 msgstr ""
 
 #: src/Cards/Registry.php:199
-msgid "Update stock when orders sync"
+msgid "Webhooks transferred"
 msgstr ""
 
 #: src/Cards/Registry.php:200
-msgid "Close Woo orders when Odoo delivery completes"
+msgid "Enter the consumer key."
 msgstr ""
 
 #: src/Cards/Registry.php:201
-msgid "Order prefix"
+msgid "Enter the store URL."
 msgstr ""
 
 #: src/Cards/Registry.php:202
-msgid "Two letters that start the order numbers of this dashboard. Each dashboard needs its own."
+msgid "Enter the consumer secret."
 msgstr ""
 
 #: src/Cards/Registry.php:203
+#: src/Cards/Registry.php:258
+msgid "Connection verified."
+msgstr ""
+
+#: src/Cards/Registry.php:214
+msgid "Update stock when orders sync"
+msgstr ""
+
+#: src/Cards/Registry.php:215
+msgid "Close Woo orders when Odoo delivery completes"
+msgstr ""
+
+#: src/Cards/Registry.php:216
+msgid "Order prefix"
+msgstr ""
+
+#: src/Cards/Registry.php:217
+msgid "Two letters that start the order numbers of this dashboard. Each dashboard needs its own."
+msgstr ""
+
+#: src/Cards/Registry.php:218
 msgid "Select an order prefix"
 msgstr ""
 
 #. translators: %s: the two-letter prefix.
-#: src/Cards/Registry.php:205
+#: src/Cards/Registry.php:220
 #, php-format
 msgid "%s (already used by another of your dashboards)"
 msgstr ""
 
-#: src/Cards/Registry.php:207
+#: src/Cards/Registry.php:222
 msgid "Other licenses could not be checked. A prefix that is already taken will be refused when you save."
 msgstr ""
 
-#: src/Cards/Registry.php:208
+#: src/Cards/Registry.php:223
 msgid "Save your WooCommerce connection first."
 msgstr ""
 
-#: src/Cards/Registry.php:219
+#: src/Cards/Registry.php:234
 msgid "Odoo URL"
 msgstr ""
 
-#: src/Cards/Registry.php:220
+#: src/Cards/Registry.php:235
 msgid "Database"
 msgstr ""
 
-#: src/Cards/Registry.php:221
+#: src/Cards/Registry.php:236
 msgid "User"
 msgstr ""
 
-#: src/Cards/Registry.php:222
+#: src/Cards/Registry.php:237
 msgid "Password / API Token"
 msgstr ""
 
-#: src/Cards/Registry.php:227
+#: src/Cards/Registry.php:242
 msgid "Verify checks the login and whether the OdooWoo Helper module is installed. It does not save."
 msgstr ""
 
-#: src/Cards/Registry.php:229
-#: src/Cards/Registry.php:234
+#: src/Cards/Registry.php:244
+#: src/Cards/Registry.php:249
 msgid "Set up Odoo callbacks"
 msgstr ""
 
-#: src/Cards/Registry.php:230
+#: src/Cards/Registry.php:245
 msgid "Setting up…"
 msgstr ""
 
-#: src/Cards/Registry.php:231
+#: src/Cards/Registry.php:246
 msgid "Lets Odoo tell OdooWoo about changes. Save the connection first."
 msgstr ""
 
-#: src/Cards/Registry.php:232
+#: src/Cards/Registry.php:247
 msgid "Callback key is set"
 msgstr ""
 
-#: src/Cards/Registry.php:233
+#: src/Cards/Registry.php:248
 msgid "No callback key yet"
 msgstr ""
 
-#: src/Cards/Registry.php:235
+#: src/Cards/Registry.php:250
 msgid "This replaces the current callback key. Changes you have not saved are not used."
 msgstr ""
 
-#: src/Cards/Registry.php:237
+#: src/Cards/Registry.php:252
 msgid "Replace key"
 msgstr ""
 
-#: src/Cards/Registry.php:238
+#: src/Cards/Registry.php:253
 msgid "Odoo callbacks are set up."
 msgstr ""
 
-#: src/Cards/Registry.php:239
+#: src/Cards/Registry.php:254
 msgid "Enter the Odoo URL."
 msgstr ""
 
-#: src/Cards/Registry.php:240
+#: src/Cards/Registry.php:255
 msgid "Enter the database."
 msgstr ""
 
-#: src/Cards/Registry.php:241
+#: src/Cards/Registry.php:256
 msgid "Enter the user."
 msgstr ""
 
-#: src/Cards/Registry.php:242
+#: src/Cards/Registry.php:257
 msgid "Enter the password or API token."
 msgstr ""
 
-#: src/Cards/Registry.php:244
+#: src/Cards/Registry.php:259
 msgid "Odoo connection verified. The OdooWoo Helper module is installed."
 msgstr ""
 
-#: src/Cards/Registry.php:245
+#: src/Cards/Registry.php:260
 msgid "Odoo connection verified, but the OdooWoo Helper module is not installed."
 msgstr ""
 
-#: src/Cards/Registry.php:257
+#: src/Cards/Registry.php:272
 msgid "Enable auto payments on invoices"
 msgstr ""
 
-#: src/Cards/Registry.php:258
+#: src/Cards/Registry.php:273
 msgid "Enable auto payments on credit notes"
 msgstr ""
 
-#: src/Cards/Registry.php:259
+#: src/Cards/Registry.php:274
 msgid "Set invoice status back to to_invoice"
 msgstr ""
 
-#: src/Cards/Registry.php:260
+#: src/Cards/Registry.php:275
 msgid "Reset delivery back to draft"
 msgstr ""
 
-#: src/Cards/Registry.php:261
+#: src/Cards/Registry.php:276
 msgid "Set deliveries to waiting"
 msgstr ""
 
-#: src/Cards/Registry.php:262
+#: src/Cards/Registry.php:277
 msgid "Close deliveries when an order is paid"
 msgstr ""
 
-#: src/Cards/Registry.php:263
+#: src/Cards/Registry.php:278
 msgid "Confirm pending orders automatically"
 msgstr ""
 
-#: src/Cards/Registry.php:264
+#: src/Cards/Registry.php:279
 msgid "Add tax on product price during sync"
 msgstr ""
 
-#: src/Cards/Registry.php:265
+#: src/Cards/Registry.php:280
 msgid "Sync orders with prices incl. tax"
 msgstr ""
 
-#: src/Cards/Registry.php:266
+#: src/Cards/Registry.php:281
 msgid "Sync brands to Odoo"
 msgstr ""
 
-#: src/Cards/Registry.php:267
+#: src/Cards/Registry.php:282
 msgid "Sync categories to Odoo"
 msgstr ""
 
-#: src/Cards/Registry.php:268
+#: src/Cards/Registry.php:283
 msgid "Sync product name to Odoo"
 msgstr ""
 
-#: src/Cards/Registry.php:269
+#: src/Cards/Registry.php:284
 msgid "Sync tags to Odoo"
 msgstr ""
 
-#: src/Cards/Registry.php:270
+#: src/Cards/Registry.php:285
 msgid "Sync product images to Odoo"
 msgstr ""
 
-#: src/Cards/Registry.php:271
+#: src/Cards/Registry.php:286
 msgid "Let Odoo control prices in WooCommerce"
 msgstr ""
 
-#: src/Cards/Registry.php:272
+#: src/Cards/Registry.php:287
 msgid "Let Odoo control barcodes in WooCommerce"
 msgstr ""
 
-#: src/Cards/Registry.php:273
+#: src/Cards/Registry.php:288
 msgid "Capture order at status"
 msgstr ""
 
-#: src/Cards/Registry.php:274
+#: src/Cards/Registry.php:289
 msgid "Quantity setting"
 msgstr ""
 
-#: src/Cards/Registry.php:275
+#: src/Cards/Registry.php:290
 msgid "Pricelist for orders from this store"
 msgstr ""
 
-#: src/Cards/Registry.php:276
+#: src/Cards/Registry.php:291
 msgid "Line meta key naming the stock product"
 msgstr ""
 
-#: src/Cards/Registry.php:277
+#: src/Cards/Registry.php:292
 msgid "Line meta key naming the units per item"
 msgstr ""
 
-#: src/Cards/Registry.php:278
+#: src/Cards/Registry.php:293
 msgid "Registers a payment on the Odoo invoice of each paid order, using your payment method mappings. Needs payment method mappings."
 msgstr ""
 
-#: src/Cards/Registry.php:279
+#: src/Cards/Registry.php:294
 msgid "Registers a payment on the Odoo credit note of each refund, using your payment method mappings. Needs payment method mappings."
 msgstr ""
 
-#: src/Cards/Registry.php:280
+#: src/Cards/Registry.php:295
 msgid "After issuing a refund/credit note, Odoo reopens the sale order's invoice state to 'To Invoice', allowing a fresh invoice to be created."
 msgstr ""
 
-#: src/Cards/Registry.php:281
+#: src/Cards/Registry.php:296
 msgid "After processing a refund/credit note, Odoo moves related delivery orders back to draft so warehouse staff can reprocess them."
 msgstr ""
 
-#: src/Cards/Registry.php:282
+#: src/Cards/Registry.php:297
 msgid "New Odoo orders from WooCommerce will immediately push their delivery orders to 'Waiting' state during confirmation."
 msgstr ""
 
-#: src/Cards/Registry.php:283
+#: src/Cards/Registry.php:298
 msgid "For a site that hands goods over at the till. Once payment is registered, Odoo validates the order's deliveries. A delivery that cannot be fully reserved is left open for someone to handle, and the WooCommerce order is not marked complete."
 msgstr ""
 
-#: src/Cards/Registry.php:284
+#: src/Cards/Registry.php:299
 msgid "Applies when orders are captured at Pending. Confirms such orders in Odoo automatically."
 msgstr ""
 
-#: src/Cards/Registry.php:285
+#: src/Cards/Registry.php:300
 msgid "Enable if WooCommerce prices exclude tax but your Odoo tax settings are 'Included in Price', so synced product prices match what customers pay. Needs tax mappings."
 msgstr ""
 
-#: src/Cards/Registry.php:286
+#: src/Cards/Registry.php:301
 msgid "Enable if your Odoo tax settings are set to 'Included in Price'."
 msgstr ""
 
-#: src/Cards/Registry.php:287
+#: src/Cards/Registry.php:302
 msgid "Sends product brands from WooCommerce to Odoo when products sync. Brand sync is part of some plans only."
 msgstr ""
 
-#: src/Cards/Registry.php:288
+#: src/Cards/Registry.php:303
 msgid "Sends product categories from WooCommerce to Odoo when products sync."
 msgstr ""
 
-#: src/Cards/Registry.php:289
+#: src/Cards/Registry.php:304
 msgid "Sends the product name from WooCommerce to Odoo when products sync."
 msgstr ""
 
-#: src/Cards/Registry.php:290
+#: src/Cards/Registry.php:305
 msgid "Sends product tags from WooCommerce to Odoo when products sync."
 msgstr ""
 
-#: src/Cards/Registry.php:291
+#: src/Cards/Registry.php:306
 msgid "Sends product images from WooCommerce to Odoo when products sync."
 msgstr ""
 
-#: src/Cards/Registry.php:292
+#: src/Cards/Registry.php:307
 msgid "Odoo becomes the source of truth for price. WooCommerce prices are overwritten from the price mappings, and product syncs stop writing WooCommerce prices back into Odoo. Needs at least one price mapping."
 msgstr ""
 
-#: src/Cards/Registry.php:293
+#: src/Cards/Registry.php:308
 msgid "Odoo becomes the source of truth for barcodes. Use Sync barcodes to fill WooCommerce from Odoo. Product syncs stop writing barcodes back into Odoo, which also stops them clearing a barcode that only exists in Odoo."
 msgstr ""
 
-#: src/Cards/Registry.php:294
+#: src/Cards/Registry.php:309
 msgid "The WooCommerce order status at which an order is sent to Odoo."
 msgstr ""
 
-#: src/Cards/Registry.php:295
+#: src/Cards/Registry.php:310
 msgid "Which Odoo quantity is used when stock is written to WooCommerce: on hand, forecast or available."
 msgstr ""
 
-#: src/Cards/Registry.php:296
+#: src/Cards/Registry.php:311
 msgid "A pricelist belongs to the sale, not the customer. The same customer can buy retail on one store and wholesale on another, and Odoo can only hold one pricelist per customer. It does not change what is charged, since the prices come from WooCommerce."
 msgstr ""
 
-#: src/Cards/Registry.php:297
+#: src/Cards/Registry.php:312
 msgid "For a line that carries no SKU of its own, such as a subscription. Leave empty and such lines are skipped as before. Several keys can be given, separated by commas, and are tried in order."
 msgstr ""
 
-#: src/Cards/Registry.php:298
+#: src/Cards/Registry.php:313
 msgid "How many of that product one ordered item consumes, so shared stock is reduced correctly. The money on the line is unchanged. Empty, or a value that cannot be read, books one per item."
 msgstr ""
 
-#: src/Cards/Registry.php:299
+#: src/Cards/Registry.php:314
 msgid "Needs payment method mappings."
 msgstr ""
 
-#: src/Cards/Registry.php:300
+#: src/Cards/Registry.php:315
 msgid "Needs tax mappings."
 msgstr ""
 
-#: src/Cards/Registry.php:301
+#: src/Cards/Registry.php:316
 msgid "Needs a price mapping."
 msgstr ""
 
-#: src/Cards/Registry.php:302
-#: src/Cards/Registry.php:361
+#: src/Cards/Registry.php:317
+#: src/Cards/Registry.php:376
 #: templates/cards/manual-sync.php:20
 msgid "Brand sync is not part of your plan."
 msgstr ""
 
-#: src/Cards/Registry.php:303
+#: src/Cards/Registry.php:318
 msgid "Pending"
 msgstr ""
 
-#: src/Cards/Registry.php:304
+#: src/Cards/Registry.php:319
 msgid "On hold"
 msgstr ""
 
-#: src/Cards/Registry.php:305
+#: src/Cards/Registry.php:320
 msgid "Processing"
 msgstr ""
 
-#: src/Cards/Registry.php:309
+#: src/Cards/Registry.php:324
 msgid "Let Odoo decide from the customer"
 msgstr ""
 
-#: src/Cards/Registry.php:310
+#: src/Cards/Registry.php:325
 msgid "Load pricelists"
 msgstr ""
 
-#: src/Cards/Registry.php:312
+#: src/Cards/Registry.php:327
 msgid "Pricelists loaded."
 msgstr ""
 
-#: src/Cards/Registry.php:313
+#: src/Cards/Registry.php:328
 msgid "The settings are still loading. Try again in a moment."
 msgstr ""
 
-#: src/Cards/Registry.php:314
+#: src/Cards/Registry.php:329
 msgid "Save your Odoo connection first."
 msgstr ""
 
 #. translators: %s: the name of a setting.
-#: src/Cards/Registry.php:317
+#: src/Cards/Registry.php:332
 #, php-format
 msgid "Help: %s"
 msgstr ""
 
-#: src/Cards/Registry.php:328
+#: src/Cards/Registry.php:343
 msgid "Select a sale tax"
 msgstr ""
 
-#: src/Cards/Registry.php:329
+#: src/Cards/Registry.php:344
 msgid "Select a journal"
 msgstr ""
 
-#: src/Cards/Registry.php:330
+#: src/Cards/Registry.php:345
 msgid "Select an account"
 msgstr ""
 
-#: src/Cards/Registry.php:331
+#: src/Cards/Registry.php:346
 msgid "Load taxes, journals and accounts first"
 msgstr ""
 
 #. translators: %s: the Odoo id of a tax.
-#: src/Cards/Registry.php:333
+#: src/Cards/Registry.php:348
 #, php-format
 msgid "Tax %s"
 msgstr ""
 
 #. translators: %s: the Odoo id of a journal.
-#: src/Cards/Registry.php:335
+#: src/Cards/Registry.php:350
 #, php-format
 msgid "Journal %s"
 msgstr ""
 
 #. translators: %s: the Odoo id of an account.
-#: src/Cards/Registry.php:337
+#: src/Cards/Registry.php:352
 #, php-format
 msgid "Account %s"
 msgstr ""
 
-#: src/Cards/Registry.php:339
+#: src/Cards/Registry.php:354
 msgid "Taxes, journals and accounts loaded."
 msgstr ""
 
-#: src/Cards/Registry.php:351
+#: src/Cards/Registry.php:366
 msgid "Syncing…"
 msgstr ""
 
 #. translators: %s: what is syncing, for example Products.
-#: src/Cards/Registry.php:353
+#: src/Cards/Registry.php:368
 #, php-format
 msgid "%s sync running…"
 msgstr ""
 
-#: src/Cards/Registry.php:354
+#: src/Cards/Registry.php:369
 #: templates/cards/manual-sync.php:19
 msgid "Brands"
 msgstr ""
 
-#: src/Cards/Registry.php:355
+#: src/Cards/Registry.php:370
 #: templates/cards/manual-sync.php:27
 msgid "Categories"
 msgstr ""
 
-#: src/Cards/Registry.php:356
+#: src/Cards/Registry.php:371
 msgid "Products"
 msgstr ""
 
-#: src/Cards/Registry.php:357
+#: src/Cards/Registry.php:372
 msgid "Stock"
 msgstr ""
 
-#: src/Cards/Registry.php:358
+#: src/Cards/Registry.php:373
 msgid "Prices"
 msgstr ""
 
-#: src/Cards/Registry.php:359
+#: src/Cards/Registry.php:374
 msgid "Barcodes"
 msgstr ""
 
-#: src/Cards/Registry.php:360
+#: src/Cards/Registry.php:375
 #: templates/cards/manual-sync.php:50
 msgid "Orders"
 msgstr ""
 
-#: src/Cards/Registry.php:362
+#: src/Cards/Registry.php:377
 msgid "Back to your dashboards"
 msgstr ""
 
-#: src/Cards/Registry.php:368
+#: src/Cards/Registry.php:383
 msgid "Items that were not synced"
 msgstr ""
 
-#: src/Cards/Registry.php:369
+#: src/Cards/Registry.php:384
 msgid "We could not follow this sync any more. See the sync log for what happened."
 msgstr ""
 
-#: src/Cards/Registry.php:380
+#: src/Cards/Registry.php:395
 msgid "Loading logs…"
 msgstr ""
 
-#: src/Cards/Registry.php:381
+#: src/Cards/Registry.php:396
 msgid "No sync logs yet."
 msgstr ""
 
-#: src/Cards/Registry.php:382
+#: src/Cards/Registry.php:397
 #: templates/cards/sync-logs.php:17
 msgid "Refresh"
 msgstr ""
 
-#: src/Cards/Registry.php:383
+#: src/Cards/Registry.php:398
 msgid "Refreshed"
 msgstr ""
 
 #. translators: %s: the WooCommerce order reference.
-#: src/Cards/Registry.php:385
+#: src/Cards/Registry.php:400
 #, php-format
 msgid "WooCommerce %s"
 msgstr ""
 
 #. translators: %s: the Odoo order reference.
-#: src/Cards/Registry.php:387
+#: src/Cards/Registry.php:402
 #, php-format
 msgid "Odoo %s"
 msgstr ""
 
-#: src/Cards/Registry.php:388
+#: src/Cards/Registry.php:403
 msgid "Odoo N/A"
 msgstr ""
 
-#: src/Cards/Registry.php:389
+#: src/Cards/Registry.php:404
 msgid "Log"
 msgstr ""
 
-#: src/Cards/Renderer.php:158
+#: src/Cards/Renderer.php:184
 msgid "Please log in again. What you typed is still here."
 msgstr ""
 
-#: src/Cards/Renderer.php:159
+#: src/Cards/Renderer.php:185
 msgid "We could not read your settings, so nothing was saved. Reload the page and try again."
 msgstr ""
 
-#: src/Cards/Renderer.php:160
+#: src/Cards/Renderer.php:186
 msgid "Saving…"
 msgstr ""
 
-#: src/Cards/Renderer.php:162
+#: src/Cards/Renderer.php:188
 msgid "Saved. Leave blank to keep it."
 msgstr ""
 
-#: src/Cards/Renderer.php:163
+#: src/Cards/Renderer.php:189
 msgid "Go to Connections"
 msgstr ""
 
-#: src/Cards/Renderer.php:164
+#: src/Cards/Renderer.php:190
 msgid "Cancel"
 msgstr ""
 
-#: src/Cards/Renderer.php:167
+#: src/Cards/Renderer.php:193
 msgid "Completed, but some items were not synced"
 msgstr ""
 
-#: src/Cards/Renderer.php:170
+#: src/Cards/Renderer.php:196
 msgid "Starting…"
 msgstr ""
 
 #. translators: 1: items done, 2: items in all.
-#: src/Cards/Renderer.php:172
+#: src/Cards/Renderer.php:198
 #, php-format
 msgid "%1$s of %2$s"
 msgstr ""
 
-#: src/Cards/Renderer.php:223
+#: src/Cards/Renderer.php:249
 msgid "Please log in to use OdooWoo."
 msgstr ""
 
-#: src/Cards/Renderer.php:225
+#: src/Cards/Renderer.php:251
 msgid "Log in"
 msgstr ""
 
-#: src/Cards/Renderer.php:241
+#: src/Cards/Renderer.php:267
 msgid "See the OdooWoo plans"
 msgstr ""
 
-#: src/Cards/Renderer.php:245
+#: src/Cards/Renderer.php:271
 msgid "This license was not found."
 msgstr ""
 
@@ -1430,24 +1475,24 @@ msgid "Open the dashboard, then connect your WooCommerce store and your Odoo und
 msgstr ""
 
 #. translators: 1: plugin name, 2: minimum version, 3: installed version.
-#: src/Plugin.php:250
+#: src/Plugin.php:251
 #, php-format
 msgid "Update %1$s to %2$s or newer (installed: %3$s)."
 msgstr ""
 
 #. translators: 1: plugin name, 2: minimum version.
-#: src/Plugin.php:253
+#: src/Plugin.php:254
 #, php-format
 msgid "Activate %1$s %2$s or newer."
 msgstr ""
 
 #. translators: %s: plugin name.
-#: src/Plugin.php:256
+#: src/Plugin.php:257
 #, php-format
 msgid "Activate %s."
 msgstr ""
 
-#: src/Plugin.php:262
+#: src/Plugin.php:263
 msgid "OdooWoo Portal is inactive."
 msgstr ""
 
@@ -1516,6 +1561,22 @@ msgstr ""
 
 #: src/Support.php:155
 msgid "View as support"
+msgstr ""
+
+#: src/Tabs.php:26
+msgid "Connections"
+msgstr ""
+
+#: src/Tabs.php:27
+msgid "Mappings"
+msgstr ""
+
+#: src/Tabs.php:29
+msgid "Sync"
+msgstr ""
+
+#: src/Tabs.php:30
+msgid "Logs"
 msgstr ""
 
 #: templates/cards/gift-cards.php:64
