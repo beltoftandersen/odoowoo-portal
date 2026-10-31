@@ -1155,3 +1155,17 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-bu
 		margin-left: 0;
 	}
 }
+
+/* My Account area: a theme's account-content link colour (one class more specific than ours) must not paint the
+   text of link buttons, or underline the back link. Doubled classes outrank it without naming the theme. */
+.beltoft-services-area-page .odoowoo-card a.odoowoo-button.odoowoo-button:not(.odoowoo-button--secondary):not(.odoowoo-button--danger) {
+	color: #fff;
+	text-decoration: none;
+}
+.beltoft-services-area-page .odoowoo-card a.odoowoo-back.odoowoo-back {
+	color: var(--ink-soft, #5e7080);
+	text-decoration: none;
+}
+.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] > .odoowoo-card__title {
+	margin-top: 16px;
+}
