@@ -480,10 +480,14 @@ final class BricksTest extends RestTestCase {
 		$this->assertSame( '{post_title}', $list[0]['name'], 'Existing entries stay.' );
 		$this->assertSame(
 			array( '{odoowoo_dashboard_name}', '{odoowoo_dashboard_state}', '{odoowoo_plan_dashboards}', '{odoowoo_plan_used}', '{odoowoo_has_plan}' ),
-			array_column( array_slice( $list, 1 ), 'name' )
+			array_values( array_filter( array_column( array_slice( $list, 1 ), 'name' ), static fn( $name ): bool => 0 === strpos( (string) $name, '{odoowoo_' ) ) ) // beltoft-services adds its own tags to the list.
 		);
 
 		foreach ( array_slice( $list, 1 ) as $entry ) {
+			if ( 0 !== strpos( (string) $entry['name'], '{odoowoo_' ) ) {
+				continue;
+			}
+
 			$this->assertSame( 'OdooWoo', $entry['group'] );
 			$this->assertNotSame( '', $entry['label'] );
 		}

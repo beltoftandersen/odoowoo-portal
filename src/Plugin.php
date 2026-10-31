@@ -52,6 +52,7 @@ final class Plugin {
 		Tasks::register();
 
 		Account\OpenLink::register();
+		Account\Area::register();
 
 		Emails\ReadyDetails::register();
 

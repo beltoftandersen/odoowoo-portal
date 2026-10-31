@@ -46,9 +46,31 @@ final class Renderer {
 	private static $attached = false;
 
 	/**
+	 * Ids a page inside My Account gives its cards instead of the query string, or null.
+	 *
+	 * @var array{license: int, dashboard: int, tab: string}|null
+	 */
+	private static $forced = null;
+
+	/**
+	 * Names the license, dashboard and tab the cards that follow are for (the address says them, not ?license=). null goes
+	 * back to the query string.
+	 *
+	 * @param array{license: int, dashboard: int, tab: string}|null $ids Ids.
+	 */
+	public static function use_ids( ?array $ids ): void {
+		self::$forced = null === $ids ? null : array(
+			'license'   => max( 0, (int) $ids['license'] ),
+			'dashboard' => max( 0, (int) $ids['dashboard'] ),
+			'tab'       => Tabs::valid( (string) $ids['tab'] ),
+		);
+	}
+
+	/**
 	 * Forgets per-request state (tests).
 	 */
 	public static function reset(): void {
+		self::$forced   = null;
 		self::$strings  = array();
 		self::$app_page = false;
 		self::$attached = false;
@@ -119,6 +141,10 @@ final class Renderer {
 	 * @return array{license: int, dashboard: int, tab: string}
 	 */
 	public static function context_ids(): array {
+		if ( null !== self::$forced ) {
+			return self::$forced;
+		}
+
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- display only; access is decided by Context and the REST guard.
 		$number = static function ( string $key ): int {
 			return isset( $_GET[ $key ] ) && is_scalar( $_GET[ $key ] ) ? absint( wp_unslash( $_GET[ $key ] ) ) : 0;
@@ -312,6 +338,13 @@ final class Renderer {
 	private static function card_attrs( string $card, Context $ctx ): array {
 		if ( 'dashboard-list' === $card ) {
 			$attrs = array( 'data-dashboard-url' => Urls::dashboard( 0, 0, 'connections' ) );
+			$own   = \OdooWooPortal\Account\Area::dashboard_template( (int) $ctx->license()['id'] );
+
+			if ( '' !== $own ) {
+				// Inside My Account: this license's dashboards only, and addresses the script fills in with the dashboard's number.
+				$attrs['data-dashboard-url'] = $own;
+				$attrs['data-only-license']  = '1';
+			}
 
 			if ( 'support' === $ctx->mode() ) {
 				$attrs['data-summary'] = (string) wp_json_encode( Routes::license_summary( $ctx ) );

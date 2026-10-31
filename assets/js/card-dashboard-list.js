@@ -108,6 +108,7 @@
 						name: typeof d.name === 'string' ? d.name : '',
 						enabled: enabled,
 						created_at: d.created_at,
+						url: typeof d.url === 'string' && core.safeUrl( d.url ) ? d.url : '',
 						stateText: enabled ? t( 'active' ) : t( 'paused' ),
 						pauseLabel: enabled ? t( 'pause' ) : t( 'enable' ),
 						canOpen: true,
@@ -142,8 +143,15 @@
 		return typeof enabled === 'boolean' ? { enabled: enabled } : null;
 	}
 
-	/** Sets license and dashboard on a copy of the template; keeps everything else (plain permalinks carry ?page_id=). */
+	/**
+	 * The dashboard's address from the template. A template with {dashboard} (the pages inside My Account) gets the number
+	 * there; any other sets license and dashboard on a copy and keeps everything else (plain permalinks carry ?page_id=).
+	 */
 	function dashboardUrl( template, licenseId, dashboardId ) {
+		if ( String( template ).indexOf( '{dashboard}' ) !== -1 ) {
+			return String( template ).replace( '{dashboard}', String( Number( dashboardId ) || 0 ) );
+		}
+
 		var absolute = /^[a-z][a-z0-9+.-]*:/i.test( String( template ) );
 		var u = new URL( String( template ), 'http://odoowoo.invalid' );
 
@@ -256,7 +264,13 @@
 		var template = root.getAttribute( 'data-dashboard-url' ) || '';
 		var preselect = Number( root.getAttribute( 'data-license' ) ) || 0;
 		var lang = G.document.documentElement.getAttribute( 'lang' ) || undefined;
+		var onlyLicense = root.getAttribute( 'data-only-license' ) === '1' && preselect > 0;
 		var model = null;
+
+		/** The page of one license (inside My Account) shows that license's dashboards only. */
+		function onlyOf( licenses ) {
+			return Array.isArray( licenses ) ? licenses.filter( function ( l ) { return isObject( l ) && Number( l.id ) === preselect; } ) : [];
+		}
 
 		function say( kind, message ) {
 			core.status( statusEl, kind, message );
@@ -281,7 +295,7 @@
 			}
 
 			var link = el( 'a', 'odoowoo-button odoowoo-open', t( 'open' ) );
-			link.setAttribute( 'href', dashboardUrl( template, group.id, d.id ) );
+			link.setAttribute( 'href', d.url !== '' ? d.url : dashboardUrl( template, group.id, d.id ) );
 			link.setAttribute( 'aria-label', core.fill( t( 'openNamed' ), d.name ) );
 			actions.appendChild( link );
 
@@ -452,7 +466,7 @@
 				return;
 			}
 
-			model = viewModel( result.licenses );
+			model = viewModel( onlyLicense ? onlyOf( result.licenses ) : result.licenses );
 			render();
 		}
 

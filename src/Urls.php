@@ -10,7 +10,7 @@ namespace OdooWooPortal;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Links to the app's two pages.
+ * Links to the app's pages: the two Bricks pages, or the pages inside My Account when beltoft-services draws the app there.
  */
 final class Urls {
 
@@ -27,6 +27,12 @@ final class Urls {
 	 * @param int $license_id License id.
 	 */
 	public static function license_list( int $license_id ): string {
+		$own = Account\Area::service_url( $license_id );
+
+		if ( '' !== $own ) {
+			return $own;
+		}
+
 		return add_query_arg( array( 'license' => $license_id ), self::list() );
 	}
 
@@ -38,6 +44,13 @@ final class Urls {
 	 * @param string $tab          Tab; unknown ones become the first.
 	 */
 	public static function dashboard( int $license_id, int $dashboard_id, string $tab = 'connections' ): string {
+		// Inside My Account when the app lives there for the viewer, else the dashboard page.
+		$own = Account\Area::dashboard_url( $license_id, $dashboard_id, $tab );
+
+		if ( '' !== $own ) {
+			return $own;
+		}
+
 		return add_query_arg(
 			array(
 				'license'   => $license_id,

@@ -946,3 +946,31 @@ a.odoowoo-button:not(.odoowoo-button--secondary):not(.odoowoo-button--danger),
 		padding: 24px 20px;
 	}
 }
+
+/*
+ * Inside My Account (the dashboard's own pages): the cards sit in the page's column, one under the other, without a
+ * second frame of padding around the whole page; phones get less padding so a card reads at 390px.
+ */
+.beltoft-services-area-page .odoowoo-card {
+	margin: 0 0 16px;
+	padding: 24px 0;
+	max-width: 100%;
+}
+
+.beltoft-services-area-page .odoowoo-account-dashboard .beltoft-services-tabs {
+	margin: 0 0 8px;
+}
+
+.beltoft-services-area-page .odoowoo-account-dashboard .odoowoo-card:first-child {
+	padding-top: 8px;
+}
+
+@media (max-width: 767px) {
+	.beltoft-services-area-page .odoowoo-card {
+		padding: 16px 0;
+	}
+
+	.beltoft-services-area-page .odoowoo-dashboard {
+		flex-wrap: wrap;
+	}
+}

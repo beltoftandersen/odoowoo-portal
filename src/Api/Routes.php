@@ -8,12 +8,15 @@
 namespace OdooWooPortal\Api;
 
 use BeltoftServices\RateLimit;
+use OdooWooPortal\Account\Area;
+use OdooWooPortal\Account\Dashboards;
 use OdooWooPortal\Context;
 use OdooWooPortal\Django\Client;
 use OdooWooPortal\Django\Messages;
 use OdooWooPortal\Django\Reply;
 use OdooWooPortal\Prefixes;
 use OdooWooPortal\Tasks;
+use OdooWooPortal\Urls;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -732,6 +735,30 @@ final class Routes {
 	}
 
 	/**
+	 * Adds each dashboard's address inside My Account when the app lives there (and remembers the slugs on the way).
+	 * Nothing is added for a support viewer or on a site without the My Account area: the page then builds the address.
+	 *
+	 * @param Context                          $ctx  Context.
+	 * @param array<int, array<string, mixed>> $rows Dashboard rows.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function with_addresses( Context $ctx, array $rows ): array {
+		$license_id = (int) $ctx->license()['id'];
+
+		if ( ! Area::enabled( $license_id ) ) {
+			return $rows;
+		}
+
+		Dashboards::sync( $ctx, $rows );
+
+		foreach ( $rows as $i => $row ) {
+			$rows[ $i ]['url'] = Urls::dashboard( $license_id, (int) $row['id'], 'connections' );
+		}
+
+		return $rows;
+	}
+
+	/**
 	 * The license entry for the app: usage and dashboards. One tenant read and one dashboards
 	 * read per request, none while the license is not ready.
 	 *
@@ -776,6 +803,7 @@ final class Routes {
 
 			if ( $list->ok() ) {
 				$entry['dashboards'] = self::dashboard_rows( $list->data() );
+				$entry['dashboards'] = self::with_addresses( $ctx, $entry['dashboards'] );
 			} else {
 				$entry['error'] = Messages::from_reply( $list )['message'];
 			}

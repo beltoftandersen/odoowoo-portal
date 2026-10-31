@@ -25,9 +25,13 @@ Card names: `dashboard-list`, `dashboard-header`, `woo-connection`, `woo-setting
 
 When Bricks is active the plugin registers fifteen elements (one per card), five dynamic data tags (`{odoowoo_dashboard_name}`, `{odoowoo_dashboard_state}`, `{odoowoo_plan_dashboards}`, `{odoowoo_plan_used}`, `{odoowoo_has_plan}`) and an element condition, "Has an OdooWoo plan".
 
+## Inside My Account
+
+When beltoft-services draws the customer's apps in My Account (Apps, `/my-account/apps/<service>/`), the app lives there too, with the dashboard's own shell: the service page lists the store dashboards, `/my-account/apps/<service>/<dashboard>/` and `/<dashboard>/<tab>/` (connections, mappings, gift-cards, sync, logs) show one of them. The dashboard part is a slug of its name, unique within the tenant and remembered in the service's resource; a number in the address is sent on to the slug (301). The Open button of the Apps list and the Open OdooWoo link go there, and a request for the old list or dashboard page (the pages stay) is sent to the matching address for the license's owner. Without that area, or for a support viewer, the two Bricks pages and their `?license=&dashboard=&tab=` addresses are used as before. The cards of each tab can be changed with the `odoowoo_portal_account_tab_cards` filter.
+
 ## Hooks
 
-- Filters: `odoowoo_portal_dependencies`, `odoowoo_portal_cards`, `odoowoo_portal_rate_limit( $limit, $bucket )`.
+- Filters: `odoowoo_portal_dependencies`, `odoowoo_portal_cards`, `odoowoo_portal_account_tab_cards`, `odoowoo_portal_rate_limit( $limit, $bucket )`.
 - Actions: `odoowoo_portal_log( $line )`, `odoowoo_portal_dashboard_deleted`.
 
 ## Development

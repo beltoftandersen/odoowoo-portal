@@ -26,7 +26,7 @@ final class OpenLink {
 	}
 
 	/**
-	 * Prints the button for an OdooWoo license of the current user, when the list page is set.
+	 * Prints the button for an OdooWoo license of the current user, when the list page is set or the app lives in My Account.
 	 *
 	 * @param mixed $license License row.
 	 * @param mixed $view    Display values (unused).
@@ -34,7 +34,7 @@ final class OpenLink {
 	public static function render( $license, $view = array() ): void {
 		unset( $view );
 
-		if ( ! is_array( $license ) || empty( $license['id'] ) || (int) Settings::get( 'list_page_id' ) <= 0 ) {
+		if ( ! is_array( $license ) || empty( $license['id'] ) || ( (int) Settings::get( 'list_page_id' ) <= 0 && ! Area::enabled( (int) $license['id'] ) ) ) {
 			return;
 		}
 

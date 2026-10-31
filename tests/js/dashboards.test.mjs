@@ -232,6 +232,24 @@ test( 'test_dashboard_url_fills_license_and_dashboard', () => {
 	assert.equal( list.dashboardUrl( '/app/?page_id=3&tab=connections', 1, 2 ), '/app/?page_id=3&tab=connections&license=1&dashboard=2' );
 } );
 
+test( 'test_dashboard_url_template_inside_my_account_takes_the_number', () => {
+	const tpl = 'https://beltoft.test/my-account/apps/odoowoo/{dashboard}/';
+
+	assert.equal( list.dashboardUrl( tpl, 7, 9 ), 'https://beltoft.test/my-account/apps/odoowoo/9/' );
+	assert.equal( list.dashboardUrl( '/my-account/apps/odoowoo/{dashboard}/', 7, '12abc' ), '/my-account/apps/odoowoo/0/', 'Only a number gets in.' );
+	assert.equal( tpl.includes( '{dashboard}' ), true, 'The template is left alone.' );
+} );
+
+test( 'test_the_view_model_keeps_a_safe_address_the_page_gave_and_drops_the_rest', () => {
+	const vm = list.viewModel( [ entry( { dashboards: [
+		{ ...dash( 11, 'Shop' ), url: 'https://beltoft.test/my-account/apps/odoowoo/shop/' },
+		{ ...dash( 12, 'Outlet' ), url: 'javascript:alert(1)' },
+		dash( 13, 'Plain' ),
+	] } ) ] );
+
+	assert.deepEqual( vm.groups[ 0 ].dashboards.map( ( d ) => d.url ), [ 'https://beltoft.test/my-account/apps/odoowoo/shop/', '', '' ] );
+} );
+
 test( 'test_format_created_uses_the_page_language', () => {
 	assert.equal( list.formatCreated( '2026-10-21T12:00:00Z', 'en' ), 'Oct 21, 2026' );
 	const da = list.formatCreated( '2026-10-21T12:00:00Z', 'da' );
