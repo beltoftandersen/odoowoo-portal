@@ -290,6 +290,12 @@ final class Area {
 	 * @param string $tab        Tab.
 	 */
 	private static function print_dashboard( int $license_id, int $dashboard, string $tab ): void {
+		$gift = self::gift_cards( $license_id, $dashboard );
+
+		// The Gift cards tab is for dashboards that turned it on; its address then shows the first tab (the redirect has
+		// normally sent the visitor there already).
+		$tab = 'gift-cards' === $tab && ! $gift ? 'connections' : $tab;
+
 		Renderer::use_ids( array( 'license' => $license_id, 'dashboard' => $dashboard, 'tab' => $tab ) );
 
 		echo '<div class="odoowoo-account-dashboard" data-odoowoo-tab="' . esc_attr( $tab ) . '">';
@@ -302,6 +308,12 @@ final class Area {
 				'title' => $title,
 				'url'   => Urls::dashboard( $license_id, $dashboard, $slug ),
 			);
+
+			if ( 'gift-cards' === $slug ) {
+				// Always in the strip, hidden while off: the Dashboard settings card shows or hides it without a reload.
+				$nav[ $slug ]['attrs']  = array( 'data-odoowoo-tab' => 'gift-cards' );
+				$nav[ $slug ]['hidden'] = ! $gift;
+			}
 		}
 
 		ServiceArea::tab_nav( $nav, $tab, __( 'Dashboard sections', 'odoowoo-portal' ) );
@@ -314,6 +326,18 @@ final class Area {
 		}
 
 		echo '</div></div>';
+	}
+
+	/**
+	 * Does the viewer's dashboard show its Gift cards tab (Django's show_gift_cards)?
+	 *
+	 * @param int $license_id License id.
+	 * @param int $dashboard  Dashboard id.
+	 */
+	private static function gift_cards( int $license_id, int $dashboard ): bool {
+		$ctx = self::owner_context( $license_id );
+
+		return null !== $ctx && Dashboards::gift_cards( $ctx, $dashboard );
 	}
 
 	/**
@@ -333,17 +357,27 @@ final class Area {
 		$ctx        = self::owner_context( $license_id );
 		$first      = (string) $page['path'][0];
 
-		if ( null === $ctx || ! ctype_digit( $first ) ) {
+		if ( null === $ctx ) {
 			return $target;
 		}
 
-		$id = Dashboards::resolve( $ctx, $first );
+		$id  = Dashboards::resolve( $ctx, $first );
+		$tab = Tabs::valid( (string) ( $page['path'][1] ?? '' ) );
 
-		if ( $id <= 0 || '' === Dashboards::slug( $license_id, $id ) ) {
+		if ( $id <= 0 ) {
 			return $target;
 		}
 
-		return self::dashboard_url( $license_id, $id, Tabs::valid( (string) ( $page['path'][1] ?? '' ) ) );
+		// A request for the Gift cards tab of a dashboard that has it off goes to the first tab, for now (the flag can change).
+		if ( 'gift-cards' === $tab && 'gift-cards' === (string) ( $page['path'][1] ?? '' ) && ! Dashboards::gift_cards( $ctx, $id ) ) {
+			return array( 'url' => self::dashboard_url( $license_id, $id, 'connections' ), 'status' => 302 );
+		}
+
+		if ( ! ctype_digit( $first ) || '' === Dashboards::slug( $license_id, $id ) ) {
+			return $target;
+		}
+
+		return self::dashboard_url( $license_id, $id, $tab );
 	}
 
 	/**

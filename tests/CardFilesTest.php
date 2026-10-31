@@ -45,7 +45,7 @@ final class CardFilesTest extends RestTestCase {
 	public function test_every_registry_card_has_template_and_script(): void {
 		$cards = Registry::cards();
 
-		$this->assertCount( 15, $cards );
+		$this->assertCount( 16, $cards );
 
 		foreach ( $cards as $name => $card ) {
 			$this->assertFileExists( ODOOWOO_PORTAL_PATH . 'templates/' . $card['template'], "Template of $name" );

@@ -38,6 +38,7 @@ final class AccountAreaTest extends RestTestCase {
 		$this->get = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		Renderer::reset();
 		Renderer::use_ids( null );
+		Dashboards::reset();
 		$GLOBALS['wp_scripts'] = new \WP_Scripts();
 		$GLOBALS['wp_styles']  = new \WP_Styles();
 		$this->set_permalink_structure( '/%postname%/' );
@@ -87,12 +88,16 @@ final class AccountAreaTest extends RestTestCase {
 			$dashboards
 		);
 
-		$this->django_map(
-			array(
-				'GET tenants/' . $this->tenant( $license ) . '/' => array( 200, array( 'limit' => 5, 'used' => count( $rows ), 'attributes' => array() ) ),
-				'GET dashboards/' => array( 200, $rows ),
-			)
+		$map = array(
+			'GET tenants/' . $this->tenant( $license ) . '/' => array( 200, array( 'limit' => 5, 'used' => count( $rows ), 'attributes' => array() ) ),
+			'GET dashboards/' => array( 200, $rows ),
 		);
+
+		foreach ( $rows as $row ) {
+			$map[ 'GET dashboards/' . $row['id'] . '/' ] = array( 200, $row );
+		}
+
+		$this->django_map( $map );
 	}
 
 	/**
@@ -284,7 +289,7 @@ final class AccountAreaTest extends RestTestCase {
 
 	public function test_a_dashboard_page_has_the_header_the_tabs_and_the_cards_of_its_tab(): void {
 		$license = $this->app_license();
-		$this->django_with( $license, array( array( 'id' => 5, 'name' => 'Shop' ), array( 'id' => 6, 'name' => 'Outlet' ) ) );
+		$this->django_with( $license, array( array( 'id' => 5, 'name' => 'Shop' ), array( 'id' => 6, 'name' => 'Outlet', 'show_gift_cards' => true ) ) );
 		$this->as_user( (int) $license['user_id'] );
 		$base = ServiceArea::url_for_license( $license );
 
@@ -715,5 +720,74 @@ final class AccountAreaTest extends RestTestCase {
 		$list = (string) ob_get_clean();
 		$this->assertStringContainsString( 'All apps', $list );
 		$this->assertStringContainsString( 'beltoft-services-page__name', $list );
+	}
+
+	public function test_the_dashboard_settings_card_is_on_the_connections_tab_last(): void {
+		$license = $this->app_license();
+		$this->django_with( $license, array( array( 'id' => 5, 'name' => 'Shop' ) ) );
+		$this->as_user( (int) $license['user_id'] );
+
+		$html = $this->body( $license, array( 'shop' ) );
+
+		$this->assertStringContainsString( 'data-odoowoo-card="dashboard-settings"', $html );
+		$this->assertStringContainsString( 'name="show_gift_cards"', $html );
+		$this->assertGreaterThan( (int) strpos( $html, 'data-odoowoo-card="odoo-settings"' ), (int) strpos( $html, 'data-odoowoo-card="dashboard-settings"' ) );
+		$this->assertTrue( wp_script_is( 'odoowoo-card-dashboard-settings', 'enqueued' ) );
+		$this->assertStringNotContainsString( 'data-odoowoo-card="dashboard-settings"', $this->body( $license, array( 'shop', 'logs' ) ) );
+	}
+
+	public function test_the_gift_cards_tab_is_in_the_strip_hidden_when_the_flag_is_off_and_shown_when_on(): void {
+		$license = $this->app_license();
+		$this->django_with( $license, array( array( 'id' => 5, 'name' => 'Shop' ), array( 'id' => 6, 'name' => 'Outlet', 'show_gift_cards' => true ) ) );
+		$this->as_user( (int) $license['user_id'] );
+		$base = ServiceArea::url_for_license( $license );
+
+		$off = $this->body( $license, array( 'shop' ) );
+		$this->assertStringContainsString( '<a href="' . esc_url( $base . 'shop/gift-cards/' ) . '" data-odoowoo-tab="gift-cards" hidden>Gift cards</a>', $off );
+
+		$on = $this->body( $license, array( 'outlet' ) );
+		$this->assertStringContainsString( '<a href="' . esc_url( $base . 'outlet/gift-cards/' ) . '" data-odoowoo-tab="gift-cards">Gift cards</a>', $on );
+
+		// Off: its address shows the first tab, never the gift card cards.
+		$direct = $this->body( $license, array( 'shop', 'gift-cards' ) );
+		$this->assertStringContainsString( 'data-odoowoo-card="woo-connection"', $direct );
+		$this->assertStringNotContainsString( 'data-odoowoo-card="gift-cards"', $direct );
+		$this->assertStringNotContainsString( 'aria-current="page">Gift cards', $direct );
+
+		// On: the tab is there and current.
+		$tab = $this->body( $license, array( 'outlet', 'gift-cards' ) );
+		$this->assertStringContainsString( 'data-odoowoo-card="gift-cards"', $tab );
+		$this->assertStringContainsString( 'aria-current="page" data-odoowoo-tab', str_replace( 'data-odoowoo-tab="gift-cards" aria-current="page"', 'aria-current="page" data-odoowoo-tab', $tab ) );
+	}
+
+	public function test_the_gift_cards_address_redirects_temporarily_to_the_first_tab_when_off(): void {
+		$license = $this->app_license();
+		$this->django_with( $license, array( array( 'id' => 5, 'name' => 'Shop' ), array( 'id' => 6, 'name' => 'Outlet', 'show_gift_cards' => true ) ) );
+		$this->as_user( (int) $license['user_id'] );
+		$base = ServiceArea::url_for_license( $license );
+		Routes::reset();
+		$redirect = static fn( array $path ) => apply_filters( 'beltoft_services_account_page_redirect', '', array( 'license' => $license, 'path' => $path ) );
+
+		$this->assertSame( array( 'url' => $base . 'shop/', 'status' => 302 ), $redirect( array( 'shop', 'gift-cards' ) ) );
+		$this->assertSame( array( 'url' => $base . 'shop/', 'status' => 302 ), $redirect( array( '5', 'gift-cards' ) ), 'A number too.' );
+		$this->assertSame( '', $redirect( array( 'outlet', 'gift-cards' ) ), 'On: it stays.' );
+		$this->assertSame( '', $redirect( array( 'shop', 'logs' ) ) );
+		$this->assertSame( '', $redirect( array( 'shop' ) ) );
+		$this->assertSame( '', $redirect( array( 'nope', 'gift-cards' ) ), 'Unknown: not found, no redirect.' );
+	}
+
+	public function test_a_failed_read_of_the_flag_counts_as_off_and_only_a_true_turns_it_on(): void {
+		$license = $this->app_license();
+		$this->as_user( (int) $license['user_id'] );
+		$ctx = Context::for_user( (int) $license['user_id'], (int) $license['id'] );
+
+		$this->django_map( array( 'GET dashboards/7/' => array( 500, 'no' ), 'GET dashboards/8/' => array( 200, array( 'id' => 8, 'show_gift_cards' => 'yes' ) ), 'GET dashboards/9/' => array( 200, array( 'id' => 9, 'show_gift_cards' => true ) ) ) );
+		$this->assertFalse( Dashboards::gift_cards( $ctx, 7 ) );
+		$this->assertFalse( Dashboards::gift_cards( $ctx, 8 ) );
+		$this->assertTrue( Dashboards::gift_cards( $ctx, 9 ) );
+
+		$before = count( $this->django_calls() );
+		Dashboards::gift_cards( $ctx, 9 );
+		$this->assertSame( $before, count( $this->django_calls() ), 'One read per dashboard and request.' );
 	}
 }

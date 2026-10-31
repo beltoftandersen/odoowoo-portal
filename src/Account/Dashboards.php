@@ -11,6 +11,7 @@ use BeltoftServices\Locks;
 use BeltoftServices\Resource;
 use OdooWooPortal\Api\Routes;
 use OdooWooPortal\Context;
+use OdooWooPortal\Django\Client;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,6 +29,13 @@ final class Dashboards {
 	public const META = 'ow_dashboard_slugs';
 
 	private const MAX = 60;
+
+	/**
+	 * show_gift_cards of the dashboards read in this request, by "license:dashboard".
+	 *
+	 * @var array<string, bool>
+	 */
+	private static $gift = array();
 
 	/**
 	 * Hooks.
@@ -238,6 +246,32 @@ final class Dashboards {
 		$id = self::id_for( $license_id, $segment );
 
 		return in_array( $id, $ids, true ) ? $id : 0;
+	}
+
+	/**
+	 * Does the dashboard show its Gift cards tab? Django's show_gift_cards says (off by default). One read per dashboard and
+	 * request; a read that fails counts as off, so the tab is not offered on a guess.
+	 *
+	 * @param Context $ctx          Owner's context.
+	 * @param int     $dashboard_id Dashboard id.
+	 */
+	public static function gift_cards( Context $ctx, int $dashboard_id ): bool {
+		$key = $ctx->license()['id'] . ':' . $dashboard_id;
+
+		if ( ! isset( self::$gift[ $key ] ) ) {
+			$reply             = $ctx->calls_allowed() ? Client::request( $ctx, 'GET', 'dashboards/' . $dashboard_id . '/' ) : null;
+			$data              = $reply && $reply->ok() ? $reply->data() : array();
+			self::$gift[ $key ] = isset( $data['show_gift_cards'] ) && true === $data['show_gift_cards'];
+		}
+
+		return self::$gift[ $key ];
+	}
+
+	/**
+	 * Forgets what this request read (tests, long requests).
+	 */
+	public static function reset(): void {
+		self::$gift = array();
 	}
 
 	/**

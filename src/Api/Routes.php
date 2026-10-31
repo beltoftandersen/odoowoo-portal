@@ -658,13 +658,17 @@ final class Routes {
 	}
 
 	/**
-	 * PATCH: pause or enable when the body is about "enabled" alone, otherwise rename.
+	 * PATCH: the gift card tab flag, pause or enable when the body is about "enabled" alone, otherwise rename.
 	 *
 	 * @param \WP_REST_Request $r Request.
 	 */
 	public static function patch( \WP_REST_Request $r ): \WP_REST_Response {
 		$json = $r->get_json_params();
 		$json = is_array( $json ) ? $json : array();
+
+		if ( array_key_exists( 'show_gift_cards', $json ) && ! array_key_exists( 'name', $json ) ) {
+			return self::call( $r, 'dashboard-gift-tab' );
+		}
 
 		return self::call( $r, array_key_exists( 'enabled', $json ) && ! array_key_exists( 'name', $json ) ? 'dashboard-pause' : 'dashboard-rename' );
 	}

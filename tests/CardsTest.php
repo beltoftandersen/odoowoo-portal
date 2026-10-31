@@ -59,8 +59,8 @@ final class CardsTest extends TestCase {
 		Renderer::attach_boot_data();
 	}
 
-	public function test_registry_has_the_fifteen_cards_with_names_keys_and_titles(): void {
-		$names = array( 'dashboard-list', 'dashboard-header', 'woo-connection', 'woo-settings', 'odoo-connection', 'odoo-settings', 'payment-mappings', 'tax-mappings', 'price-mappings', 'stock-mappings', 'order-route-mappings', 'order-pricelist-mappings', 'gift-cards', 'manual-sync', 'sync-logs' );
+	public function test_registry_has_the_sixteen_cards_with_names_keys_and_titles(): void {
+		$names = array( 'dashboard-list', 'dashboard-header', 'woo-connection', 'woo-settings', 'odoo-connection', 'dashboard-settings', 'odoo-settings', 'payment-mappings', 'tax-mappings', 'price-mappings', 'stock-mappings', 'order-route-mappings', 'order-pricelist-mappings', 'gift-cards', 'manual-sync', 'sync-logs' );
 		$cards = Registry::cards();
 
 		$this->assertSame( $names, array_keys( $cards ) );

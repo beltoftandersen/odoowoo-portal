@@ -40,7 +40,7 @@ final class Tabs {
 	public static function cards( string $tab ): array {
 		$tab   = self::valid( $tab );
 		$cards = array(
-			'connections' => array( 'woo-connection', 'odoo-connection', 'woo-settings', 'odoo-settings' ),
+			'connections' => array( 'woo-connection', 'odoo-connection', 'woo-settings', 'odoo-settings', 'dashboard-settings' ),
 			'mappings'    => Cards\Mappings::CARDS,
 			'gift-cards'  => array( 'gift-cards' ),
 			'sync'        => array( 'manual-sync' ),

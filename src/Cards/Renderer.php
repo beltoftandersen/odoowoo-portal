@@ -357,7 +357,7 @@ final class Renderer {
 			return array( 'data-can-write' => $ctx->can_write() ? '1' : '0' );
 		}
 
-		if ( in_array( $card, array( 'woo-connection', 'woo-settings', 'odoo-connection', 'odoo-settings' ), true ) ) {
+		if ( in_array( $card, array( 'woo-connection', 'woo-settings', 'odoo-connection', 'odoo-settings', 'dashboard-settings' ), true ) ) {
 			// The two verifies are the only writes a read-only owner may still make (Routes::guard).
 			return array(
 				'data-can-write'  => $ctx->can_write() ? '1' : '0',

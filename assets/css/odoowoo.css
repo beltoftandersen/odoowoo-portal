@@ -1073,6 +1073,10 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	font-size: 15px;
 }
 
+.beltoft-services-area-page .odoowoo-account-dashboard .beltoft-services-tabs a[hidden] {
+	display: none;
+}
+
 /* The service panel's root and the portal's own status texts carry [data-state]: no indent from the portal's rule for them. */
 .beltoft-services-area-page .odoowoo-card [data-state] {
 	margin-left: 0;

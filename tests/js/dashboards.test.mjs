@@ -405,3 +405,20 @@ test( 'test_not_found_dashboard_hides_the_tabs_with_the_forms', () => {
 	assert.equal( other.hidden, false );
 	assert.equal( other.style.display, undefined );
 } );
+
+test( 'gift card tab: shown only when show_gift_cards is exactly true', () => {
+	assert.equal( header.giftTabVisible( { show_gift_cards: true } ), true );
+	assert.equal( header.giftTabVisible( { show_gift_cards: false } ), false );
+	assert.equal( header.giftTabVisible( {} ), false );
+	assert.equal( header.giftTabVisible( null ), false );
+} );
+
+test( 'gift card tab: the strip inside My Account shows and hides its link', () => {
+	const link = { hidden: true };
+	const doc = { querySelectorAll: ( selector ) => ( selector.includes( 'beltoft-services-tabs a[data-odoowoo-tab="gift-cards"]' ) ? [ link ] : [] ) };
+
+	header.applyGiftTab( doc, true );
+	assert.equal( link.hidden, false );
+	header.applyGiftTab( doc, false );
+	assert.equal( link.hidden, true );
+} );
