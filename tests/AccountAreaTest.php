@@ -597,4 +597,54 @@ final class AccountAreaTest extends RestTestCase {
 			$this->assertStringNotContainsString( "\u{2014}", $text, $file );
 		}
 	}
+
+	public function test_the_plan_reads_the_way_the_dashboard_words_it(): void {
+		$this->assertSame( 'OdooWoo Pro, billed monthly', Area::plan_label( 'OdooWoo - Pro, Monthly' ) );
+		$this->assertSame( 'OdooWoo Pro, billed yearly', Area::plan_label( 'OdooWoo - Pro, Annual' ) );
+		$this->assertSame( 'OdooWoo Starter, billed quarterly', Area::plan_label( 'OdooWoo - Starter, quarterly' ) );
+		$this->assertSame( 'OdooWoo', Area::plan_label( 'OdooWoo' ) );
+		$this->assertSame( 'OdooWoo Pro', Area::plan_label( 'OdooWoo - Pro' ) );
+		$this->assertSame( 'Monthly', Area::plan_label( 'Monthly' ), 'A lone word is a name, not a period.' );
+		$this->assertSame( 'OdooWoo Pro, Lifetime', Area::plan_label( 'OdooWoo - Pro, Lifetime' ) );
+	}
+
+	public function test_the_summary_carries_the_plan_label_only_inside_my_account(): void {
+		$license = $this->app_license();
+		$this->django_with( $license, array() );
+		$this->as_user( (int) $license['user_id'] );
+		Routes::reset();
+		$entry = Routes::license_summary( Context::for_user( (int) $license['user_id'], (int) $license['id'] ) );
+
+		$this->assertArrayHasKey( 'plan_label', $entry );
+		$this->assertSame( Area::plan_label( $entry['plan'] ), $entry['plan_label'] );
+		$this->assertSame( 'OdooWoo', $entry['plan'], 'The stored name is untouched.' );
+
+		$plain = $this->odoowoo_license();
+		$this->django_with( $plain, array() );
+		$this->as_user( (int) $plain['user_id'] );
+		Routes::reset();
+		$this->assertArrayNotHasKey( 'plan_label', Routes::license_summary( Context::for_user( (int) $plain['user_id'], (int) $plain['id'] ) ) );
+	}
+
+	public function test_the_account_look_is_scoped_to_the_account_area_and_square(): void {
+		$css   = (string) file_get_contents( ODOOWOO_PORTAL_PATH . 'assets/css/odoowoo.css' );
+		$block = substr( $css, (int) strpos( $css, "/*\n * Inside My Account (the dashboard" ) );
+
+		$this->assertNotSame( '', $block );
+		$this->assertStringNotContainsString( 'border-radius', $block );
+		$this->assertStringNotContainsString( "\u{2014}", $block );
+
+		// Every selector of the block starts in the account area (or a dialog opened from it).
+		$rules = (string) preg_replace( '/@media[^{]*\{/', '', (string) preg_replace( '#/\*.*?\*/#s', '', $block ) );
+		preg_match_all( '/(?:^|\})\s*([^{}@][^{}]*)\{/m', $rules, $m );
+		foreach ( $m[1] as $list ) {
+			foreach ( explode( ',', $list ) as $selector ) {
+				$selector = trim( $selector );
+				$this->assertMatchesRegularExpression( '/^(\.beltoft-services-area-page|body:has\(\.beltoft-services-area-page\))/', $selector, $selector );
+			}
+		}
+
+		$this->assertStringContainsString( 'font-size: 20px', $block );
+		$this->assertStringContainsString( ':has(.show-password-input) .odoowoo-reveal', $block );
+	}
 }

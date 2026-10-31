@@ -787,6 +787,11 @@ final class Routes {
 			'dashboards' => array(),
 		);
 
+		if ( Area::enabled( (int) $license['id'] ) ) {
+			// Inside My Account the plan reads as the dashboard words it ("OdooWoo Pro, billed monthly").
+			$entry['plan_label'] = Area::plan_label( (string) $entry['plan'] );
+		}
+
 		if ( $ctx->calls_allowed() && in_array( $entry['state'], array( 'ready', 'paused' ), true ) ) {
 			$tenant = Client::request( $ctx, 'GET', 'tenants/' . rawurlencode( $ctx->tenant() ) . '/' );
 

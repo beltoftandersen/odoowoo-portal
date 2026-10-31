@@ -948,29 +948,210 @@ a.odoowoo-button:not(.odoowoo-button--secondary):not(.odoowoo-button--danger),
 }
 
 /*
- * Inside My Account (the dashboard's own pages): the cards sit in the page's column, one under the other, without a
- * second frame of padding around the whole page; phones get less padding so a card reads at 390px.
+ * Inside My Account (the dashboard's own pages). Everything here is scoped to the account area, so the Bricks pages keep
+ * their own look. The cards follow the Servers and Databases pages: no box, the page's left edge, navy buttons (primary
+ * filled, secondary outlined, destructive in the danger colour), square corners.
  */
+.beltoft-services-area-page .odoowoo-card,
+body:has(.beltoft-services-area-page) .odoowoo-dialog {
+	--odoowoo-accent: var(--navy, #0c1535);
+	--odoowoo-text: var(--navy, #0c1535);
+	--odoowoo-muted: var(--ink-soft, #5e7080);
+	--odoowoo-danger: #b32d2e;
+}
+
+/* The portal marks its own status text with [data-state] and gives it a left margin: not the service panel's root. */
+.beltoft-services-area-page .beltoft-services-panel[data-state] {
+	margin-left: 0;
+}
+
 .beltoft-services-area-page .odoowoo-card {
-	margin: 0 0 16px;
-	padding: 24px 0;
+	margin: 0 0 32px;
+	padding: 0;
 	max-width: 100%;
+	background: transparent;
+	font-size: 15px;
+}
+
+.beltoft-services-area-page .odoowoo-card__title,
+.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] > .odoowoo-card__title {
+	margin: 0 0 12px;
+	padding: 0;
+	background: transparent;
+	color: var(--navy, #0c1535);
+	font-size: 17px;
+	font-weight: 700;
+	line-height: 1.3;
 }
 
 .beltoft-services-area-page .odoowoo-account-dashboard .beltoft-services-tabs {
-	margin: 0 0 8px;
+	margin: 16px 0 24px;
 }
 
-.beltoft-services-area-page .odoowoo-account-dashboard .odoowoo-card:first-child {
-	padding-top: 8px;
+.beltoft-services-area-page .odoowoo-account-dashboard .odoowoo-card[data-odoowoo-card='dashboard-header'] {
+	margin: 0;
+	padding: 0;
+}
+
+/* Header: the store's name the size of a service name, its state inline like a server's, Rename a secondary button. */
+.beltoft-services-area-page .odoowoo-header__back {
+	margin: 0 0 8px;
+	font-size: 14px;
+}
+
+.beltoft-services-area-page .odoowoo-card a.odoowoo-back {
+	color: var(--ink-soft, #5e7080);
+	text-decoration: none;
+}
+
+.beltoft-services-area-page .odoowoo-card a.odoowoo-back:hover {
+	color: var(--navy, #0c1535);
+	text-decoration: underline;
+}
+
+.beltoft-services-area-page .odoowoo-header__title {
+	gap: 4px 16px;
+}
+
+.beltoft-services-area-page .odoowoo-header .odoowoo-dashboard-name {
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+	color: var(--navy, #0c1535);
+	overflow-wrap: anywhere;
+}
+
+.beltoft-services-area-page .odoowoo-header .odoowoo-state {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--ink-mid, #2d4060);
+}
+
+.beltoft-services-area-page .odoowoo-header .odoowoo-state::before {
+	content: '';
+	width: 8px;
+	height: 8px;
+	background: currentColor;
+	font-size: 0;
+	vertical-align: baseline;
+}
+
+/* The list: the plan line, then rows like the Servers list. */
+.beltoft-services-area-page .odoowoo-license-plan {
+	margin: 0 0 12px;
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--navy, #0c1535);
+}
+
+.beltoft-services-area-page .odoowoo-count {
+	font-weight: 400;
+	color: var(--ink-soft, #5e7080);
+}
+
+.beltoft-services-area-page .odoowoo-dashboards {
+	gap: 0;
+	margin: 0 0 16px;
+}
+
+.beltoft-services-area-page .odoowoo-dashboard {
+	padding: 10px 14px;
+	gap: 8px 16px;
+	background: transparent;
+	border-top: 1px solid var(--bg-warm, #eeece6);
+}
+
+.beltoft-services-area-page .odoowoo-dashboard:first-child {
+	border-top: 0;
+}
+
+.beltoft-services-area-page .odoowoo-dashboard .odoowoo-name {
+	font-size: 15px;
+}
+
+/* Buttons, in the page and in the dialogs they open: navy filled, navy outline, danger outline. */
+.beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button,
+.beltoft-services-area-page .odoowoo-card a.odoowoo-button.odoowoo-button,
+body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-button {
+	min-height: 0;
+	padding: 8px 16px;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1.4;
+	color: #ffffff;
+	background: var(--navy, #0c1535);
+	border: 1px solid var(--navy, #0c1535);
+	text-decoration: none;
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button:hover,
+.beltoft-services-area-page .odoowoo-card a.odoowoo-button.odoowoo-button:hover,
+body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-button:hover {
+	color: #ffffff;
+	background: var(--ink-mid, #2d4060);
+	border-color: var(--ink-mid, #2d4060);
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-button--secondary.odoowoo-button,
+.beltoft-services-area-page .odoowoo-card a.odoowoo-button--secondary.odoowoo-button,
+body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button--secondary.odoowoo-button {
+	color: var(--navy, #0c1535);
+	background: transparent;
+	border-color: var(--navy, #0c1535);
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-button--secondary.odoowoo-button:hover,
+.beltoft-services-area-page .odoowoo-card a.odoowoo-button--secondary.odoowoo-button:hover,
+body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button--secondary.odoowoo-button:hover {
+	color: var(--navy, #0c1535);
+	background: var(--bg-warm, #eeece6);
+	border-color: var(--navy, #0c1535);
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-button--danger.odoowoo-button,
+body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button--danger.odoowoo-button {
+	color: #b32d2e;
+	background: transparent;
+	border-color: #b32d2e;
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-button--danger.odoowoo-button:hover,
+body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button--danger.odoowoo-button:hover {
+	color: #ffffff;
+	background: #b32d2e;
+	border-color: #b32d2e;
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button[disabled],
+body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-button[disabled] {
+	color: #8d948f;
+	background: var(--bg-warm, #eeece6);
+	border-color: var(--bg-warm, #eeece6);
+}
+
+/* WooCommerce adds its own inline "Show" to every password field: keep that one, not a second button next to it. */
+.beltoft-services-area-page .odoowoo-secret:has(.show-password-input) .odoowoo-reveal {
+	display: none;
 }
 
 @media (max-width: 767px) {
 	.beltoft-services-area-page .odoowoo-card {
-		padding: 16px 0;
+		padding: 0;
 	}
 
 	.beltoft-services-area-page .odoowoo-dashboard {
-		flex-wrap: wrap;
+		padding: 10px 0;
+	}
+
+	.beltoft-services-area-page .odoowoo-header .odoowoo-dashboard-name {
+		font-size: 20px;
+	}
+
+	.beltoft-services-area-page .odoowoo-header .odoowoo-rename {
+		margin-left: 0;
 	}
 }

@@ -250,6 +250,16 @@ test( 'test_the_view_model_keeps_a_safe_address_the_page_gave_and_drops_the_rest
 	assert.deepEqual( vm.groups[ 0 ].dashboards.map( ( d ) => d.url ), [ 'https://beltoft.test/my-account/apps/odoowoo/shop/', '', '' ] );
 } );
 
+test( 'test_the_plan_label_from_my_account_is_used_with_a_dot_before_the_count', () => {
+	const labelled = list.viewModel( [ entry( { plan: 'OdooWoo - Pro, Monthly', plan_label: 'OdooWoo Pro, billed monthly' } ) ] ).groups[ 0 ];
+	const plain = list.viewModel( [ entry( { plan: 'OdooWoo - Pro, Monthly' } ) ] ).groups[ 0 ];
+
+	assert.equal( labelled.plan, 'OdooWoo Pro, billed monthly' );
+	assert.equal( labelled.planSep, ' \u00b7 ' );
+	assert.equal( plain.plan, 'OdooWoo - Pro, Monthly' );
+	assert.equal( plain.planSep, ' ' );
+} );
+
 test( 'test_format_created_uses_the_page_language', () => {
 	assert.equal( list.formatCreated( '2026-10-21T12:00:00Z', 'en' ), 'Oct 21, 2026' );
 	const da = list.formatCreated( '2026-10-21T12:00:00Z', 'da' );

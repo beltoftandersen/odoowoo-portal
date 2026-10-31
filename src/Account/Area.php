@@ -128,6 +128,34 @@ final class Area {
 	}
 
 	/**
+	 * The plan as the list shows it inside My Account: "OdooWoo - Pro, Monthly" reads "OdooWoo Pro, billed monthly". Display
+	 * only; the product's name is not changed. A name without a billing period at its end is only tidied.
+	 *
+	 * @param string $name Product or variation name.
+	 */
+	public static function plan_label( string $name ): string {
+		$name  = trim( (string) preg_replace( '/\s+[-\x{2013}]\s+/u', ' ', $name, 1 ) );
+		$parts = array_map( 'trim', explode( ',', $name ) );
+		$last  = strtolower( (string) end( $parts ) );
+		$words = array(
+			'monthly'   => __( 'billed monthly', 'odoowoo-portal' ),
+			'yearly'    => __( 'billed yearly', 'odoowoo-portal' ),
+			'annual'    => __( 'billed yearly', 'odoowoo-portal' ),
+			'annually'  => __( 'billed yearly', 'odoowoo-portal' ),
+			'quarterly' => __( 'billed quarterly', 'odoowoo-portal' ),
+			'weekly'    => __( 'billed weekly', 'odoowoo-portal' ),
+			'daily'     => __( 'billed daily', 'odoowoo-portal' ),
+		);
+
+		if ( count( $parts ) > 1 && isset( $words[ $last ] ) ) {
+			array_pop( $parts );
+			$parts[] = $words[ $last ];
+		}
+
+		return implode( ', ', array_filter( $parts, 'strlen' ) );
+	}
+
+	/**
 	 * Listener of beltoft_services_account_app_url: the Open button of an OdooWoo app goes to its page in My Account.
 	 *
 	 * @param mixed $url      Address so far.
