@@ -1162,7 +1162,7 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-bu
 	color: #fff;
 	text-decoration: none;
 }
-.beltoft-services-area-page .odoowoo-card a.odoowoo-back.odoowoo-back {
+.beltoft-services-area-page .odoowoo-header__back a.odoowoo-back.odoowoo-back.odoowoo-back {
 	color: var(--ink-soft, #5e7080);
 	text-decoration: none;
 }
