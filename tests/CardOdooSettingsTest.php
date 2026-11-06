@@ -96,7 +96,7 @@ final class CardOdooSettingsTest extends RestTestCase {
 		}
 
 		$this->assertSame( 16, preg_match_all( '#<input[^>]*type="checkbox"#', $html ) );
-		$this->assertMatchesRegularExpression( '#<select[^>]*name="capture_stage"[^>]*>.*value="pending".*value="on_hold".*value="processing"#s', $html );
+		$this->assertMatchesRegularExpression( '#<select[^>]*name="capture_stage"[^>]*>.*value="pending".*value="on_hold".*value="processing".*value="completed"#s', $html );
 		$this->assertMatchesRegularExpression( '#<select[^>]*name="quantity_settings"[^>]*>.*value="on_hand".*value="forecast".*value="available"#s', $html );
 		$this->assertStringContainsString( 'Let Odoo decide from the customer', $html );
 		$this->assertMatchesRegularExpression( '#<button[^>]*data-action="load-pricelists"#', $html );

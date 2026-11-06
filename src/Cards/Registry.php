@@ -318,6 +318,7 @@ final class Registry {
 			'optPending' => __( 'Pending', 'odoowoo-portal' ),
 			'optOnHold' => __( 'On hold', 'odoowoo-portal' ),
 			'optProcessing' => __( 'Processing', 'odoowoo-portal' ),
+			'optCompleted' => __( 'Completed', 'odoowoo-portal' ),
 			'optOnHand' => __( 'On hand', 'odoowoo-portal' ),
 			'optForecast' => __( 'Forecast', 'odoowoo-portal' ),
 			'optAvailable' => __( 'Available', 'odoowoo-portal' ),

@@ -106,6 +106,7 @@ $odoowoo_row = static function ( string $name, callable $control ) use ( $odoowo
 				<option value="pending"><?php echo esc_html( $odoowoo_s( 'optPending' ) ); ?></option>
 				<option value="on_hold"><?php echo esc_html( $odoowoo_s( 'optOnHold' ) ); ?></option>
 				<option value="processing"><?php echo esc_html( $odoowoo_s( 'optProcessing' ) ); ?></option>
+				<option value="completed"><?php echo esc_html( $odoowoo_s( 'optCompleted' ) ); ?></option>
 			</select>
 			<?php
 		}
