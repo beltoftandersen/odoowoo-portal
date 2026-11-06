@@ -365,6 +365,19 @@ final class Map {
 			'read_only_ok' => false,
 			'limit'        => null,
 		),
+		'order-currency-mappings' => array(
+			'methods'      => array(
+				'GET' => array( 'GET', 'dashboards/{d}/order-currency-mappings/' ),
+				'PUT' => array( 'POST', 'dashboards/{d}/order-currency-mappings/' ),
+			),
+			'fields'       => array( 'items' ),
+			'item_fields'  => array( 'currency_code', 'odoo_pricelist_id', 'odoo_pricelist_name' ),
+			'shape'        => 'items',
+			'unwrap'       => 'mappings',
+			'read_fields'  => array( 'id', 'currency_code', 'odoo_pricelist_id', 'odoo_pricelist_name' ),
+			'read_only_ok' => false,
+			'limit'        => null,
+		),
 		'trigger-sync' => array(
 			'methods'      => array( 'POST' => array( 'POST', 'dashboards/{d}/trigger-sync/' ) ),
 			'fields'       => array(),

@@ -38,6 +38,16 @@ final class CardMappingsTest extends RestTestCase {
 		'order-pricelist-mappings' => array( 'order-pricelist-mappings', array( 'meta_key', 'meta_value', 'odoo_pricelist_id' ) ),
 	);
 
+	public function test_order_pricelist_card_contains_both_independent_editors(): void {
+		$html = $this->render( 'order-pricelist-mappings' );
+		preg_match_all( '#data-config="([^"]*)"#', $html, $matches );
+		$configs = array_map( static fn( $json ) => json_decode( html_entity_decode( $json, ENT_QUOTES ), true ), $matches[1] );
+		$this->assertSame( array( 'order-pricelist-mappings', 'order-currency-mappings' ), array_column( $configs, 'route' ) );
+		$this->assertSame( array( 'currency_code', 'odoo_pricelist_id' ), array_column( $configs[1]['columns'], 'key' ) );
+		$this->assertStringContainsString( 'Leave empty to keep current behaviour', $html );
+		$this->assertSame( array(), $configs[1]['saved'] );
+	}
+
 	/**
 	 * Saved $_GET.
 	 *

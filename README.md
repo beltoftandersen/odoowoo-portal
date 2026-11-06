@@ -29,6 +29,18 @@ When Bricks is active the plugin registers fifteen elements (one per card), five
 
 When beltoft-services draws the customer's apps in My Account (Apps, `/my-account/apps/<service>/`), the app lives there too, with the dashboard's own shell: the service page lists the store dashboards, `/my-account/apps/<service>/<dashboard>/` and `/<dashboard>/<tab>/` (connections, mappings, gift-cards, sync, logs) show one of them. The dashboard part is a slug of its name, unique within the tenant and remembered in the service's resource; a number in the address is sent on to the slug (301). The Open button of the Apps list and the Open OdooWoo link go there, and a request for the old list or dashboard page (the pages stay) is sent to the matching address for the license's owner. Without that area, or for a support viewer, the two Bricks pages and their `?license=&dashboard=&tab=` addresses are used as before. The cards of each tab can be changed with the `odoowoo_portal_account_tab_cards` filter.
 
+## Order currencies
+
+Under **Order pricelist mappings**, the optional **Order currencies** table maps
+Woo currency codes (EUR, DKK, USD, etc.) to Odoo pricelists of the same currency.
+Load the pricelists from Odoo, add one row per currency, then save. The service
+checks the currency when saving and before creating each order.
+
+Leave the table empty to keep the existing meta-rule/default-pricelist behaviour.
+With rows saved, currency mappings take priority and every order currency must
+be mapped. Removing all rows restores the previous behaviour. Woo's amounts and
+Odoo's company/default currency are unchanged. No mappings are added automatically.
+
 ## Hooks
 
 - Filters: `odoowoo_portal_dependencies`, `odoowoo_portal_cards`, `odoowoo_portal_account_tab_cards`, `odoowoo_portal_rate_limit( $limit, $bucket )`.

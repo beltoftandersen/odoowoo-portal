@@ -15,22 +15,23 @@
 	function start() {
 		CARDS.forEach( function ( card ) {
 			Array.prototype.forEach.call( window.document.querySelectorAll( '[data-odoowoo-card="' + card + '"]' ), function ( root ) {
-				var holder = root.querySelector( '.odoowoo-mapping' );
+				Array.prototype.forEach.call( root.querySelectorAll( '.odoowoo-mapping' ), function ( holder ) {
 
-				if ( ! holder || holder.getAttribute( 'data-started' ) === '1' ) {
-					return;
-				}
+					if ( ! holder || holder.getAttribute( 'data-started' ) === '1' ) {
+						return;
+					}
 
-				var config;
+					var config;
 
-				try {
-					config = JSON.parse( holder.getAttribute( 'data-config' ) || '' );
-				} catch ( e ) {
-					return;
-				}
+					try {
+						config = JSON.parse( holder.getAttribute( 'data-config' ) || '' );
+					} catch ( e ) {
+						return;
+					}
 
-				holder.setAttribute( 'data-started', '1' );
-				window.odoowoo.mappingEditor( holder, config );
+					holder.setAttribute( 'data-started', '1' );
+					window.odoowoo.mappingEditor( holder, config );
+				} );
 			} );
 		} );
 	}

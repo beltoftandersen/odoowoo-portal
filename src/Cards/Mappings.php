@@ -478,6 +478,27 @@ final class Mappings {
 				);
 				break;
 
+			case 'order-currency-mappings':
+				$config = array(
+					'route'   => 'order-currency-mappings',
+					'columns' => array(
+						array(
+							'key'      => 'currency_code',
+							'label'    => __( 'Woo currency code', 'odoowoo-portal' ),
+							'type'     => 'text',
+							'required' => true,
+							'missing'  => __( 'enter a currency code, such as EUR.', 'odoowoo-portal' ),
+						),
+						self::picker( 'odoo_pricelist_id', __( 'Odoo pricelist', 'odoowoo-portal' ), __( 'choose a pricelist.', 'odoowoo-portal' ), $pricelists, 'odoo_pricelist_name', true ),
+					),
+					'loaders' => array(
+						self::loader( $from_odoo, 'odoo-pricelists', 'GET', __( 'Odoo returned no pricelists.', 'odoowoo-portal' ) ),
+					),
+					'saved'   => array(),
+					'unique'  => array( array( 'currency_code' ) ),
+				);
+				break;
+
 			default:
 				return array();
 		}

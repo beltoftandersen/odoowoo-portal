@@ -34,7 +34,7 @@ final class MappingRoutesTest extends RestTestCase {
 	public static function routes(): array {
 		$rows = array();
 
-		foreach ( array( 'payment-method-mappings', 'tax-mappings', 'price-mappings', 'stock-mappings', 'order-route-mappings', 'order-pricelist-mappings', 'gift-card-settings' ) as $k ) {
+		foreach ( array( 'payment-method-mappings', 'tax-mappings', 'price-mappings', 'stock-mappings', 'order-route-mappings', 'order-pricelist-mappings', 'order-currency-mappings', 'gift-card-settings' ) as $k ) {
 			$rows[ $k . ' read' ] = array( $k, 'GET', 'GET', 'dashboards/7/' . $k . '/' );
 			$rows[ $k . ' save' ] = array( $k, 'PUT', 'POST', 'dashboards/7/' . $k . '/' );
 		}
@@ -82,6 +82,19 @@ final class MappingRoutesTest extends RestTestCase {
 		$this->rest( 'PUT', $this->url( $l, 'order-route-mappings' ), array( 'items' => array( array( 'meta_key' => 'k', 'meta_value' => ' v ' ) ) ) );
 
 		$this->assertSame( ' v ', json_decode( $this->django_calls()[0]['body'], true )['mappings'][0]['meta_value'] );
+	}
+
+	public function test_currency_mapping_is_filtered_and_signed(): void {
+		$l = $this->odoowoo_license();
+		$this->as_user( (int) $l['user_id'] );
+		$this->fake_django( fn() => array( 200, array( 'message' => 'Saved 1 order currency mapping(s).' ) ) );
+		$res = $this->rest( 'PUT', $this->url( $l, 'order-currency-mappings' ), array( 'items' => array(
+			array( 'currency_code' => 'EUR', 'odoo_pricelist_id' => 21, 'odoo_pricelist_name' => 'Euro', 'tenant' => 'other', 'dashboard_id' => 999 ),
+		) ) );
+		$this->assertSame( 200, $res->get_status() );
+		$call = $this->django_calls()[0];
+		$this->assertSame( array( 'mappings' => array( array( 'currency_code' => 'EUR', 'odoo_pricelist_id' => 21, 'odoo_pricelist_name' => 'Euro' ) ) ), json_decode( $call['body'], true ) );
+		$this->assert_signed( $call, $this->tenant( $l ) );
 	}
 
 	public function test_save_replaces_the_list(): void {

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-06T11:58:13+00:00\n"
+"POT-Creation-Date: 2026-11-06T13:47:34+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: odoowoo-portal\n"
@@ -69,51 +69,51 @@ msgstr ""
 msgid "Open OdooWoo"
 msgstr ""
 
-#: src/Api/Map.php:601
+#: src/Api/Map.php:614
 #: src/Cards/Registry.php:380
 msgid "At most 500 ids at a time."
 msgstr ""
 
-#: src/Api/Map.php:626
+#: src/Api/Map.php:639
 #: src/Cards/Registry.php:382
 msgid "Enter a valid start and end date."
 msgstr ""
 
-#: src/Api/Map.php:630
+#: src/Api/Map.php:643
 #: src/Cards/Registry.php:383
 msgid "The start date is after the end date."
 msgstr ""
 
-#: src/Api/Map.php:676
+#: src/Api/Map.php:689
 #: src/Cards/Registry.php:379
 msgid "Enter at least one valid id, or leave the field empty."
 msgstr ""
 
-#: src/Api/Map.php:693
+#: src/Api/Map.php:706
 #: src/Cards/Registry.php:381
 msgid "Enter order ids, or choose a start and end date."
 msgstr ""
 
-#: src/Api/Map.php:898
+#: src/Api/Map.php:911
 msgid "Synced"
 msgstr ""
 
-#: src/Api/Map.php:900
+#: src/Api/Map.php:913
 #: src/Api/Routes.php:543
 #: src/Cards/Renderer.php:195
 msgid "Failed"
 msgstr ""
 
-#: src/Api/Map.php:902
+#: src/Api/Map.php:915
 msgid "Warning"
 msgstr ""
 
-#: src/Api/Map.php:904
+#: src/Api/Map.php:917
 #: src/Cards/Registry.php:407
 msgid "Unknown"
 msgstr ""
 
-#: src/Api/Map.php:949
+#: src/Api/Map.php:962
 #: src/Cards/Registry.php:406
 msgid "This item was not synced."
 msgstr ""
@@ -489,11 +489,13 @@ msgstr ""
 
 #: src/Cards/Mappings.php:309
 #: src/Cards/Mappings.php:470
+#: src/Cards/Mappings.php:492
 msgid "Odoo pricelist"
 msgstr ""
 
 #: src/Cards/Mappings.php:310
 #: src/Cards/Mappings.php:470
+#: src/Cards/Mappings.php:492
 msgid "choose a pricelist."
 msgstr ""
 
@@ -546,6 +548,7 @@ msgstr ""
 
 #: src/Cards/Mappings.php:369
 #: src/Cards/Mappings.php:474
+#: src/Cards/Mappings.php:495
 msgid "Odoo returned no pricelists."
 msgstr ""
 
@@ -596,21 +599,29 @@ msgstr ""
 msgid "Odoo returned no routes."
 msgstr ""
 
-#: src/Cards/Mappings.php:495
+#: src/Cards/Mappings.php:487
+msgid "Woo currency code"
+msgstr ""
+
+#: src/Cards/Mappings.php:490
+msgid "enter a currency code, such as EUR."
+msgstr ""
+
+#: src/Cards/Mappings.php:516
 msgid "Add row"
 msgstr ""
 
-#: src/Cards/Mappings.php:496
+#: src/Cards/Mappings.php:517
 msgid "Remove"
 msgstr ""
 
 #. translators: %s: row number.
-#: src/Cards/Mappings.php:498
+#: src/Cards/Mappings.php:519
 #, php-format
 msgid "Remove row %s"
 msgstr ""
 
-#: src/Cards/Mappings.php:499
+#: src/Cards/Mappings.php:520
 #: src/Cards/Registry.php:152
 #: src/Cards/Registry.php:172
 #: src/Cards/Registry.php:191
@@ -621,33 +632,33 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: src/Cards/Mappings.php:500
+#: src/Cards/Mappings.php:521
 msgid "No rows yet."
 msgstr ""
 
 #. translators: 1: row number, 2: the earlier row it repeats.
-#: src/Cards/Mappings.php:502
+#: src/Cards/Mappings.php:523
 #, php-format
 msgid "Row %1$s repeats row %2$s."
 msgstr ""
 
 #. translators: 1: row number, 2: what is missing.
-#: src/Cards/Mappings.php:504
+#: src/Cards/Mappings.php:525
 #, php-format
 msgid "Row %1$s: %2$s"
 msgstr ""
 
 #. translators: 1: column name, 2: row number.
-#: src/Cards/Mappings.php:506
+#: src/Cards/Mappings.php:527
 #, php-format
 msgid "%1$s, row %2$s"
 msgstr ""
 
-#: src/Cards/Mappings.php:507
+#: src/Cards/Mappings.php:528
 msgid "Choose…"
 msgstr ""
 
-#: src/Cards/Mappings.php:508
+#: src/Cards/Mappings.php:529
 #: src/Cards/Registry.php:150
 #: src/Cards/Registry.php:327
 #: src/Cards/Registry.php:354
@@ -655,15 +666,15 @@ msgstr ""
 msgid "Loading…"
 msgstr ""
 
-#: src/Cards/Mappings.php:509
+#: src/Cards/Mappings.php:530
 msgid "Loaded."
 msgstr ""
 
-#: src/Cards/Mappings.php:510
+#: src/Cards/Mappings.php:531
 msgid "Loading the saved rows…"
 msgstr ""
 
-#: src/Cards/Mappings.php:511
+#: src/Cards/Mappings.php:532
 msgid "Fix the marked rows, then save again."
 msgstr ""
 
@@ -1818,4 +1829,12 @@ msgstr ""
 
 #: templates/cards/manual-sync.php:67
 msgid "Sync orders"
+msgstr ""
+
+#: templates/cards/order-pricelist-mappings.php:16
+msgid "Order currencies (optional)"
+msgstr ""
+
+#: templates/cards/order-pricelist-mappings.php:17
+msgid "Overrides the rules above. Leave empty to keep current behaviour; otherwise map every order currency to its matching pricelist."
 msgstr ""
