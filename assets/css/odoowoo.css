@@ -947,6 +947,30 @@ a.odoowoo-button:not(.odoowoo-button--secondary):not(.odoowoo-button--danger),
 	}
 }
 
+/* Dropdowns: the theme resets the native arrow, so draw a chevron on the right. Repeated for :hover/:focus because those rules use the background shorthand. */
+.odoowoo-card select,
+.odoowoo-card select:hover,
+.odoowoo-card select:focus,
+.odoowoo-card select:disabled,
+.odoowoo-mapping__table select,
+.odoowoo-mapping__table select:hover,
+.odoowoo-mapping__table select:focus,
+.odoowoo-dialog .odoowoo-form select,
+.odoowoo-dialog .odoowoo-form select:hover,
+.odoowoo-dialog .odoowoo-form select:focus {
+	padding-right: 40px;
+	appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2359615c' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 14px center;
+	background-size: 12px 8px;
+	cursor: pointer;
+}
+
+.odoowoo-card select:disabled {
+	cursor: not-allowed;
+}
+
 /*
  * Inside My Account (the dashboard's own pages). Everything here is scoped to the account area, so the Bricks pages keep
  * their own look. The cards follow the Servers and Databases pages: no box, the page's left edge, navy buttons (primary
