@@ -80,6 +80,7 @@ abstract class RestTestCase extends TestCase {
 			'enable_image_sync'                => true,
 			'enable_price_sync'                => false,
 			'enable_barcode_sync'              => false,
+			'enable_invoice_push'          => false,
 		);
 	}
 

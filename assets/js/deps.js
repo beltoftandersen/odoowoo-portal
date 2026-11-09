@@ -20,7 +20,7 @@
 	} );
 
 	/** The 16 settings Django reads as booleans. */
-	var BOOLEANS = [ 'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax', 'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync' ];
+	var BOOLEANS = [ 'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax', 'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync', 'enable_invoice_push' ];
 
 	function deps( values, ctx ) {
 		var v = values && typeof values === 'object' ? values : {};

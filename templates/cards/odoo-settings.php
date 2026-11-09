@@ -112,6 +112,7 @@ $odoowoo_row = static function ( string $name, callable $control ) use ( $odoowo
 		}
 	);
 	$odoowoo_check( 'confirm_pending_orders' );
+	$odoowoo_check( 'enable_invoice_push' );
 	$odoowoo_row(
 		'quantity_settings',
 		static function ( string $id, string $described ) use ( $odoowoo_s ): void {

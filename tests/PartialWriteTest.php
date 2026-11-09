@@ -133,6 +133,7 @@ final class PartialWriteTest extends RestTestCase {
 		$this->assertNotContains( 'stock_units_meta_keys', $required );
 		$this->assertContains( 'odoo_url', $required );
 		$this->assertContains( 'enable_barcode_sync', $required );
+		$this->assertNotContains( 'enable_invoice_push', $required );
 		$this->assertContains( 'quantity_settings', $required );
 
 		foreach ( $required as $field ) {

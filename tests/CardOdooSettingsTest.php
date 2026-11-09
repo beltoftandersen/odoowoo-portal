@@ -26,14 +26,14 @@ final class CardOdooSettingsTest extends RestTestCase {
 	private $get = array();
 
 	/**
-	 * The 16 checkboxes, the 2 selects, the pricelist and the 2 meta keys (a snapshot, see the
+	 * The 17 checkboxes, the 2 selects, the pricelist and the 2 meta keys (a snapshot, see the
 	 * snapshot test).
 	 *
 	 * @var string[]
 	 */
 	private const SETTINGS = array(
 		'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax',
-		'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync',
+		'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync', 'enable_invoice_push',
 		'capture_stage', 'quantity_settings', 'odoo_order_pricelist_id', 'stock_sku_meta_keys', 'stock_units_meta_keys',
 	);
 
@@ -95,7 +95,7 @@ final class CardOdooSettingsTest extends RestTestCase {
 			$this->assertMatchesRegularExpression( '#data-error-for="' . $name . '"#', $html, 'Error place for ' . $name );
 		}
 
-		$this->assertSame( 16, preg_match_all( '#<input[^>]*type="checkbox"#', $html ) );
+		$this->assertSame( 17, preg_match_all( '#<input[^>]*type="checkbox"#', $html ) );
 		$this->assertMatchesRegularExpression( '#<select[^>]*name="capture_stage"[^>]*>.*value="pending".*value="on_hold".*value="processing".*value="completed"#s', $html );
 		$this->assertMatchesRegularExpression( '#<select[^>]*name="quantity_settings"[^>]*>.*value="on_hand".*value="forecast".*value="available"#s', $html );
 		$this->assertStringContainsString( 'Let Odoo decide from the customer', $html );
@@ -182,9 +182,9 @@ final class CardOdooSettingsTest extends RestTestCase {
 	 * against the staging Django.
 	 */
 	public function test_odoo_settings_field_list_is_a_snapshot(): void {
-		$names = array( 'odoo_url', 'odoo_db', 'odoo_user', 'odoo_password', 'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'odoo_order_pricelist_id', 'odoo_order_pricelist_name', 'capture_stage', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax', 'quantity_settings', 'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync', 'stock_sku_meta_keys', 'stock_units_meta_keys' );
+		$names = array( 'odoo_url', 'odoo_db', 'odoo_user', 'odoo_password', 'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'odoo_order_pricelist_id', 'odoo_order_pricelist_name', 'capture_stage', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax', 'quantity_settings', 'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync', 'enable_invoice_push', 'stock_sku_meta_keys', 'stock_units_meta_keys' );
 
-		$this->assertCount( 26, $names );
+		$this->assertCount( 27, $names );
 		$this->assertSame( $names, Map::ROUTES['odoo-settings']['fields'] );
 
 		// The card's own inputs are all among them, and the JS store sends the same list.

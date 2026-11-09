@@ -32,7 +32,7 @@ function fakeFetch( routes ) {
 	return calls;
 }
 
-const BOOLEANS = [ 'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax', 'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync' ];
+const BOOLEANS = [ 'enable_auto_payment', 'enable_auto_payment_cn', 'enable_set_invoice_status', 'enable_reset_all_deliveries', 'enable_set_deliveries_to_waiting', 'enable_auto_complete_deliveries', 'confirm_pending_orders', 'price_includes_tax', 'order_incl_tax', 'enable_brand_sync', 'enable_category_sync', 'enable_product_name_sync', 'enable_tag_sync', 'enable_image_sync', 'enable_price_sync', 'enable_barcode_sync', 'enable_invoice_push' ];
 
 test( 'deps: payment mappings rule, both states, both fields', () => {
 	const off = deps.deps( {}, { ...all, hasPayment: false } );
@@ -149,7 +149,7 @@ test( 'test_save_body_has_every_field_with_real_booleans', async () => {
 	assert.equal( put.method, 'PUT' );
 	assert.ok( put.url.endsWith( P + 'odoo-settings' ) );
 	BOOLEANS.forEach( ( f ) => assert.equal( typeof put.body[ f ], 'boolean', f ) );
-	assert.equal( BOOLEANS.length, 16 );
+	assert.equal( BOOLEANS.length, 17 );
 	assert.equal( put.body.capture_stage, 'pending' );
 	assert.equal( put.body.quantity_settings, 'on_hand' );
 	assert.equal( put.body.odoo_order_pricelist_id, 3 );
@@ -162,7 +162,7 @@ test( 'test_save_body_has_every_field_with_real_booleans', async () => {
 	assert.equal( 'odoo_password' in put.body, false, 'A blank password is left out.' );
 	assert.equal( 'brand_sync_allowed' in put.body, false );
 	assert.equal( 'has_odoo_password' in put.body, false );
-	assert.equal( Object.keys( put.body ).length, 25 );
+	assert.equal( Object.keys( put.body ).length, 26 );
 } );
 
 test( 'save: disabled dependencies and brand sync without the plan go out as false, and the pricelist as null', async () => {
