@@ -1071,6 +1071,14 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	color: var(--ink-soft, #5e7080);
 }
 
+.beltoft-services-area-page .odoowoo-header .odoowoo-state.is-ok {
+	color: var(--bs-status-ok, var(--green, #28513e));
+}
+
+.beltoft-services-area-page .odoowoo-header .odoowoo-state.is-paused {
+	color: var(--bs-status-warn, #8a5a00);
+}
+
 /* The list. The card's header row holds the title (left) and New dashboard (right), where the account area puts "add"
    actions; the plan line and the rows follow. The wrappers around the script's output dissolve so the grid sees them. */
 .beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] {
