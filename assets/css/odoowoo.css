@@ -1113,8 +1113,9 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	color: var(--ink-soft, #5e7080);
 }
 
-.beltoft-services-area-page .odoowoo-license-plan {
+.beltoft-services-area-page .odoowoo-card .odoowoo-license-plan {
 	display: flex;
+	letter-spacing: normal;
 	flex-wrap: wrap;
 	align-items: baseline;
 	justify-content: space-between;
@@ -1122,10 +1123,11 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	margin: 0 0 var(--bs-space-2, 8px);
 	font-size: var(--bs-fs-small, 14px);
 	font-weight: var(--bs-fw-regular, 400);
+	line-height: var(--bs-lh-text, 1.5);
 	color: var(--ink-soft, #5e7080);
 }
 
-.beltoft-services-area-page .odoowoo-count {
+.beltoft-services-area-page .odoowoo-card .odoowoo-count {
 	font-weight: var(--bs-fw-regular, 400);
 	color: var(--ink-soft, #5e7080);
 	font-variant-numeric: tabular-nums;
@@ -1134,7 +1136,7 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 .beltoft-services-area-page .odoowoo-dashboards {
 	gap: 0;
 	margin: 0 0 var(--bs-space-4, 16px);
-	border-top: 1px solid var(--rule, #d6d2c8);
+	border-top: 1px solid var(--bg-warm, #eeece6);
 }
 
 /* A row is a grid, so the columns line up from row to row: name, state, created, actions. */
@@ -1442,14 +1444,16 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-bu
 }
 
 /* In-row actions are the compact size (a phone gets the full height back). */
-.beltoft-services-area-page .odoowoo-dashboard .odoowoo-button.odoowoo-button {
+.beltoft-services-area-page .odoowoo-card .odoowoo-dashboard .odoowoo-button.odoowoo-button,
+.beltoft-services-area-page .odoowoo-card .odoowoo-dashboard a.odoowoo-button.odoowoo-button {
 	min-height: var(--bs-btn-h-sm, 32px);
 	padding: 0 14px;
 	font-size: var(--bs-fs-small, 14px);
 }
 
 @media (max-width: 767px) {
-	.beltoft-services-area-page .odoowoo-dashboard .odoowoo-button.odoowoo-button {
+	.beltoft-services-area-page .odoowoo-card .odoowoo-dashboard .odoowoo-button.odoowoo-button,
+	.beltoft-services-area-page .odoowoo-card .odoowoo-dashboard a.odoowoo-button.odoowoo-button {
 		min-height: var(--bs-btn-h, 40px);
 	}
 }
