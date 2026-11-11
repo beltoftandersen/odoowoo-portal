@@ -1135,7 +1135,7 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 
 .beltoft-services-area-page .odoowoo-dashboards {
 	gap: 0;
-	margin: 0 0 var(--bs-space-4, 16px);
+	margin: 0;
 	border-top: 1px solid var(--bg-warm, #eeece6);
 }
 
