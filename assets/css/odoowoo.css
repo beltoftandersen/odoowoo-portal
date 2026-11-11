@@ -302,10 +302,25 @@
 
 .odoowoo-dashboard .odoowoo-state::before,
 .odoowoo-header .odoowoo-state::before {
-	content: '● ';
-	font-size: 0.7em;
-	vertical-align: 0.1em;
-	color: var(--odoowoo-text);
+	content: '';
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-right: 8px;
+	vertical-align: baseline;
+	background: currentColor;
+}
+
+.odoowoo-state.is-ok {
+	color: var(--bs-status-ok, var(--green, #28513e));
+}
+
+.odoowoo-state.is-paused {
+	color: var(--bs-status-warn, #8a5a00);
+}
+
+.odoowoo-state.is-bad {
+	color: var(--bs-status-fail, #a4372a);
 }
 
 .odoowoo-dashboard .odoowoo-created {
@@ -981,7 +996,9 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	--odoowoo-accent: var(--navy, #0c1535);
 	--odoowoo-text: var(--navy, #0c1535);
 	--odoowoo-muted: var(--ink-soft, #5e7080);
-	--odoowoo-danger: #b32d2e;
+	--odoowoo-danger: var(--bs-status-fail, #a4372a);
+	--odoowoo-radius: 6px;
+	--odoowoo-font: inherit;
 }
 
 /* The portal marks its own status text with [data-state] and gives it a left margin: not the service panel's root. */
@@ -1003,9 +1020,9 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	padding: 0;
 	background: transparent;
 	color: var(--navy, #0c1535);
-	font-size: 17px;
-	font-weight: 700;
-	line-height: 1.3;
+	font-size: var(--bs-fs-body, 15px);
+	font-weight: var(--bs-fw-strong, 600);
+	line-height: var(--bs-lh-heading, 1.3);
 }
 
 .beltoft-services-area-page .odoowoo-account-dashboard .beltoft-services-tabs {
@@ -1049,42 +1066,84 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 .beltoft-services-area-page .odoowoo-header .odoowoo-state {
 	display: inline-flex;
 	align-items: center;
-	gap: 7px;
-	font-size: 14px;
-	font-weight: 500;
-	color: var(--ink-mid, #2d4060);
+	font-size: var(--bs-fs-small, 14px);
+	font-weight: var(--bs-fw-medium, 500);
+	color: var(--ink-soft, #5e7080);
 }
 
-.beltoft-services-area-page .odoowoo-header .odoowoo-state::before {
-	content: '';
-	width: 8px;
-	height: 8px;
-	background: currentColor;
-	font-size: 0;
-	vertical-align: baseline;
+/* The list. The card's header row holds the title (left) and New dashboard (right), where the account area puts "add"
+   actions; the plan line and the rows follow. The wrappers around the script's output dissolve so the grid sees them. */
+.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	column-gap: var(--bs-space-4, 16px);
 }
 
-/* The list: the plan line, then rows like the Servers list. */
+.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] > .odoowoo-card__title {
+	grid-column: 1;
+	grid-row: 1;
+	margin-top: 0;
+}
+
+.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] :is(.odoowoo-card__body, .odoowoo-list) {
+	display: contents;
+}
+
+.beltoft-services-area-page .odoowoo-list-actions {
+	grid-column: 2;
+	grid-row: 1;
+	margin: 0 0 16px;
+}
+
+.beltoft-services-area-page .odoowoo-list-status,
+.beltoft-services-area-page .odoowoo-list-body {
+	grid-column: 1 / -1;
+	grid-row: 2;
+	min-width: 0;
+}
+
+.beltoft-services-area-page .odoowoo-list-body:empty {
+	min-height: 72px;
+}
+
+.beltoft-services-area-page .odoowoo-list-status {
+	margin: 0 0 var(--bs-space-3, 12px);
+	font-size: var(--bs-fs-small, 14px);
+	color: var(--ink-soft, #5e7080);
+}
+
 .beltoft-services-area-page .odoowoo-license-plan {
-	margin: 0 0 12px;
-	font-size: 15px;
-	font-weight: 600;
-	color: var(--navy, #0c1535);
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0 var(--bs-space-4, 16px);
+	margin: 0 0 var(--bs-space-2, 8px);
+	font-size: var(--bs-fs-small, 14px);
+	font-weight: var(--bs-fw-regular, 400);
+	color: var(--ink-soft, #5e7080);
 }
 
 .beltoft-services-area-page .odoowoo-count {
-	font-weight: 400;
+	font-weight: var(--bs-fw-regular, 400);
 	color: var(--ink-soft, #5e7080);
+	font-variant-numeric: tabular-nums;
 }
 
 .beltoft-services-area-page .odoowoo-dashboards {
 	gap: 0;
-	margin: 0 0 16px;
+	margin: 0 0 var(--bs-space-4, 16px);
+	border-top: 1px solid var(--rule, #d6d2c8);
 }
 
+/* A row is a grid, so the columns line up from row to row: name, state, created, actions. */
 .beltoft-services-area-page .odoowoo-dashboard {
-	padding: 10px 14px;
-	gap: 8px 16px;
+	display: grid;
+	grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr) minmax(0, 1.4fr) auto;
+	align-items: center;
+	gap: var(--bs-space-3, 12px);
+	padding: var(--bs-space-3, 12px) 0;
 	background: transparent;
 	border-top: 1px solid var(--bg-warm, #eeece6);
 }
@@ -1094,7 +1153,41 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 }
 
 .beltoft-services-area-page .odoowoo-dashboard .odoowoo-name {
-	font-size: 15px;
+	font-size: var(--bs-fs-body, 15px);
+	font-weight: var(--bs-fw-strong, 600);
+	overflow-wrap: anywhere;
+}
+
+.beltoft-services-area-page .odoowoo-dashboard .odoowoo-state {
+	min-width: 0;
+	font-size: var(--bs-fs-small, 14px);
+	font-weight: var(--bs-fw-medium, 500);
+	white-space: nowrap;
+}
+
+.beltoft-services-area-page .odoowoo-dashboard .odoowoo-created {
+	min-width: 0;
+	font-size: var(--bs-fs-small, 14px);
+	color: var(--ink-soft, #5e7080);
+	font-variant-numeric: tabular-nums;
+}
+
+.beltoft-services-area-page .odoowoo-dashboard .odoowoo-actions {
+	justify-self: end;
+	flex-wrap: nowrap;
+	gap: var(--bs-space-2, 8px);
+}
+
+/* The destructive action comes last, a little apart. */
+.beltoft-services-area-page .odoowoo-dashboard .odoowoo-actions > .odoowoo-delete {
+	margin-left: var(--bs-space-2, 8px);
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-empty,
+.beltoft-services-area-page .odoowoo-card .odoowoo-limit-note {
+	margin: 0 0 var(--bs-space-4, 16px);
+	font-size: var(--bs-fs-small, 14px);
+	color: var(--ink-soft, #5e7080);
 }
 
 .beltoft-services-area-page .odoowoo-account-dashboard .beltoft-services-tabs a[hidden] {
@@ -1328,19 +1421,37 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	gap: 0;
 }
 
-/* Buttons, in the page and in the dialogs they open: navy filled, navy outline, danger outline. */
+/* Buttons, in the page and in the dialogs they open: the account area's one system. Primary is the deep green fill,
+   secondary an outline, danger an outline in the fail colour (filled on hover). One height, padding and radius. */
 .beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button,
 .beltoft-services-area-page .odoowoo-card a.odoowoo-button.odoowoo-button,
 body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-button {
-	min-height: 0;
-	padding: 8px 16px;
-	font-size: 15px;
-	font-weight: 500;
+	box-sizing: border-box;
+	min-height: var(--bs-btn-h, 40px);
+	padding: 0 var(--bs-space-4, 16px);
+	font-family: inherit;
+	font-size: var(--bs-fs-body, 15px);
+	font-weight: var(--bs-fw-medium, 500);
 	line-height: 1.4;
 	color: #ffffff;
 	background: var(--navy, #0c1535);
 	border: 1px solid var(--navy, #0c1535);
+	border-radius: var(--odoowoo-radius, 6px);
 	text-decoration: none;
+	white-space: nowrap;
+}
+
+/* In-row actions are the compact size (a phone gets the full height back). */
+.beltoft-services-area-page .odoowoo-dashboard .odoowoo-button.odoowoo-button {
+	min-height: var(--bs-btn-h-sm, 32px);
+	padding: 0 14px;
+	font-size: var(--bs-fs-small, 14px);
+}
+
+@media (max-width: 767px) {
+	.beltoft-services-area-page .odoowoo-dashboard .odoowoo-button.odoowoo-button {
+		min-height: var(--bs-btn-h, 40px);
+	}
 }
 
 .beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button:hover,
@@ -1369,16 +1480,16 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button--secondary
 
 .beltoft-services-area-page .odoowoo-card .odoowoo-button--danger.odoowoo-button,
 body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button--danger.odoowoo-button {
-	color: #b32d2e;
+	color: var(--bs-status-fail, #a4372a);
 	background: transparent;
-	border-color: #b32d2e;
+	border-color: var(--bs-status-fail, #a4372a);
 }
 
 .beltoft-services-area-page .odoowoo-card .odoowoo-button--danger.odoowoo-button:hover,
 body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button--danger.odoowoo-button:hover {
 	color: #ffffff;
-	background: #b32d2e;
-	border-color: #b32d2e;
+	background: var(--bs-status-fail, #a4372a);
+	border-color: var(--bs-status-fail, #a4372a);
 }
 
 .beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button[disabled],
@@ -1387,6 +1498,12 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-bu
 	background: var(--bg-warm, #eeece6);
 	border-color: var(--bg-warm, #eeece6);
 	cursor: not-allowed;
+}
+
+.beltoft-services-area-page .odoowoo-card .odoowoo-button.odoowoo-button:focus-visible,
+body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-button:focus-visible {
+	outline: 2px solid var(--bs-focus, var(--navy, #0c1535));
+	outline-offset: 2px;
 }
 
 /* Sync buttons: every one secondary, none shouts. */
@@ -1479,7 +1596,24 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-bu
 	}
 
 	.beltoft-services-area-page .odoowoo-dashboard {
-		padding: 10px 0;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: var(--bs-space-1, 4px) var(--bs-space-3, 12px);
+		padding: var(--bs-space-3, 12px) 0;
+	}
+
+	.beltoft-services-area-page .odoowoo-dashboard .odoowoo-created {
+		grid-column: 1 / -1;
+	}
+
+	.beltoft-services-area-page .odoowoo-dashboard .odoowoo-actions {
+		grid-column: 1 / -1;
+		justify-self: stretch;
+		margin-top: var(--bs-space-2, 8px);
+	}
+
+	.beltoft-services-area-page .odoowoo-dashboard .odoowoo-actions > .odoowoo-button.odoowoo-button {
+		flex: 1 1 0;
+		min-width: 0;
 	}
 
 	.beltoft-services-area-page .odoowoo-header .odoowoo-dashboard-name {
@@ -1500,9 +1634,6 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog .odoowoo-button.odoowoo-bu
 .beltoft-services-area-page .odoowoo-header__back a.odoowoo-back.odoowoo-back.odoowoo-back {
 	color: var(--ink-soft, #5e7080);
 	text-decoration: none;
-}
-.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] > .odoowoo-card__title {
-	margin-top: 16px;
 }
 
 /* My Account area: every section title keeps 16px between itself and its first field, button row or description. */

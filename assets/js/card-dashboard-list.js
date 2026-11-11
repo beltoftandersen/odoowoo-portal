@@ -94,7 +94,6 @@
 			return {
 				id: Number( l.id ),
 				plan: typeof l.plan_label === 'string' && l.plan_label !== '' ? l.plan_label : ( typeof l.plan === 'string' ? l.plan : '' ),
-				planSep: typeof l.plan_label === 'string' && l.plan_label !== '' ? ' \u00b7 ' : ' ',
 				countText: failed ? '' : countText( used, limit ),
 				notice: typeof l.notice === 'string' ? l.notice : '',
 				error: failed ? l.error : '',
@@ -287,7 +286,7 @@
 
 			li.setAttribute( 'data-id', String( d.id ) );
 			li.appendChild( el( 'strong', 'odoowoo-name', d.name ) );
-			li.appendChild( el( 'span', 'odoowoo-state', d.stateText ) );
+			li.appendChild( el( 'span', 'odoowoo-state ' + ( d.enabled ? 'is-ok' : 'is-paused' ), d.stateText ) );
 
 			var when = formatCreated( d.created_at, lang );
 
@@ -369,7 +368,7 @@
 				section.setAttribute( 'data-license', String( g.id ) );
 
 				if ( g.countText !== '' ) {
-					head.appendChild( el( 'span', 'odoowoo-count', g.planSep + g.countText ) );
+					head.appendChild( el( 'span', 'odoowoo-count', g.countText ) );
 				}
 
 				section.appendChild( head );

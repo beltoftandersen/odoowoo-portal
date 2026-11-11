@@ -255,9 +255,7 @@ test( 'test_the_plan_label_from_my_account_is_used_with_a_dot_before_the_count',
 	const plain = list.viewModel( [ entry( { plan: 'OdooWoo - Pro, Monthly' } ) ] ).groups[ 0 ];
 
 	assert.equal( labelled.plan, 'OdooWoo Pro, billed monthly' );
-	assert.equal( labelled.planSep, ' \u00b7 ' );
 	assert.equal( plain.plan, 'OdooWoo - Pro, Monthly' );
-	assert.equal( plain.planSep, ' ' );
 } );
 
 test( 'test_format_created_uses_the_page_language', () => {

@@ -170,6 +170,7 @@
 
 			nameEl.textContent = v.name;
 			stateEl.textContent = v.stateText;
+			stateEl.className = 'odoowoo-state ' + ( d && d.enabled === false ? 'is-paused' : 'is-ok' );
 			renameBtn.hidden = ! canWrite;
 		}
 
