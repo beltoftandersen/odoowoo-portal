@@ -1086,7 +1086,8 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	margin-top: 0;
 }
 
-.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] :is(.odoowoo-card__body, .odoowoo-list) {
+.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] .odoowoo-card__body,
+.beltoft-services-area-page .odoowoo-card[data-odoowoo-card='dashboard-list'] .odoowoo-list {
 	display: contents;
 }
 

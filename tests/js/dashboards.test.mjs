@@ -420,3 +420,15 @@ test( 'gift card tab: the strip inside My Account shows and hides its link', () 
 	header.applyGiftTab( doc, false );
 	assert.equal( link.hidden, true );
 } );
+
+test( 'test_no_customer_facing_script_or_template_has_a_middle_dot_or_an_em_dash', async () => {
+	const { readdirSync, readFileSync } = await import( 'node:fs' );
+	const root = new URL( '../../', import.meta.url );
+	const files = [ ...readdirSync( new URL( 'assets/js/', root ) ).map( ( f ) => 'assets/js/' + f ), ...readdirSync( new URL( 'templates/cards/', root ) ).map( ( f ) => 'templates/cards/' + f ) ];
+
+	files.forEach( ( f ) => {
+		const text = readFileSync( new URL( f, root ), 'utf8' );
+
+		assert.ok( ! /·|—|&middot;|&mdash;|\\u00b7|\\u2014/.test( text ), f );
+	} );
+} );

@@ -631,12 +631,17 @@ final class AccountAreaTest extends RestTestCase {
 		$this->assertArrayNotHasKey( 'plan_label', Routes::license_summary( Context::for_user( (int) $plain['user_id'], (int) $plain['id'] ) ) );
 	}
 
-	public function test_the_account_look_is_scoped_to_the_account_area_and_square(): void {
+	public function test_the_account_look_is_scoped_to_the_account_area_and_uses_the_one_radius(): void {
 		$css   = (string) file_get_contents( ODOOWOO_PORTAL_PATH . 'assets/css/odoowoo.css' );
 		$block = substr( $css, (int) strpos( $css, "/*\n * Inside My Account (the dashboard" ) );
 
 		$this->assertNotSame( '', $block );
-		$this->assertStringNotContainsString( 'border-radius', $block );
+		// Corners come from the one variable (6px in the account area, like its buttons), never a literal value.
+		$this->assertStringContainsString( '--odoowoo-radius: 6px', $block );
+		preg_match_all( '/border-radius:\s*([^;]+);/', $block, $radii );
+		foreach ( $radii[1] as $radius ) {
+			$this->assertStringStartsWith( 'var(--odoowoo-radius', $radius );
+		}
 		$this->assertStringNotContainsString( "\u{2014}", $block );
 
 		// Every selector of the block starts in the account area (or a dialog opened from it).
