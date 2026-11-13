@@ -220,7 +220,7 @@
 				typed( name ).disabled = ! canWrite;
 			} );
 
-			[ 'stock_sku_meta_keys', 'stock_units_meta_keys' ].forEach( function ( name ) {
+			[ 'stock_sku_meta_keys', 'stock_units_meta_keys', 'vat_meta_keys' ].forEach( function ( name ) {
 				if ( G.document.activeElement !== typed( name ) ) {
 					typed( name ).value = typeof s[ name ] === 'string' ? s[ name ] : '';
 				}
@@ -255,7 +255,7 @@
 				store.patch( patch );
 			} );
 		} );
-		[ 'capture_stage', 'quantity_settings', 'stock_sku_meta_keys', 'stock_units_meta_keys' ].forEach( function ( name ) {
+		[ 'capture_stage', 'quantity_settings', 'stock_sku_meta_keys', 'stock_units_meta_keys', 'vat_meta_keys' ].forEach( function ( name ) {
 			typed( name ).addEventListener( 'input', function () {
 				var patch = {};
 
