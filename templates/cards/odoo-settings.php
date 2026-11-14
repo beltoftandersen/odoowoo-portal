@@ -136,7 +136,7 @@ $odoowoo_row = static function ( string $name, callable $control ) use ( $odoowo
 			<?php
 		}
 	);
-	foreach ( array( 'stock_sku_meta_keys', 'stock_units_meta_keys', 'vat_meta_keys', 'line_text_meta_key', 'fee_quantity_meta_key', 'fee_price_meta_key', 'fee_uom_name', 'fee_rounding_name', 'partner_lang_meta_key' ) as $odoowoo_name ) {
+	foreach ( array( 'stock_sku_meta_keys', 'stock_units_meta_keys', 'vat_meta_keys', 'line_text_meta_key', 'fee_quantity_meta_key', 'fee_price_meta_key', 'fee_uom_name', 'fee_rounding_name', 'credit_payment_ref', 'partner_lang_meta_key' ) as $odoowoo_name ) {
 		$odoowoo_row(
 			$odoowoo_name,
 			static function ( string $id, string $described ) use ( $odoowoo_name ): void {
