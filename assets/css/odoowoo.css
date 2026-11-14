@@ -170,23 +170,23 @@
 	cursor: progress;
 }
 
-/* Status is text plus a symbol, never colour alone. */
-[data-state] {
+/* Status is text plus a symbol, never colour alone. Only inside a portal card: other plugins on the same page use data-state too. */
+[data-odoowoo-card] [data-state] {
 	margin-left: 12px;
 	font-size: 15px;
 	color: var(--odoowoo-muted, #59615c);
 }
 
-[data-state='saving']::before {
+[data-odoowoo-card] [data-state='saving']::before {
 	content: '… ';
 }
 
-[data-state='saved']::before {
+[data-odoowoo-card] [data-state='saved']::before {
 	content: '✓ ';
 	color: var(--odoowoo-accent, #1a7f37);
 }
 
-[data-state='error']::before {
+[data-odoowoo-card] [data-state='error']::before {
 	content: '! ';
 	font-weight: 700;
 	color: var(--odoowoo-danger, #b42318);
@@ -1001,10 +1001,6 @@ body:has(.beltoft-services-area-page) .odoowoo-dialog {
 	--odoowoo-font: inherit;
 }
 
-/* The portal marks its own status text with [data-state] and gives it a left margin: not the service panel's root. */
-.beltoft-services-area-page .beltoft-services-panel[data-state] {
-	margin-left: 0;
-}
 
 .beltoft-services-area-page .odoowoo-card {
 	margin: 0;

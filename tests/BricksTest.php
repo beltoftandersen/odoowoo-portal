@@ -760,4 +760,10 @@ final class BricksTest extends RestTestCase {
 
 		$this->assertMatchesRegularExpression( '/\.odoowoo-mapping__rows\s*\{[^}]*position:\s*relative[^}]*overflow-x:\s*auto/', $css );
 	}
+
+	public function test_status_rules_stay_inside_the_portal_cards(): void {
+		$css = (string) file_get_contents( dirname( __DIR__ ) . '/assets/css/odoowoo.css' );
+		$this->assertDoesNotMatchRegularExpression( '/(^|[},]\s*)\[data-state/m', $css, 'A bare [data-state] rule also styles other plugins on the account page.' );
+		$this->assertStringContainsString( '[data-odoowoo-card] [data-state] {', $css );
+	}
 }
